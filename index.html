@@ -94,6 +94,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .slotr{display:flex;align-items:center;gap:8px}.slotr div{flex:1}.slotr small{display:block;color:var(--muted)}
 .setg textarea{width:100%;background:rgba(0,0,0,.35);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px monospace;resize:vertical}
 .srow{display:flex;gap:6px;flex-wrap:wrap}
+.luckfx{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;font-family:var(--display);font-size:clamp(26px,5vw,44px);color:#6dff9e;text-shadow:0 0 18px rgba(60,255,140,.8),0 3px 0 #0b3d20;text-align:center;animation:luckin 1.9s ease forwards}.luckfx small{display:block;font-size:.4em;color:#d9ffe6}@keyframes luckin{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
 .mpchat{display:none;gap:6px}.chatpanel.mpc .mpchat{display:flex}.mpchat input{flex:1;min-width:0;min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);padding:0 10px;font:inherit}
 #btnMp{position:relative}#btnMp.live{background:linear-gradient(180deg,#1f8a5a,#0f4d33);border-color:#6fe0a8}#btnMp[data-n]:not([data-n=''])::after{content:attr(data-n);position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 3px}
 .mpcode .code{font-family:var(--display);font-size:44px;letter-spacing:.18em;color:var(--gold);text-align:center;padding:6px 0}
@@ -629,7 +630,7 @@ function makeAvatar(p){
   if(p.flowers){[[-.3,1.8,0xff5a8a],[.25,1.3,0xffffff],[-.2,1.2,0xff9f1c],[.32,1.85,0xff5a8a]].forEach(([x,y,c])=>{const f=new THREE.Mesh(new THREE.BoxGeometry(.14,.14,.02),M(c));f.position.set(x,y,.26);body.add(f);});}
   if(p.cape){const cp=new THREE.Mesh(new THREE.BoxGeometry(1.05,1.75,.06),M(0x9e1f33));cp.position.set(0,1.18,-.3);cp.rotation.x=.08;body.add(cp);const tr=new THREE.Mesh(new THREE.BoxGeometry(1.1,.12,.1),M(0xffd24a));tr.position.set(0,2.0,-.29);body.add(tr);}
   let wl=null,wr=null;
-  if(p.wings){const W={fairyw:[0xffb6e8,1.0,.75,0x442233],phoenixw:[0xff8a1c,1.6,1.15,0x993300],batw:[0x2a1030,1.1,.8,null],angelw:[0xffffff,1.25,.9,0x333333],dragonw:[0xd8321f,1.45,1.05,0x662200]}[p.wings];
+  if(p.wings){const W={fairyw:[0xffb6e8,1.0,.75,0x442233],phoenixw:[0xff8a1c,1.6,1.15,0x993300],batw:[0x2a1030,1.1,.8,null],angelw:[0xffffff,1.25,.9,0x333333],dragonw:[0xd8321f,1.45,1.05,0x662200]}[p.wings]||p.wingC||[0xffffff,1,.8,0];
     const wm=new THREE.MeshLambertMaterial({color:W[0],emissive:W[3]||0,side:THREE.DoubleSide});
     const mk=sg=>{const pv=new THREE.Group();pv.position.set(sg*.18,1.85,-.3);const a=new THREE.Mesh(new THREE.BoxGeometry(W[1],W[2],.05),wm);a.position.set(sg*W[1]/2,.1,0);a.castShadow=true;pv.add(a);
       const b2=new THREE.Mesh(new THREE.BoxGeometry(W[1]*.7,W[2]*.55,.05),wm);b2.position.set(sg*W[1]*.55,-W[2]*.55,0);pv.add(b2);
@@ -644,6 +645,15 @@ function makeAvatar(p){
   if(hatT==='pirate'){const tb=new THREE.Mesh(new THREE.CylinderGeometry(.62,.7,.32,3),M(0x111118));tb.position.y=3.02;tb.rotation.y=Math.PI;body.add(tb);B(.18,.18,.03,0xf4f4f4,0,3.04,.4,null,true);}
   if(hatT==='wizard'){const br=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.05,20),M(0x3a1f7a));br.position.y=2.86;body.add(br);const cn=new THREE.Mesh(new THREE.ConeGeometry(.42,1.0,16),M(0x4a2a9a));cn.position.y=3.38;cn.rotation.z=.15;body.add(cn);B(.1,.1,.1,0xffd24a,.05,3.4,.33,null,true);}
   if(p.hood){B(.9,.5,.3,0x6b6f7a,0,2.2,-.42);}
+  if(p.hatG){const g=p.hatG,gm=g.glow?new THREE.MeshBasicMaterial({color:g.c}):M(g.c),c2=g.c2||0xffd24a;
+    if(g.hat==='band'){B(.86,.14,.86,g.c,0,2.6,0);B(.1,.3,.06,c2,.2,2.5,-.44);}
+    if(g.hat==='top'){const br=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.05,20),gm);br.position.y=2.86;body.add(br);const tp=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.7,20),gm);tp.position.y=3.24;body.add(tp);const bd=new THREE.Mesh(new THREE.CylinderGeometry(.39,.39,.1,20),M(c2));bd.position.y=2.96;body.add(bd);}
+    if(g.hat==='helm'){B(.92,.34,.92,g.c,0,2.94,0);B(1.1,.06,1.0,g.c,0,2.78,0);B(.08,.36,.08,c2,-.22,3.24,.4,null,true);B(.08,.36,.08,c2,.22,3.24,.4,null,true);}
+    if(g.hat==='cap'){const c=new THREE.Mesh(new THREE.BoxGeometry(.88,.26,.88),gm);c.position.y=2.9;body.add(c);const b=new THREE.Mesh(new THREE.BoxGeometry(.82,.06,.42),gm);b.position.set(0,2.8,.6);body.add(b);}
+    if(g.hat==='crownx'){const base=new THREE.Mesh(new THREE.CylinderGeometry(.44,.44,.22,16,1,true),new THREE.MeshBasicMaterial({color:g.c,side:THREE.DoubleSide}));base.position.y=2.98;body.add(base);for(let k=0;k<5;k++){const an=k/5*Math.PI*2,st=new THREE.Mesh(new THREE.OctahedronGeometry(.11),new THREE.MeshBasicMaterial({color:c2}));st.position.set(Math.cos(an)*.42,3.24,Math.sin(an)*.42);body.add(st);}}}
+  if(p.capeC){B(1.05,1.75,.06,p.capeC,0,1.18,-.3);B(1.1,.1,.1,0x9ff3ff,0,2.0,-.29,null,true);}
+  if(p.visorG){const v=p.visorG;if(v.mono){B(.24,.24,.03,v.visor,.18,2.5,.42,null,true);B(.03,.4,.03,v.visor,.3,2.3,.42);}else B(.84,.18,.06,v.visor,0,2.5,.42,null,true);}
+  if(p.bandG){B(.46,.1,.46,p.bandG.watchC,0,-.74,0,lArm);if(p.bandG.gem)B(.14,.14,.05,p.bandG.gem,0,-.74,.24,lArm,true);}
   if(p.bow){B(.28,.12,.04,0x111118,0,1.95,.27);}
   if(p.eyeT==='nerd'){B(.3,.2,.03,0x111111,-.18,2.5,.42);B(.3,.2,.03,0x111111,.18,2.5,.42);B(.06,.04,.03,0x111111,0,2.52,.42);}
   if(p.eyeT==='heartg'){B(.28,.22,.04,0xff4d8a,-.18,2.5,.42,null,true);B(.28,.22,.04,0xff4d8a,.18,2.5,.42,null,true);}
@@ -657,7 +667,8 @@ function makeAvatar(p){
   if(p.shoeT==='rocket'){[lLeg,rLeg].forEach(l=>{const fl=new THREE.Mesh(new THREE.ConeGeometry(.12,.3,8),new THREE.MeshBasicMaterial({color:0xff9f1c}));fl.position.set(0,-1.08,-.1);fl.rotation.x=Math.PI;l.add(fl);});}
   let pet=null;
   if(p.pet){pet=new THREE.Group();pet.position.set(.95,2.7,-.25);root.add(pet);
-    const P={catp:[0xf2a33a,0xffffff],bunny:[0xf4f4f4,0xffb6c8],parrot:[0xffd24a,0xff5a4f],dragonp:[0x2fae5a,0xffd24a]}[p.pet];
+    const P={catp:[0xf2a33a,0xffffff],bunny:[0xf4f4f4,0xffb6c8],parrot:[0xffd24a,0xff5a4f],dragonp:[0x2fae5a,0xffd24a]}[p.pet]||p.petC||[0xffffff,0xffffff];
+    if(p.horn)B(.06,.22,.06,0xffd24a,0,.44,.3,pet,true);if(p.petC&&!p.horn){B(.08,.12,.06,P[1],-.1,.4,.2,pet);B(.08,.12,.06,P[1],.1,.4,.2,pet);B(.08,.08,.26,P[1],0,.05,-.3,pet);}
     B(.36,.3,.44,P[0],0,0,0,pet);B(.3,.28,.28,P[0],0,.22,.22,pet);B(.06,.06,.02,0x111111,-.07,.26,.37,pet,true);B(.06,.06,.02,0x111111,.07,.26,.37,pet,true);
     if(p.pet==='catp'){B(.08,.12,.06,P[0],-.1,.4,.2,pet);B(.08,.12,.06,P[0],.1,.4,.2,pet);B(.06,.06,.3,P[1],0,.05,-.32,pet);}
     if(p.pet==='bunny'){B(.07,.3,.05,P[0],-.08,.48,.2,pet);B(.07,.3,.05,P[0],.08,.48,.2,pet);B(.05,.18,.03,P[1],-.08,.48,.23,pet);B(.05,.18,.03,P[1],.08,.48,.23,pet);}
@@ -948,7 +959,7 @@ async function remeRound(t){
   speak(H,`Bet ${fmt(bet)} diterima. Kamu putar duluan.`);
   await wait(900);
   you.arm=1.4;shotWheel(w);SFX.drum(3.2);
-  let pn=rnd();{const sc=n=>{const v=V(n);return v===t.sp?99:v;};if(luckTry(sc(pn)<5)){const p2=rnd();if(sc(p2)>sc(pn))pn=p2;}}
+  const sc=n=>{const v=V(n);return v===t.sp?99:v;};let pn=luckRoll(rnd,sc,n=>sc(n)<6);
   await spinWheel(w,pn,3200);
   SFX.stop();showFloat(w,pn,5000);flashFx();
   const pr=V(pn);showResult(`KAMU: ${numSpan(pn)} → ${K} ${pr}`);
@@ -960,7 +971,7 @@ async function remeRound(t){
     speak(H,(t.kind==='reme'?pr>=8:pr>=7&&pr!==9)?`Wih, ${pr}. Bahaya nih...`:`${K} ${pr}. Giliran saya.`);
     await wait(1000);
     H.yaw=Math.atan2(hw.x-H.pos.x,hw.z-H.pos.z);H.arm=1.4;shotWheel(hw);SFX.drum(3.2);
-    const hn=rnd();await spinWheel(hw,hn,3200);
+    let hn=rnd();{const L=buffs().luck;if(L>0&&sc(hn)>=sc(pn)&&Math.random()<L/200){const h2=rnd();if(sc(h2)<sc(hn)){hn=h2;luckFx(L);}}}await spinWheel(hw,hn,3200);
     H.yaw=-Math.PI/2;
     SFX.stop();showFloat(hw,hn,5000);hr=V(hn);flashFx();
     showResult(`HOST: ${numSpan(hn)} → ${K} ${hr}`);
@@ -1157,7 +1168,7 @@ function drawShop(){
   else if(C==='prop'){h=`<p class="sec-t">Properti & kendaraan · buff aktif otomatis selama dimiliki</p><div class="sgrid">${SHOP.filter(x=>x.s==='status').map(card).join('')}</div>`;}
   else if(C==='promo'){const claimed=PF.promo.daily===today();
     h=`<p class="sec-t">Paket terbatas</p><div class="pgrid">
-      <div class="pk free"><h5>Hadiah Harian</h5><div class="pki"><span>🪙<i>300</i></span></div><small>Sekali sehari</small><button class="buy2 ${claimed?'':'green'}" data-daily ${claimed?'disabled':''}>${claimed?'Sudah diklaim':'Klaim'}</button></div>
+      <div class="pk free"><h5>Hadiah Harian</h5><div class="pki"><span>🪙<i>3.000</i></span></div><small>Sekali sehari</small><button class="buy2 ${claimed?'':'green'}" data-daily ${claimed?'disabled':''}>${claimed?'Sudah diklaim':'Klaim'}</button></div>
       ${PROMOS.map(pk=>{const got=PF.promo[pk.id];return `<div class="pk"><h5>${pk.n}</h5><div class="pki">${pk.items.map(id=>{const x=SHOP.find(i=>i.id===id);return `<span title="${esc(x.n)}" style="--rc:${rarity(x)[1]}">${x.ic}</span>`;}).join('')}${pk.coins?`<span>🪙<i>${fmt(pk.coins)}</i></span>`:''}</div><small>Sekali per akun · hemat ${Math.round((1-pk.p/pk.was)*100)}%</small><button class="buy2" data-promo="${pk.id}" ${got||S.bal<pk.p?'disabled':''}>${got?'✓ Dimiliki':`<s>${fmt(pk.was)}</s> 🪙 ${fmt(pk.p)}`}</button></div>`;}).join('')}</div>`;}
   else if(C==='gacha'){const pool=gachaPool();
     h=`<div class="gbanner"><div><b>Gacha Aksesoris</b><small>Dapat aksesoris acak dari ${pool.length} item. Barang dobel ditukar jadi 40% harganya.</small></div>
@@ -1180,7 +1191,7 @@ function drawShop(){
   const done=(m,cls)=>{save();savePF();render();drawShop();if(m)logLine('sys',null,m,cls||'win');};
   main.querySelectorAll('[data-sbuy]').forEach(b=>b.onclick=()=>{const x=SHOP.find(i=>i.id===b.dataset.sbuy);if(S.bal<x.p){SFX.error();return;}S.bal-=x.p;PF.items[x.id]={eq:false};if(isWear(x))equip(x.id,true);rebuildYou();SFX.big();you.cheer=1.5;done(`Kamu membeli ${x.n}! ${buffTxt(x.b).join(', ')}`);});
   main.querySelectorAll('[data-seq]').forEach(b=>b.onclick=()=>{const id=b.dataset.seq;equip(id,!PF.items[id].eq);rebuildYou();SFX.pop();done();});
-  main.querySelectorAll('[data-daily]').forEach(b=>b.onclick=()=>{if(PF.promo.daily===today())return;PF.promo.daily=today();S.bal+=300;SFX.coin();done('Hadiah harian: +300 koin.');});
+  main.querySelectorAll('[data-daily]').forEach(b=>b.onclick=()=>{if(PF.promo.daily===today())return;PF.promo.daily=today();S.bal+=3000;SFX.coin();done('Hadiah harian: +3.000 koin.');});
   main.querySelectorAll('[data-promo]').forEach(b=>b.onclick=()=>{const pk=PROMOS.find(x=>x.id===b.dataset.promo);if(PF.promo[pk.id]||S.bal<pk.p){SFX.error();return;}S.bal-=pk.p;S.bal+=pk.coins;PF.promo[pk.id]=1;
     pk.items.forEach(id=>{if(!PF.items[id]){PF.items[id]={eq:false};const x=SHOP.find(i=>i.id===id);if(isWear(x))equip(id,true);}else S.bal+=Math.round(SHOP.find(i=>i.id===id).p*.4);});rebuildYou();SFX.big();done(`${pk.n} dibeli!`);});
   main.querySelectorAll('[data-gacha]').forEach(b=>b.onclick=()=>{const n=+b.dataset.gacha,cost=gachaPrice(n);if(S.bal<cost){SFX.error();return;}S.bal-=cost;const pool=gachaPool(),res=[];
@@ -1255,10 +1266,11 @@ function marketTick(){
 }
 setInterval(marketTick,2000);
 const JOBS=[
-  {id:'antar',n:'Antar pesanan',d:6,min:20,max:50,desc:'Antar makanan ke kamar tamu hotel.'},
-  {id:'kurir',n:'Kurir chip',d:8,min:30,max:65,desc:'Bantu kasir antar chip ke meja.'},
-  {id:'logo',n:'Desain logo',d:12,min:50,max:100,desc:'Pesanan logo untuk kafe di lobi.'},
-  {id:'live',n:'Live streaming',d:15,min:0,max:240,desc:'Untung-untungan, kadang penonton sepi.'}
+  {id:'antar',n:'Antar pesanan',d:5,min:150,max:300,desc:'Antar makanan ke kamar tamu hotel.'},
+  {id:'kurir',n:'Kurir chip',d:8,min:300,max:550,desc:'Bantu kasir antar chip ke meja.'},
+  {id:'logo',n:'Desain logo',d:12,min:550,max:900,desc:'Pesanan logo untuk kafe di lobi.'},
+  {id:'event',n:'MC acara VIP',d:20,min:1000,max:1800,desc:'Jadi pembawa acara malam gala.'},
+  {id:'live',n:'Live streaming',d:15,min:0,max:2500,desc:'Untung-untungan, kadang penonton membludak.'}
 ];
 let job=null;
 setInterval(()=>{
@@ -1284,7 +1296,7 @@ async function runDuel(stake){
   S.bal-=stake;duel.stake=stake;duel.stage='roll';duel.y=null;duel.o=null;duel.msg='Memutar...';render();phoneRender();
   const npcE=ents.find(e=>e.name===rv.n);
   let y,o;
-  do{y=rnd();if(luckTry(duelVal(y)<5)){const y2=rnd();if(duelVal(y2)>duelVal(y))y=y2;}o=rnd();
+  do{y=luckRoll(rnd,duelVal,v=>duelVal(v)<6);o=rnd();
     for(let k=0;k<16;k++){const a=$('dY'),b=$('dO');if(a)a.textContent=pick(37);if(b)b.textContent=pick(37);SFX.tick(.5,.4);await wait(70);}
     if(duelVal(y)===duelVal(o)){const m=$('dMsg');if(m)m.textContent=`Seri reme ${reme(y)}! Putar ulang...`;const a=$('dY'),b=$('dO');if(a)a.textContent=y;if(b)b.textContent=o;await wait(900);}
   }while(duelVal(y)===duelVal(o));
@@ -1391,7 +1403,7 @@ function phoneRender(){
       <h5>Bank & Toko</h5><p>Pinjam koin di app Bank (admin 2%, bunga jalan terus). Bayar hutang untuk menaikkan skor kredit. Tabungan dapat bunga kecil. Toko menjual aksesori yang langsung terlihat di karaktermu.</p>
       <h5>Aksesoris & buff</h5><p>Buka Toko (🏪 kanan atas): promo harian, gacha, aksesoris per kategori, set aksesoris (bonus kalau lengkap dipakai), properti, pass permanen, dan tas. Satu barang per slot. Hoki X% = peluang hasil buruk diulang sekali (maks 50%). Cuan +X% = bonus dari setiap kemenangan.</p>
       <h5>Ranking & duel</h5><p>Ranking dihitung dari kekayaan bersih. Masuk top 10, 5, 3, dan juara 1 dapat hadiah sekali. Tantang NPC duel reme dari app Ranking.</p>
-      <h5>Saldo habis</h5><p>Muncul pilihan: bantuan lounge 500 koin (tiap 2 menit), kerja sampingan, cairkan aset, pinjam bank, atau pailit kalau hutang sudah tidak tertolong.</p>
+      <h5>Saldo habis</h5><p>Muncul pilihan: bantuan lounge 1.500 koin (tiap 1 menit), kerja sampingan, cairkan aset, pinjam bank, atau pailit kalau hutang sudah tidak tertolong.</p>
       <h5>Parkiran & koleksi</h5><p>Keluar lewat pintu depan untuk melihat parkiran. Mobil dan properti yang kamu beli tampil di sana, yang belum dimiliki tampil transparan.</p>
       <h5>Duel di meja</h5><p>Tantang NPC dari Ranking, lalu datangi Meja Duel di sisi kanan dekat pintu. Midman Sinta memegang chip dan memimpin duel.</p>
       <h5>Setting</h5><p>Tombol ⚙️ di kanan atas: volume, musik, 3 slot simpan, dan kode simpan untuk pindah perangkat.</p>
@@ -1503,6 +1515,34 @@ const SHOP=[
   {id:'catp',s:'pet',ic:'🐱',n:'Kucing hoki',p:4000,r:'R',b:{luck:4},d:'Kucing pembawa rezeki.'},
   {id:'parrot',s:'pet',ic:'🦜',n:'Beo emas',p:12000,r:'E',b:{luck:7,bonus:2},d:'Suka teriak "reme nol!"'},
   {id:'dragonp',s:'pet',ic:'🐲',n:'Naga kecil',p:50000,r:'L',b:{luck:12,bonus:5},d:'Terbang mengikutimu.'},
+  {id:'bandana',s:'hat',ic:'🥷',n:'Ikat kepala ninja',p:700,r:'C',b:{job:8,luck:1},d:'Fokus penuh, tanpa ragu.',v:{hat:'band',c:0x111118,c2:0xd8321f}},
+  {id:'tophat',s:'hat',ic:'🎩',n:'Topi tinggi pesulap',p:3000,r:'R',b:{luck:5},d:'Keluarkan kelinci dan hoki.',v:{hat:'top',c:0x15131c,c2:0xd8435b}},
+  {id:'samurai',s:'hat',ic:'⛩',n:'Helm samurai',p:11000,r:'E',b:{luck:9,bonus:2},d:'Tenang seperti pedang di sarungnya.',v:{hat:'helm',c:0x7a1530,c2:0xffd24a}},
+  {id:'neonhat',s:'hat',ic:'💡',n:'Topi neon',p:24000,r:'L',b:{luck:12,bonus:4},d:'Menyala di bawah lampu kasino.',v:{hat:'cap',c:0x19f0ff,glow:1}},
+  {id:'galaxyh',s:'hat',ic:'🌌',n:'Mahkota galaksi',p:90000,r:'M',b:{luck:18,bonus:8},d:'Bintang-bintang berputar di kepalamu.',v:{hat:'crownx',c:0x7b4dff,c2:0x9ff3ff,glow:1}},
+  {id:'jersey',s:'shirt',ic:'⚽',n:'Jersey bola',p:600,r:'C',b:{job:8},d:'Nomor punggung 10.',v:{shirt:0xe23b3b,logo:0xffffff,pants:0xf4f4f4}},
+  {id:'leatherj',s:'shirt',ic:'🧥',n:'Jaket kulit',p:3200,r:'R',b:{luck:5},d:'Gaya rocker lounge.',v:{shirt:0x241812,logo:0x6b4a32,pants:0x1b2650}},
+  {id:'kimono',s:'shirt',ic:'👘',n:'Kimono naga',p:10000,r:'E',b:{luck:8,bonus:3},d:'Bordir naga emas di punggung.',v:{shirt:0x1a2a6a,logo:0xffd24a,pants:0x111118,vest:true}},
+  {id:'neonsuit',s:'shirt',ic:'🟣',n:'Setelan neon',p:26000,r:'L',b:{luck:11,bonus:6},d:'Bersinar tiap kali menang.',v:{shirt:0x9b2cff,logo:0x19f0ff,pants:0x15131c,vest:true}},
+  {id:'galaxys',s:'shirt',ic:'🌠',n:'Jubah galaksi',p:85000,r:'M',b:{luck:16,bonus:8},d:'Kain dari langit malam.',v:{shirt:0x24125a,logo:0x9ff3ff,pants:0x120a24,cape:0x4a2aa0}},
+  {id:'butterw',s:'wings',ic:'🦋',n:'Sayap kupu-kupu',p:900,r:'C',b:{luck:2},d:'Ringan dan berwarna.',v:{wing:[0x4db8ff,.9,.8,0x113355]}},
+  {id:'neonw',s:'wings',ic:'💜',n:'Sayap neon',p:28000,r:'E',b:{luck:10,bonus:3},d:'Garis cahaya ungu biru.',v:{wing:[0xb46bff,1.3,1.0,0x6a2aff]}},
+  {id:'galaxyw',s:'wings',ic:'🌌',n:'Sayap galaksi',p:160000,r:'M',b:{luck:30,bonus:10},d:'Sayap paling langka di lounge.',v:{wing:[0x5a3cff,1.75,1.25,0x2a10a0]}},
+  {id:'sandal',s:'shoes',ic:'🩴',n:'Sandal jepit',p:200,r:'C',b:{job:6},d:'Santai, tapi kerja jalan terus.',v:{shoes:0x2fae5a}},
+  {id:'neonsh',s:'shoes',ic:'👟',n:'Sepatu neon',p:9500,r:'E',b:{luck:7,job:5},d:'Jejak cahaya di karpet.',v:{shoes:0x19f0ff}},
+  {id:'galaxysh',s:'shoes',ic:'✨',n:'Sepatu galaksi',p:60000,r:'M',b:{luck:12,bonus:5},d:'Melangkah di antara bintang.',v:{shoes:0x6a3cff}},
+  {id:'monocle',s:'eyes',ic:'🧐',n:'Monokel emas',p:2800,r:'R',b:{bonus:3,luck:1},d:'Bangsawan pembaca peluang.',v:{visor:0xffd24a,mono:1}},
+  {id:'neonv',s:'eyes',ic:'🥽',n:'Visor neon',p:12000,r:'E',b:{luck:7,bonus:2},d:'Lihat roda dalam gerak lambat.',v:{visor:0x19f0ff}},
+  {id:'galaxye',s:'eyes',ic:'🔮',n:'Visor galaksi',p:55000,r:'M',b:{luck:12,bonus:6},d:'Melihat masa depan roda.',v:{visor:0x9b5cf6}},
+  {id:'pearl',s:'neck',ic:'⚪',n:'Kalung mutiara',p:3000,r:'R',b:{luck:3,bonus:1},d:'Mutiara laut selatan.',v:{chain:0xf4f0e8}},
+  {id:'starn',s:'neck',ic:'⭐',n:'Kalung bintang',p:30000,r:'L',b:{luck:10,bonus:5},d:'Bintang jatuh di dadamu.',v:{chain:0xb79cff}},
+  {id:'goldring',s:'hand',ic:'💛',n:'Cincin emas polos',p:500,r:'C',b:{luck:1,bonus:1},d:'Sederhana tapi berkilau.',v:{watchC:0xffd24a}},
+  {id:'dicebr',s:'hand',ic:'🎲',n:'Gelang dadu',p:11000,r:'E',b:{luck:8},d:'Dadunya selalu jatuh di angka bagus.',v:{watchC:0xf4f4f4,gem:0xd8321f}},
+  {id:'galaxyb',s:'hand',ic:'🪐',n:'Gelang planet',p:50000,r:'M',b:{luck:10,bonus:8},d:'Cincin Saturnus di pergelangan.',v:{watchC:0x7b4dff,gem:0x9ff3ff}},
+  {id:'puppy',s:'pet',ic:'🐶',n:'Anak anjing',p:900,r:'C',b:{job:8},d:'Setia menemani kerja.',v:{pet:[0xc98a55,0x5a3519]}},
+  {id:'foxp',s:'pet',ic:'🦊',n:'Rubah api',p:14000,r:'E',b:{luck:8,bonus:2},d:'Ekornya membawa hoki.',v:{pet:[0xff7a1c,0xffffff]}},
+  {id:'unicorn',s:'pet',ic:'🦄',n:'Unicorn',p:55000,r:'L',b:{luck:14,bonus:4},d:'Langka, ajaib, dan manja.',v:{pet:[0xffffff,0xff7ad0],horn:1}},
+  {id:'galaxyp',s:'pet',ic:'🐋',n:'Paus galaksi',p:110000,r:'M',b:{luck:18,bonus:8},d:'Berenang di udara di sampingmu.',v:{pet:[0x3a2aa0,0x9ff3ff]}},
   {id:'moto',s:'status',ic:'🏍',n:'Moge hitam',p:15000,r:'R',b:{job:15},d:'Parkir di depan lounge.'},
   {id:'car',s:'status',ic:'🏎',n:'Mobil sport',p:25000,r:'E',b:{job:20},d:'Antar pesanan lebih cepat.'},
   {id:'suv',s:'status',ic:'🚙',n:'SUV mewah',p:40000,r:'E',b:{job:10,luck:2},d:'Gagah di parkiran.'},
@@ -1521,7 +1561,10 @@ const SETS=[
   {id:'pirates',n:'Set Bajak Laut',ic:'🏴‍☠️',items:['pirate','parrot','boots','ring'],b:{luck:4,bonus:4}},
   {id:'king',n:'Set Raja',ic:'👑',items:['crown','robe','goldsh','diamn'],b:{luck:5,bonus:5}},
   {id:'angel',n:'Set Malaikat',ic:'😇',items:['halo','angelw','tux','heartg'],b:{luck:8,bonus:3}},
-  {id:'phoenix',n:'Set Phoenix',ic:'🔥',items:['phoenixw','rocket','cyber','medal'],b:{luck:6,bonus:6}}
+  {id:'phoenix',n:'Set Phoenix',ic:'🔥',items:['phoenixw','rocket','cyber','medal'],b:{luck:6,bonus:6}},
+  {id:'neon',n:'Set Neon',ic:'💡',items:['neonhat','neonsuit','neonw','neonsh'],b:{luck:6,bonus:6}},
+  {id:'galaxy',n:'Set Galaksi',ic:'🌌',items:['galaxyh','galaxys','galaxyw','galaxysh'],b:{luck:10,bonus:10}},
+  {id:'samuraiset',n:'Set Samurai',ic:'⛩',items:['samurai','kimono','foxp','dicebr'],b:{luck:5,bonus:4}}
 ];
 const PASSES=[
   {id:'vip',n:'VIP Lounge',ic:'🎫',p:30000,b:{bonus:10},d:['Cuan +10%','Bantuan saldo habis jadi 1.000','Gacha diskon 10%']},
@@ -1539,7 +1582,10 @@ function buffs(){const r={luck:0,bonus:0,job:0,save:0},add=b=>{for(const k in b)
 const BI={luck:'🍀',bonus:'💰',job:'💼',save:'🏦'};
 const buffTxt=b=>['luck','bonus','job','save'].filter(k=>b[k]).map(k=>`${BI[k]} ${k==='luck'?'Hoki ':k==='bonus'?'Cuan ':k==='job'?'Kerja ':'Bunga '}+${b[k]}%`);
 const buffChips=b=>['luck','bonus','job','save'].filter(k=>b[k]).map(k=>`<span title="${k==='luck'?'Hoki':k==='bonus'?'Cuan':k==='job'?'Kerja':'Bunga tabungan'}">${BI[k]} +${b[k]}%</span>`).join('');
-function luckTry(bad){const L=buffs().luck;if(L>0&&bad&&Math.random()<L/100){logLine('sys',null,`Hoki aksesoris aktif (${L}%)! Hasil buruk diulang sekali.`,'win');return true;}return false;}
+function luckTry(bad){const L=buffs().luck;if(L>0&&bad&&Math.random()<L/100){luckFx(L);return true;}return false;}
+function luckFx(L){const el=document.createElement('div');el.className='luckfx';el.innerHTML=`🍀 HOKI ${L}%!<small>hasil buruk diulang</small>`;stage.appendChild(el);setTimeout(()=>el.remove(),1900);try{SFX.coin();}catch(e){}logLine('sys',null,`🍀 Hoki aksesoris (${L}%) aktif! Hasil buruk diulang dan diambil yang terbaik.`,'win');}
+// luckRoll: if the first result is bad, luck% chance to roll 2 more times and keep the best
+function luckRoll(gen,score,bad){const r=gen(),L=buffs().luck;if(!(L>0&&bad(r)&&Math.random()<L/100))return r;let best=r;for(let i=0;i<2;i++){const c=gen();if(score(c)>score(best))best=c;}luckFx(L);return best;}
 const bonusOn=win=>{const B=buffs().bonus;return win>0&&B?Math.round(win*B/100):0;};
 function equip(id,on){const x=SHOP.find(i=>i.id===id);if(on)SHOP.forEach(y=>{if(y.s===x.s&&PF.items[y.id])PF.items[y.id].eq=false;});PF.items[id].eq=on;}
 function youPal(){const it=PF.items||{},eq=id=>it[id]&&it[id].eq,inS=s=>{const x=SHOP.find(y=>y.s===s&&eq(y.id));return x?x.id:null;};
@@ -1557,6 +1603,10 @@ function youPal(){const it=PF.items||{},eq=id=>it[id]&&it[id].eq,inS=s=>{const x
   if(p.neckT==='chain')p.chain=0xffd24a;if(p.neckT==='diamn')p.chain=0x9ff3ff;
   if(p.handT==='watch')p.watch=true;if(p.handT==='ring')p.ring=true;
   const shc={sneak:0xf4f4f4,leather:0x3a2216,goldsh:0xffd24a,rocket:0xd8321f};if(shc[p.shoeT])p.shoes=shc[p.shoeT];
+  ['hat','shirt','wings','shoes','eyes','neck','hand','pet'].forEach(sl=>{const id=inS(sl);const x=id&&SHOP.find(y=>y.id===id);if(!x||!x.v)return;const v=x.v;
+    if(sl==='hat'){p.hatG=v;}
+    if(sl==='shirt'){p.shirt=v.shirt;p.pants=v.pants;if(v.logo)p.logo=v.logo;if(v.vest)p.vest=true;if(v.cape)p.capeC=v.cape;}
+    if(sl==='wings')p.wingC=v.wing;if(sl==='shoes')p.shoes=v.shoes;if(sl==='eyes')p.visorG=v;if(sl==='neck')p.chain=v.chain;if(sl==='hand')p.bandG=v;if(sl==='pet'){p.petC=v.pet;if(v.horn)p.horn=true;}});
   return p;}
 function rebuildYou(){if(!you)return;const pos=you.pos.clone(),yaw=you.yaw;scene.remove(you.av.root);you.av=makeAvatar(youPal());you.av.root.position.copy(pos);you.pos=you.av.root.position;you.yaw=yaw;if(typeof mpLookChanged==='function')mpLookChanged();}
 const ownVal=()=>SHOP.filter(x=>PF.items[x.id]).reduce((s,x)=>s+Math.round(x.p*.7),0);
@@ -1576,7 +1626,7 @@ function updateBankHud(){const d=$('debtVal');if(d)d.textContent=fmt(Math.round(
 function addTx(t){PF.tx.unshift(Object.assign({at:Date.now()},t));PF.tx=PF.tx.slice(0,40);}
 
 /* ---- broke rescue ---- */
-const AID_CD=120000;
+const AID_CD=60000;
 function checkBroke(){
   if(S.bal>=10||S.bet>0||busy||document.getElementById('broke'))return;
   setTimeout(()=>{if(S.bal>=10||document.getElementById('broke'))return;showBroke();},900);
@@ -1587,7 +1637,7 @@ function showBroke(){
   el.innerHTML=`<div class="panel" role="dialog" aria-label="Saldo habis"><div class="phead"><h3>Saldo habis</h3><button class="pclose" aria-label="Tutup">✕</button></div>
     <p class="pmsg" style="font-weight:600;color:var(--muted)">Koin tunaimu tinggal ${fmt(S.bal)}. Pilih cara untuk bangkit lagi:</p>
     <div class="rescue">
-      <button data-r="aid" ${wait?'disabled':''}><b>🎁 Bantuan lounge</b><small>${wait?`Bisa diambil lagi dalam ${Math.ceil(wait/1000)} detik`:`Gratis ${PF.pass.vip?'1.000':'500'} koin. Bisa diambil tiap 2 menit.`}</small></button>
+      <button data-r="aid" ${wait?'disabled':''}><b>🎁 Bantuan lounge</b><small>${wait?`Bisa diambil lagi dalam ${Math.ceil(wait/1000)} detik`:`Gratis ${PF.pass.vip?'3.000':'1.500'} koin. Bisa diambil tiap 1 menit.`}</small></button>
       <button data-r="jobs"><b>💼 Kerja sampingan</b><small>Dapat 20-240 koin per kerjaan, jalan sambil kamu keliling.</small></button>
       ${pv>1||B.save>1||ownVal()>0?`<button data-r="sell"><b>👛 Cairkan aset</b><small>Investasi ${fmt(Math.round(pv))} · tabungan ${fmt(Math.round(B.save))} · barang bisa dijual 70%.</small></button>`:''}
       ${B.loan<loanLimit()?`<button data-r="loan"><b>🏦 Pinjam ke bank</b><small>Sisa limit ${fmt(Math.round(loanLimit()-B.loan))} koin, bunga 0,1% tiap 10 detik.</small></button>`:''}
@@ -1598,7 +1648,7 @@ function showBroke(){
   el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const r=b.dataset.r;
     if(r==='bk'&&!b.dataset.ok){b.dataset.ok=1;b.querySelector('b').textContent='⚖️ Yakin pailit? Klik sekali lagi';SFX.error();return;}
     close();
-    if(r==='aid'){const ad=PF.pass.vip?1000:500;S.bal+=ad;PF.aidT=Date.now();SFX.coin();logLine('sys',null,`Lounge memberi bantuan ${fmt(ad)} koin. Main pelan-pelan ya.`,'win');}
+    if(r==='aid'){const ad=PF.pass.vip?3000:1500;S.bal+=ad;PF.aidT=Date.now();SFX.coin();logLine('sys',null,`Lounge memberi bantuan ${fmt(ad)} koin. Main pelan-pelan ya.`,'win');}
     else if(r==='jobs'){togglePhone(true);phView='jobs';phoneRender();}
     else if(r==='sell'){togglePhone(true);phView='wallet';phoneRender();}
     else if(r==='loan'){togglePhone(true);phView='bank';phoneRender();}
@@ -1621,6 +1671,7 @@ function checkRankReward(){const rk=myRank();if(!PF.rankBest)PF.rankBest=99;
   RANK_REW.forEach(([lim,rew])=>{if(rk<=lim&&PF.rankBest>lim){S.bal+=rew;SFX.big();you.cheer=2;logLine('sys',null,`Ranking naik ke #${rk}! Hadiah masuk top ${lim}: ${fmt(rew)} koin.`,'win');}});
   if(rk<PF.rankBest)PF.rankBest=rk;}
 setInterval(()=>{if(started){checkRankReward();save();savePF();}},5000);
+let onlineT=0;setInterval(()=>{if(!started||document.hidden)return;onlineT+=10;if(onlineT>=120){onlineT=0;const g=Math.round(500*(1+buffs().job/100));S.bal+=g;SFX.coin();logLine('sys',null,`🎁 Bonus main 2 menit: +${fmt(g)} koin.`,'win');render();}},10000);
 function flushSave(){try{if(started){save();savePF();}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave();});addEventListener('pagehide',flushSave);addEventListener('beforeunload',flushSave);
 let duel=null;
@@ -1802,7 +1853,7 @@ async function duelAtTable(){
   do{round++;
     speak(H,round>1?'Seri! Putar ulang, giliran kamu.':'Kamu putar duluan.');await wait(700);
     shotWheel(DUEL.pw);you.arm=1.4;you.yaw=Math.atan2(DUEL.pw.x-you.pos.x,DUEL.pw.z-you.pos.z);SFX.drum(3);
-    y=rnd();if(luckTry(duelVal(y)<5)){const y2=rnd();if(duelVal(y2)>duelVal(y))y=y2;}
+    y=luckRoll(rnd,duelVal,v=>duelVal(v)<6);
     await spinWheel(DUEL.pw,y,3000);SFX.stop();flashFx();showFloat(DUEL.pw,y,5000);showResult(`KAMU: ${numSpan(y)} → REME ${reme(y)}`);
     shotTo(TX-6,3.2,z+1.5,TX-1.6,2.6,z+2);await wait(900);
     speak(e,reme(y)===0?'Waduh, reme 0...':`Reme ${reme(y)}? Saya bisa lewati.`,false);await wait(700);
@@ -2010,7 +2061,7 @@ function slotGame(body,st){
   btn.addEventListener('click',async()=>{
     if(modal.busy)return;if(!takeBet(bet)){msg.textContent='Saldo tidak cukup.';return;}
     modal.busy=true;btn.disabled=true;modal.refresh();SFX.lever();modalFx('spin');m.lever.rotation.x=.9;setTimeout(()=>m.lever.rotation.x=0,350);
-    msg.textContent='Berputar...';let res=[rollSym(),rollSym(),rollSym()];{const sm=r=>(r[0]===r[1]&&r[1]===r[2])||r.filter(x=>x==='🍒').length===2;if(luckTry(!sm(res)))res=[rollSym(),rollSym(),rollSym()];}
+    msg.textContent='Berputar...';const sm=r=>(r[0]===r[1]&&r[1]===r[2])||r.filter(x=>x==='🍒').length===2;let res=luckRoll(()=>[rollSym(),rollSym(),rollSym()],r=>sm(r)?(r[0]===r[1]&&r[1]===r[2]?2:1):0,r=>!sm(r));
     reels.forEach(r=>r.classList.add('spinning'));
     const iv=setInterval(()=>{reels.forEach((r,i)=>{if(r.classList.contains('spinning')){r.textContent=SYMS[pick(6)].s;r.classList.toggle('seven',r.textContent==='7');}});SFX.reel();},70);
     for(let i=0;i<3;i++){await wait(650+i*420);reels[i].classList.remove('spinning');reels[i].textContent=res[i];reels[i].classList.toggle('seven',res[i]==='7');SFX.clunk();}
@@ -2095,7 +2146,7 @@ function rouletteGame(body,st){
   btnSpin.onclick=async()=>{
     const stake=upd();if(!stake||modal.busy)return;modal.busy=true;upd();modalFx('spin');
     speak(crou,'Tidak ada taruhan lagi!',false);msg.textContent='Bola berputar...';
-    const rr=x=>{let r=0;for(const k in bets){const v=bets[k];if(k[0]==='n'){if(+k.slice(1)===x)r+=v*36;}else if(RBETS[k].f(x))r+=v*(RBETS[k].p+1);}return r;};let n=rnd();if(luckTry(rr(n)<stake))n=rnd();const i=ORDER.indexOf(n);let target=-(i+.5)*SEG+(Math.random()-.5)*SEG*.5;const from=rot;target+=Math.ceil((from+Math.PI*2*5-target)/(Math.PI*2))*Math.PI*2;
+    const rr=x=>{let r=0;for(const k in bets){const v=bets[k];if(k[0]==='n'){if(+k.slice(1)===x)r+=v*36;}else if(RBETS[k].f(x))r+=v*(RBETS[k].p+1);}return r;};let n=luckRoll(rnd,rr,x=>rr(x)<stake);const i=ORDER.indexOf(n);let target=-(i+.5)*SEG+(Math.random()-.5)*SEG*.5;const from=rot;target+=Math.ceil((from+Math.PI*2*5-target)/(Math.PI*2))*Math.PI*2;
     const d3from=rouletteDisc.rotation.z,t0=performance.now(),dur=4000;let lastSeg=null;SFX.spinStart();
     await new Promise(res=>{function f(now){const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);rot=from+(target-from)*e;drawW();rouletteDisc.rotation.z=d3from+(target-from)*e;
       const sg=Math.floor(rot/SEG);if(sg!==lastSeg){if(lastSeg!==null)SFX.tick(1-k,.8);lastSeg=sg;}if(k<1)requestAnimationFrame(f);else res();}requestAnimationFrame(f);});
@@ -2131,7 +2182,7 @@ function diceGame(body,st){
   go.onclick=async()=>{
     const stake=upd();if(!stake||modal.busy)return;modal.busy=true;upd();msg.textContent='Mengocok...';SFX.shake();modalFx('spin');
     const roll3=()=>[1+pick(6),1+pick(6),1+pick(6)];const dr=r=>{const sm=r[0]+r[1]+r[2],tr=r[0]===r[1]&&r[1]===r[2];let x=0;for(const k in bets){const v=bets[k];let hit=false;if(k==='triple')hit=tr;else if(!tr){hit=k==='small'?sm<=10:k==='big'?sm>=11:k==='odd'?sm%2===1:sm%2===0;}if(hit)x+=v*(DBETS[k].p+1);}return x;};
-    let res=roll3();if(luckTry(dr(res)<stake))res=roll3();
+    let res=luckRoll(roll3,dr,r=>dr(r)<stake);
     st.dice.forEach(d=>d.t=1.1);
     for(let k=0;k<10;k++){dice.innerHTML=[0,1,2].map(()=>pipHTML(1+pick(6))).join('');dice.classList.add('shake');await wait(90);}
     dice.classList.remove('shake');dice.innerHTML=res.map(pipHTML).join('');SFX.clunk();
@@ -2258,7 +2309,7 @@ function mpAdd(h){
   MP.players[h.id]={id:h.id,name,e,hello:{t:'hello',id:h.id,name,look:h.look},tx:new THREE.Vector3(e.pos.x,e.pos.y,e.pos.z),tyaw:e.yaw,lock:false,seen:performance.now()};
   burst(new THREE.Vector3(e.pos.x,2,e.pos.z),24);logLine('sys',null,`${name} masuk ke lounge.`);SFX.pop();mpBadge();if(modal&&modal.st.label==='Mabar')modal.refresh();
 }
-function mpPal(look){const base=randPal();if(look&&typeof look==='object')for(const k in look){const v=look[k];if(typeof v==='number'||typeof v==='boolean'||(typeof v==='string'&&v.length<40))base[k]=v;}return base;}
+function mpPal(look){const base=randPal();if(look&&typeof look==='object')for(const k in look){const v=look[k];if(typeof v==='number'||typeof v==='boolean'||(typeof v==='string'&&v.length<40))base[k]=v;else if(v&&typeof v==='object'){try{if(JSON.stringify(v).length<240)base[k]=v;}catch(e){}}}return base;}
 function mpRebuild(pl,look){const e=pl.e,pos=e.pos.clone();scene.remove(e.av.root);e.av=makeAvatar(mpPal(look));e.av.root.position.copy(pos);e.pos=e.av.root.position;e.tagEl.textContent=pl.name;}
 function mpDrop(id){const pl=MP.players[id];if(!pl)return;scene.remove(pl.e.av.root);pl.e.tagEl.remove();pl.e.bubEl.remove();const i=ents.indexOf(pl.e);if(i>=0)ents.splice(i,1);delete MP.players[id];
   if(MP.duel&&MP.duel.with===id&&MP.duel.stage!=='live')MP.duel=null;if(MP.inv&&MP.inv.id===id)mpCloseInvite();
