@@ -104,7 +104,13 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #btnMp{position:relative}#btnMp.live{background:linear-gradient(180deg,#1f8a5a,#0f4d33);border-color:#6fe0a8}#btnMp[data-n]:not([data-n=''])::after{content:attr(data-n);position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 3px}
 .mpcode .code{font-family:var(--display);font-size:44px;letter-spacing:.18em;color:var(--gold);text-align:center;padding:6px 0}
 .mpb input:not([type=range]){min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);padding:0 10px;font:inherit;width:100%;box-sizing:border-box}.mpb .srow input{width:auto}.pbtn.ghost{background:transparent;border:1px solid var(--line)}
-.mpinv{position:absolute;left:50%;top:30%;transform:translateX(-50%);z-index:9;background:var(--glass2);border:2px solid var(--gold);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;width:min(360px,calc(100% - 32px));box-shadow:0 10px 40px rgba(0,0,0,.6);animation:mpin .35s ease}.mpinv small{color:var(--muted)}.mpinv div{display:flex;gap:8px;margin-top:4px}@keyframes mpin{from{transform:translate(-50%,-14px);opacity:0}}.pbtn.danger{background:#7a1f1f;color:#fff}.corp .tgo{width:100%;margin-top:8px;font-size:14px}.corp .small{width:100%;margin-top:6px}.corp .muted{font-size:11px;margin:6px 0 0}
+.mpinv{position:absolute;left:50%;top:30%;transform:translateX(-50%);z-index:9;background:var(--glass2);border:2px solid var(--gold);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;width:min(360px,calc(100% - 32px));box-shadow:0 10px 40px rgba(0,0,0,.6);animation:mpin .35s ease}.mpinv small{color:var(--muted)}.mpinv div{display:flex;gap:8px;margin-top:4px}@keyframes mpin{from{transform:translate(-50%,-14px);opacity:0}}.pbtn.danger{background:#7a1f1f;color:#fff}
+.stk{display:flex;gap:8px;align-items:center;margin:6px 0}.stk span{min-width:44px;font-weight:800}.stk select{flex:1;min-width:0;min-height:40px;border-radius:10px;background:rgba(0,0,0,.35);color:var(--fg);border:1px solid var(--line);font:inherit}
+.dotin{flex:1;min-width:0;min-height:40px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);padding:0 10px;font:inherit;font-weight:800}
+.bxt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%;margin-top:6px}.bxt button{min-height:36px;border:0;border-radius:9px;padding:0 10px;font-weight:800;background:rgba(255,255,255,.12);color:var(--fg)}.bxt .allin{background:#c62e27;color:#fff}.bxt .go2{background:var(--green);color:#06281a}.bxt .dotin{min-width:110px}
+.btag{font-size:12px;color:var(--muted);font-weight:800;align-self:center}.adop{font-size:18px;font-weight:800;color:var(--gold);margin:4px 0}.adop small{color:var(--muted);font-size:12px}
+.pct{display:flex;gap:6px;flex-wrap:wrap}.pct button{min-height:34px;border:0;border-radius:9px;padding:0 12px;font-weight:800;background:rgba(255,255,255,.12);color:var(--fg)}
+.corp .tgo{width:100%;margin-top:8px;font-size:14px}.corp .small{width:100%;margin-top:6px}.corp .muted{font-size:11px;margin:6px 0 0}
 .go.alt{background:#2a3550;color:#fff;box-shadow:0 4px 0 #121a2c}#ctx .go{font-size:15px;min-height:42px}
 .bzr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);margin:6px 0;font-size:13px}.bzr small{display:block;color:var(--muted);font-size:11px}.bzr em{font-style:normal;color:#8ef0a8;font-weight:800;white-space:nowrap}.bzr.sub{margin-left:14px;background:rgba(125,243,255,.08)}
 .bzgo{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.bzgo button{font-size:12px}
@@ -1160,8 +1166,10 @@ function buildCtx(t){
       <div class="ctx-row">${ch.map(v=>`<button class="chip c${Math.min(v,1000)}" data-v="${v}">${v>=1000?(v/1000)+'K':v}</button>`).join('')}
         <button class="small" id="ctxDbl">x2</button><button class="small" id="ctxClr">Hapus</button>
         <button class="small" id="ctxTie" aria-pressed="${tieHost}">Seri: ${tieHost?'host menang':'kembali'}</button></div>
+      <div class="ctx-row" id="ctxBx"></div>
       <div class="ctx-row"><button class="go" id="ctxGo">PUTAR ${t.KIND} (E)</button></div>`;
     el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>addBet(+b.dataset.v));
+    $('ctxBx').appendChild(betExtras(0,v=>addBet(Math.min(v,S.bal)),'Pasang'));
     $('ctxDbl').onclick=()=>{if(busy||!S.bet)return;addBet(Math.min(S.bet,S.bal));};
     $('ctxClr').onclick=()=>{if(busy||!S.bet)return;S.bal+=S.bet;S.bet=0;betTable=null;SFX.chip();render();};
     $('ctxTie').onclick=e=>{tieHost=!tieHost;e.currentTarget.setAttribute('aria-pressed',tieHost);e.currentTarget.textContent='Seri: '+(tieHost?'host menang':'kembali');logLine('sys',null,tieHost?'Aturan seri: host menang.':'Aturan seri: taruhan dikembalikan.');};
@@ -1181,12 +1189,12 @@ function addBet(v){if(busy)return;audio();const ct=currentTarget(),t=ct&&ct.w&&c
 /* ---------- settings: audio, save slots, save code ---------- */
 function applyAudio(){sfxOn=SET.sfx>0;if(master)master.gain.value=SET.sfx/100;if(mus)mus.gain.value=SET.mv/100;
   const want=SET.music&&started;if(want!==musicOn){musicOn=want;clearInterval(musicTimer);if(musicOn){audio();musicTimer=setInterval(musicTick,styleNow().step);}}saveSet();}
-function snap(){return {v:1,t:Date.now(),S:{bal:S.bal+S.bet,wins:S.wins,losses:S.losses,hist:S.hist},PF:{hold:PF.hold,cost:PF.cost,bank:PF.bank,items:PF.items,tx:PF.tx,rivals:PF.rivals,aidT:PF.aidT||0,rankBest:PF.rankBest||99,pass:PF.pass,promo:PF.promo,dia:PF.dia||0,qd:PF.qd,tix:PF.tix||0,bonds:PF.bonds||[],corp:PF.corp||{},px:Object.fromEntries(MK.map(a=>[a.id,a.p]))}};}
+function snap(){return {v:1,t:Date.now(),S:{bal:S.bal+S.bet,wins:S.wins,losses:S.losses,hist:S.hist},PF:{hold:PF.hold,cost:PF.cost,bank:PF.bank,items:PF.items,tx:PF.tx,rivals:PF.rivals,aidT:PF.aidT||0,rankBest:PF.rankBest||99,pass:PF.pass,promo:PF.promo,dia:PF.dia||0,qd:PF.qd,tix:PF.tix||0,bonds:PF.bonds||[],corp:PF.corp||{},tyW:PF.tyW||{},px:Object.fromEntries(MK.map(a=>[a.id,a.p]))}};}
 function applySnap(d){
   if(!d||!d.S||typeof d.S.bal!=='number'||!d.PF)throw new Error('bad');
   S.bal=d.S.bal;S.bet=0;betTable=null;S.wins=d.S.wins|0;S.losses=d.S.losses|0;S.hist=Array.isArray(d.S.hist)?d.S.hist:[];
   const P=d.PF;PF.hold=P.hold||{};PF.cost=P.cost||{};PF.bank=Object.assign({save:0,loan:0,score:650,paid:0},P.bank||{});PF.items=P.items||{};PF.tx=P.tx||[];
-  if(Array.isArray(P.rivals)&&P.rivals.length===RIVAL_BASE.length)PF.rivals=P.rivals;PF.aidT=P.aidT||0;PF.rankBest=P.rankBest||99;if(P.pass)PF.pass=P.pass;if(P.promo)PF.promo=P.promo;PF.dia=P.dia||0;PF.qd=P.qd||null;PF.tix=P.tix||0;PF.bonds=Array.isArray(P.bonds)?P.bonds:[];PF.corp=P.corp||{};PF.pass=P.pass||{};PF.promo=P.promo||{};
+  if(Array.isArray(P.rivals)&&P.rivals.length===RIVAL_BASE.length)PF.rivals=P.rivals;PF.aidT=P.aidT||0;PF.rankBest=P.rankBest||99;if(P.pass)PF.pass=P.pass;if(P.promo)PF.promo=P.promo;PF.dia=P.dia||0;PF.qd=P.qd||null;PF.tix=P.tix||0;PF.bonds=Array.isArray(P.bonds)?P.bonds:[];PF.corp=P.corp||{};PF.tyW=P.tyW||{};PF.pass=P.pass||{};PF.promo=P.promo||{};
   if(P.px)MK.forEach(a=>{if(P.px[a.id]){a.p=Math.min(a.p0*20,Math.max(a.p0/20,P.px[a.id]));a.h[a.h.length-1]=a.p;}});
   save();savePF();rebuildYou();render();phoneRender();
 }
@@ -1431,9 +1439,9 @@ const EVENTS=[
 function fireEvent(){const [t,eff]=EVENTS[pick(EVENTS.length)];const ups=[],dns=[];
   MK.forEach(a=>{let pc=0;for(const k in eff){if(k===a.sec||k===a.t)pc+=eff[k];}if(!pc)return;pc*=.6+Math.random()*.8;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*(1+pc));a.f=(a.f||a.p)*(1+pc*.7);a.tr+=pc*.2;a.h[a.h.length-1]=a.p;(pc>0?ups:dns).push(a.id);});
   const msg=`${t}. ${ups.length?'Naik: '+ups.slice(0,5).join(', ')+'.':''} ${dns.length?'Turun: '+dns.slice(0,5).join(', ')+'.':''}`.trim();news.unshift(msg);news=news.slice(0,8);logLine('sys',null,'📰 '+msg);}
-let PF={hold:{},cost:{}};const ecoClean=()=>{for(const k in PF.hold||{}){const a=MK.find(x=>x.id===k);if(a&&PF.hold[k]>a.sh*.2){const f=a.sh*.2/PF.hold[k];PF.hold[k]=a.t==='saham'?Math.floor(a.sh*.2):a.sh*.2;if(PF.cost)PF.cost[k]=(PF.cost[k]||0)*f;}if(!(PF.hold[k]<1e12)||(a&&!(PF.hold[k]*(a.p0||a.p)<1e10))){PF.hold[k]=0;if(PF.cost)PF.cost[k]=0;}}};
+let PF={hold:{},cost:{}};const ecoClean=()=>{for(const k in PF.hold||{}){const a=MK.find(x=>x.id===k);if(a&&PF.hold[k]>a.sh*.4){const f=a.sh*.4/PF.hold[k];PF.hold[k]=a.t==='saham'?Math.floor(a.sh*.4):a.sh*.4;if(PF.cost)PF.cost[k]=(PF.cost[k]||0)*f;}if(!(PF.hold[k]<1e12)||(a&&!(PF.hold[k]*(a.p0||a.p)<1e10))){PF.hold[k]=0;if(PF.cost)PF.cost[k]=0;}}};
 try{const s=JSON.parse(localStorage.getItem('lounge-vegas-hp')||'null');if(s&&s.hold){PF=s;if(s.px)MK.forEach(a=>{if(s.px[a.id])a.p=Math.min(a.p*20,Math.max(a.p/20,s.px[a.id]));});}}catch(e){}
-function savePF(){try{localStorage.setItem('lounge-vegas-hp',JSON.stringify({hold:PF.hold,cost:PF.cost,bank:PF.bank,items:PF.items,tx:PF.tx,rivals:PF.rivals,aidT:PF.aidT||0,rankBest:PF.rankBest||99,pass:PF.pass,promo:PF.promo,dia:PF.dia||0,qd:PF.qd,tix:PF.tix||0,bonds:PF.bonds||[],corp:PF.corp||{},px:Object.fromEntries(MK.map(a=>[a.id,a.p]))}));}catch(e){}}
+function savePF(){try{localStorage.setItem('lounge-vegas-hp',JSON.stringify({hold:PF.hold,cost:PF.cost,bank:PF.bank,items:PF.items,tx:PF.tx,rivals:PF.rivals,aidT:PF.aidT||0,rankBest:PF.rankBest||99,pass:PF.pass,promo:PF.promo,dia:PF.dia||0,qd:PF.qd,tix:PF.tix||0,bonds:PF.bonds||[],corp:PF.corp||{},tyW:PF.tyW||{},px:Object.fromEntries(MK.map(a=>[a.id,a.p]))}));}catch(e){}}
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
 MK.forEach(a=>{a.tr=0;a.h=[];let p=a.p;const tmp=[p];for(let i=0;i<59;i++){p=p/Math.exp(a.v*.6*gauss());tmp.push(p);}a.h=tmp.reverse();a.h[a.h.length-1]=a.p;a.open=a.p;a.f=a.p;});
 let news=['Pasar buka. Harga bergerak tiap 2 detik.'];
@@ -1589,8 +1597,8 @@ function phoneRender(){
       else dh=`<div class="duel"><h5>Duel lawan ${esc(duel.n)} · ${fmt(duel.stake)} koin</h5><div class="duelv"><div><small>Kamu</small><b id="dY">${duel.y??'?'}</b><i id="dYr">${duel.y!=null?'reme '+reme(duel.y):''}</i></div><span>VS</span><div><small>${esc(duel.n)}</small><b id="dO">${duel.o??'?'}</b><i id="dOr">${duel.o!=null?'reme '+reme(duel.o):''}</i></div></div>
         <p class="pmsg" id="dMsg">${duel.msg||'Memutar...'}</p>${duel.stage==='done'?`<div class="srow"><button class="pbtn" data-again>Duel lagi</button><button class="pbtn" data-dx>Tutup</button></div>`:''}</div>`;}
     body=`<div class="wallet"><small>Peringkatmu</small><b>#${rk} <span class="ttl">${titleOf(nw)}</span></b><div class="row"><span>Kekayaan bersih</span><span>${fmt(Math.round(nw))}</span></div><div class="row"><span>Hadiah berikutnya</span><span>${nx?`Top ${nx[0]}: ${fmt(nx[1])}`:'Semua sudah diklaim'}</span></div></div>`+dh+
-      R.map((r,i)=>`<div class="rk ${r.me?'me':''}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}</small></div><span class="w">${fmt(r.w)}${r.me?'':`<i class="${r.d>=0?'up':'dn'}">${r.d>=0?'▲':'▼'}</i>`}</span>${r.me?'':`<button data-duel="${esc(r.n)}" ${duel&&duel.stage==='live'?'disabled':''}>Duel</button>`}</div>`).join('')+
-      '<p class="news">Ranking dihitung dari kekayaan bersih (tunai + investasi + tabungan + barang − hutang). Kekayaan NPC ikut naik turun tiap 10 detik.</p>';
+      R.map((r,i)=>`<div class="rk ${r.me?'me':''}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${r.co&&r.co.length?' · 🏢 '+r.co.join(', '):''}</small></div><span class="w">${fmtBig(r.w)}${r.me?'':`<i class="${r.d>=0?'up':'dn'}">${r.d>=0?'▲':'▼'}</i>`}</span>${r.me?'':`${r.only?'':`<button data-duel="${esc(r.n)}" ${duel&&duel.stage==='live'?'disabled':''}>Duel</button>`}<button data-aduel="${esc(r.n)}">⚔️ Aset</button>`}</div>`).join('')+
+      '<p class="news">Ranking dihitung dari kekayaan bersih (tunai + investasi + tabungan + barang + bisnis + perusahaan − hutang). Konglomerat pemilik saham pengendali ikut masuk. Tombol ⚔️ Aset = duel taruhan koin, saham, atau crypto. Kekayaan NPC ikut naik turun tiap 10 detik.</p>';
   }else if(phView==='jobs'){
     body=JOBS.map(j=>`<div class="job"><div class="t"><span>${j.n}</span><span class="up">${j.min}-${j.max}</span></div><small>${j.desc} · ${j.d} detik</small><div class="bar"><i id="jobbar-${j.id}" style="width:${job&&job.j.id===j.id?Math.min(100,(performance.now()-job.t0)/(j.d*10)):0}%"></i></div><button data-j="${j.id}" ${job?'disabled':''}>${job&&job.j.id===j.id?'Sedang dikerjakan...':'Ambil kerjaan'}</button></div>`).join('')+'<p class="news">Kerjaan jalan terus walau HP ditutup. Kamu tetap bisa main.</p>';
   }else if(phView==='wallet'){
@@ -1647,6 +1655,7 @@ function phoneRender(){
   ph.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{const id=b.dataset.eq;equip(id,!PF.items[id].eq);rebuildYou();SFX.pop();savePF();render();phoneRender();});
   ph.querySelectorAll('[data-sellit]').forEach(b=>b.onclick=()=>{const x=SHOP.find(i=>i.id===b.dataset.sellit);if(!b.dataset.ok){b.dataset.ok=1;b.textContent='Yakin jual?';return;}const got=Math.round(x.p*.7);delete PF.items[x.id];S.bal+=got;rebuildYou();SFX.coin();logLine('sys',null,`${x.n} terjual ${fmt(got)} koin.`);save();savePF();render();phoneRender();});
   ph.querySelectorAll('[data-corp]').forEach(b=>b.onclick=()=>corpDo(b.dataset.corp,phAsset));
+  ph.querySelectorAll('[data-aduel]').forEach(b=>b.onclick=()=>openAssetDuel(b.dataset.aduel));
   const bh=$('bkHelp');if(bh)bh.onclick=()=>{closePhone();showBroke();};
   const as=$('appSet');if(as)as.onclick=()=>openSettings();const ash=$('appShop');if(ash)ash.onclick=()=>openShop();
   ph.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{if(duel&&duel.stage==='live')return;if(duel&&duel.stage==='wait')cancelDuel();duel={n:b.dataset.duel,stage:'pick'};SFX.pop();phoneRender();ph.querySelector('.ph-body').scrollTop=0;});
@@ -1943,7 +1952,7 @@ const titleOf=w=>TITLES.filter(t=>w>=t[0]).pop()[1];
 function rivalTick(){PF.rivals.forEach(r=>{const old=r.w;r.w=Math.max(100,r.w*Math.exp(.004+.035*gauss()));
   if(Math.random()<.02){const up=Math.random()<.55,k=.15+Math.random()*.3;r.w*=up?1+k:1-k;if(r.w>3000)logLine('npc',r.n,up?`baru menang besar! Kekayaan naik ${Math.round(k*100)}%.`:`lagi apes, kekayaan turun ${Math.round(k*100)}%.`);}
   r.d=r.w-old;r.w=Math.round(r.w);});}
-function ranking(){const me={n:'Kamu',w:Math.round(netWorth()),me:true};return PF.rivals.map(r=>Object.assign({},r)).concat([me]).sort((a,b)=>b.w-a.w);}
+
 const myRank=()=>ranking().findIndex(r=>r.me)+1;
 const RANK_REW=[[10,500],[5,2500],[3,8000],[1,25000]];
 function checkRankReward(){const rk=myRank();if(!PF.rankBest)PF.rankBest=99;
@@ -2334,8 +2343,10 @@ function openGame(st){
 function closeGame(){if(!modal||modal.busy)return;modal.el.remove();modal=null;if(cine&&!stage.classList.contains('cinema')){cine=null;cineBlend=1;}}
 function chipPicker(vals,cur,on){
   const wrap=document.createElement('div');wrap.className='mchips';
+  const ex=betExtras(cur,v=>{wrap.querySelectorAll('.mchip').forEach(x=>x.classList.remove('on'));on(v);const t=wrap.querySelector('.btag');if(t)t.textContent='Chip: '+fmt(v);},'Pakai');
   vals.forEach(v=>{const b=document.createElement('button');b.className='mchip'+(v===cur?' on':'');b.textContent=v>=1000?(v/1000)+'K':v;b.dataset.v=v;
-    b.addEventListener('click',()=>{wrap.querySelectorAll('.mchip').forEach(x=>x.classList.remove('on'));b.classList.add('on');SFX.chip();on(v);});wrap.appendChild(b);});
+    b.addEventListener('click',()=>{wrap.querySelectorAll('.mchip').forEach(x=>x.classList.remove('on'));b.classList.add('on');SFX.chip();on(v);const t=wrap.querySelector('.btag');if(t)t.textContent='Chip: '+fmt(v);});wrap.appendChild(b);});
+  const tg=document.createElement('span');tg.className='btag';tg.textContent='Chip: '+fmt(cur);wrap.appendChild(tg);wrap.appendChild(ex);
   return wrap;
 }
 
@@ -2593,7 +2604,7 @@ function mpData(c,d){
     case 'bye':mpDrop(d.id);break;
     case 'dinv':mpGotInvite(d);break;
     case 'ddec':if(MP.duel&&MP.duel.with===d.id&&MP.duel.stage==='sent'){logLine('sys',null,`${pl?pl.name:'Temanmu'} menolak duel${d.why?' ('+d.why+')':''}.`);MP.duel=null;SFX.error();if(modal&&modal.st.label==='Mabar')modal.refresh();}break;
-    case 'dacc':if(MP.duel&&MP.duel.with===d.id&&MP.duel.stage==='sent'&&Array.isArray(d.rounds)){MP.duel.stage='live';pvpDuel(d.id,d.rounds.map(r=>[r[0],r[1]]),MP.duel.stake);}break;
+    case 'dacc':if(MP.duel&&MP.duel.with===d.id&&MP.duel.stage==='sent'&&Array.isArray(d.rounds)){MP.duel.stage='live';pvpDuel(d.id,d.rounds.map(r=>[r[0],r[1]]),MP.duel.stake,MP.duel.sa&&MP.duel.sa.mine,MP.duel.sa&&MP.duel.sa.theirs);}break;
   }
 }
 function mpAdd(h){
@@ -2631,46 +2642,47 @@ function mpLookChanged(){if(mpOn())mpSend({t:'look',look:youPal(),name:mpName()}
 function mpChat(text){text=String(text||'').trim().slice(0,120);if(!text)return;speak(you,text);if(mpOn())mpSend({t:'chat',text});}
 
 /* --- duel between players --- */
-function mpChallenge(id,stake){
+function mpChallenge(id,stake,sa){
   const pl=MP.players[id];if(!pl||busy||MP.duel)return SFX.error();
-  stake=Math.floor(stake);if(!(stake>=100)){SFX.error();return 'Taruhan minimal 100 koin.';}
-  if(S.bal<stake){SFX.error();return 'Koinmu kurang untuk taruhan itu.';}
-  MP.duel={with:id,stake,stage:'sent',t:Date.now()};mpSend({t:'dinv',to:id,stake});SFX.whoosh();
-  logLine('sys',null,`Tantangan duel ${fmt(stake)} koin dikirim ke ${pl.name}. Menunggu jawaban...`);
+  if(sa){if(!stOk(sa.mine)||!stOk(sa.theirs)){SFX.error();return 'Isi jumlah taruhan kamu dan dia.';}if(!stHave(sa.mine)){SFX.error();return 'Asetmu kurang untuk taruhan itu.';}stake=Math.max(100,Math.round(stVal(sa.mine)));}
+  else{stake=Math.floor(stake);if(!(stake>=100)){SFX.error();return 'Taruhan minimal 100 koin.';}
+  if(S.bal<stake){SFX.error();return 'Koinmu kurang untuk taruhan itu.';}}
+  MP.duel={with:id,stake,sa,stage:'sent',t:Date.now()};mpSend({t:'dinv',to:id,stake,sa});SFX.whoosh();
+  logLine('sys',null,`Tantangan duel dikirim ke ${pl.name}: kamu ${sa?stTxt(sa.mine):fmt(stake)+' koin'} lawan ${sa?stTxt(sa.theirs):fmt(stake)+' koin'}. Menunggu jawaban...`);
   setTimeout(()=>{if(MP.duel&&MP.duel.with===id&&MP.duel.stage==='sent'){MP.duel=null;logLine('sys',null,`${pl.name} tidak menjawab tantangan duel.`);if(modal&&modal.st.label==='Mabar')modal.refresh();}},25000);
 }
 function mpGotInvite(d){
-  const pl=MP.players[d.id];if(!pl)return;const stake=Math.floor(+d.stake||0);
+  const pl=MP.players[d.id];if(!pl)return;const stake=Math.floor(+d.stake||0);const cl=x=>x&&typeof x==='object'?{k:String(x.k),q:+x.q}:null;const sa=d.sa?{mine:cl(d.sa.mine),theirs:cl(d.sa.theirs)}:null;
   const no=why=>mpSend({t:'ddec',to:d.id,why});
   if(busy||MP.duel||MP.inv)return no('lagi sibuk');
-  if(stake<100)return no('taruhan tidak valid');
+  if(stake<100)return no('taruhan tidak valid');if(sa&&(!stOk(sa.mine)||!stOk(sa.theirs)))return no('taruhan tidak valid');
   MP.inv={id:d.id,stake};SFX.riser();
   const el=document.createElement('div');el.className='mpinv';el.setAttribute('role','alertdialog');
-  el.innerHTML=`<b>⚔️ ${esc(pl.name)} menantang kamu duel reme!</b><small>Taruhan 🪙 ${fmt(stake)} koin · midman Sinta</small><div><button class="pbtn" data-a="1">Terima</button><button class="pbtn ghost" data-a="0">Tolak</button></div>`;
+  el.innerHTML=`<b>⚔️ ${esc(pl.name)} menantang kamu duel reme!</b><small>${sa?`Dia bertaruh <b>${stTxt(sa.mine)}</b> · kamu bertaruh <b>${stTxt(sa.theirs)}</b>`:`Taruhan 🪙 ${fmt(stake)} koin`} · midman Sinta</small><div><button class="pbtn" data-a="1">Terima</button><button class="pbtn ghost" data-a="0">Tolak</button></div>`;
   stage.appendChild(el);MP.inv.el=el;
   el.querySelector('[data-a="0"]').onclick=()=>{no('ditolak');mpCloseInvite();};
   el.querySelector('[data-a="1"]').onclick=()=>{
-    if(S.bal<stake){no('koinnya kurang');mpCloseInvite();logLine('sys',null,'Koinmu kurang untuk duel itu.');SFX.error();return;}
+    if(sa?!stHave(sa.theirs):S.bal<stake){no('asetnya kurang');mpCloseInvite();logLine('sys',null,'Asetmu kurang untuk duel itu.');SFX.error();return;}
     if(busy){no('lagi sibuk');mpCloseInvite();return;}
     const rounds=[];let a,b;do{a=rnd();b=rnd();rounds.push([a,b]);}while(duelVal(a)===duelVal(b)&&rounds.length<6);
     if(duelVal(a)===duelVal(b))rounds[rounds.length-1][1]=(b+1)%37;
     mpSend({t:'dacc',to:d.id,rounds});mpCloseInvite();if(modal)closeGame();
-    MP.duel={with:d.id,stake,stage:'live'};pvpDuel(d.id,rounds.map(r=>[r[1],r[0]]),stake);   // rounds are [inviter, accepter]; flip so mine comes first
+    MP.duel={with:d.id,stake,stage:'live'};pvpDuel(d.id,rounds.map(r=>[r[1],r[0]]),stake,sa&&sa.theirs,sa&&sa.mine);   // rounds are [inviter, accepter]; flip so mine comes first
   };
   setTimeout(()=>{if(MP.inv&&MP.inv.el===el){no('tidak dijawab');mpCloseInvite();}},20000);
 }
 function mpCloseInvite(){if(MP.inv&&MP.inv.el)MP.inv.el.remove();MP.inv=null;}
-async function pvpDuel(id,rounds,stake){
+async function pvpDuel(id,rounds,stake,my,op){my=my||{k:'coin',q:stake};op=op||{k:'coin',q:stake};let myCost=0;
   const pl=MP.players[id];if(!pl){MP.duel=null;return;}
   if(modal)closeGame();closePhone();toggleChat(false);for(const k in keys)keys[k]=false;
   const H=DUEL.hostEnt,e=pl.e,TX=ROOM-6,z=DUEL.z;
-  busy=true;pl.lock=true;S.bal-=stake;render();
+  busy=true;pl.lock=true;myCost=stTake(my);render();
   const u=DUEL.pw.use;you.pos.set(u.x-.6,0,u.z);you.yaw=Math.atan2(DUEL.pw.x-you.pos.x,DUEL.pw.z-you.pos.z);
   const r=DUEL.rw.use;e.pos.set(r.x-.2,0,r.z);e.yaw=Math.atan2(DUEL.rw.x-e.pos.x,DUEL.rw.z-e.pos.z);e.speed=0;
   cineOn();SFX.riser();shotTo(TX-10,5,z,TX,1.6,z);
-  banner(`<div class="vs-l"><b>${esc(mpName())}</b><small>Kamu</small></div><div class="vs-m">VS<small>🪙 ${fmt(stake)}</small></div><div class="vs-r"><b>${esc(pl.name)}</b><small>Teman</small></div>`,'duelb',2400);
+  banner(`<div class="vs-l"><b>${esc(mpName())}</b><small>Kamu</small></div><div class="vs-m">VS<small>${stTxt(my)} vs ${stTxt(op)}</small></div><div class="vs-r"><b>${esc(pl.name)}</b><small>Teman</small></div>`,'duelb',2400);
   await wait(500);SFX.whoosh();await wait(900);SFX.boom();
-  speak(H,`Duel antar pemain! Masing-masing ${fmt(stake)} koin, saya yang pegang. Reme tertinggi menang, 0 paling kuat.`);
+  speak(H,`Duel antar pemain! Kamu ${stTxt(my)}, ${pl.name} ${stTxt(op)}, saya yang pegang. Reme tertinggi menang, 0 paling kuat.`);
   const pa=chipPile(Math.min(10,2+Math.round(stake/500)),0x2f6fe0),pb=chipPile(Math.min(10,2+Math.round(stake/500)),0xd8435b);
   pa.position.set(TX-.4,1.15,z+2);pb.position.set(TX-.4,1.15,z-2);scene.add(pa,pb);shotTo(TX-4.5,3.6,z+.01,TX,1.2,z);
   await wait(700);SFX.chip();slideTo(pa,new THREE.Vector3(TX,1.15,z+.25),600);await wait(250);SFX.chip();await slideTo(pb,new THREE.Vector3(TX,1.15,z-.25),600);
@@ -2684,11 +2696,11 @@ async function pvpDuel(id,rounds,stake){
     await wait(900);}
   const win=duelVal(y)>duelVal(o),winE=win?you:e;shotEnt(winE);await wait(500);
   [pa,pb].forEach(p=>slideTo(p,new THREE.Vector3(winE.pos.x,1.4,winE.pos.z),700));await wait(750);scene.remove(pa,pb);
-  if(win){S.bal+=stake*2;S.wins++;you.cheer=2.5;SFX.big();flashFx('#ffe28a');shakeFx();burst(new THREE.Vector3(you.pos.x,you.pos.y+3,you.pos.z),90);
-    banner(`<div class="vs-big win">MENANG!<small>+🪙 ${fmt(stake)}</small></div>`,'resb',2200);speak(H,`Reme ${reme(y)} lawan ${reme(o)}. Pemenangnya kamu!`);
-    logLine('sys',null,`Duel mabar: kamu mengalahkan ${pl.name} (reme ${reme(y)} lawan ${reme(o)}). +${fmt(stake)} koin.`,'win');crowdCheer(you.pos);}
-  else{S.losses++;e.cheer=2.5;SFX.lose();banner(`<div class="vs-big lose">KALAH<small>-🪙 ${fmt(stake)}</small></div>`,'resb',2200);speak(H,`Reme ${reme(y)} lawan ${reme(o)}. ${pl.name} menang.`);
-    logLine('sys',null,`Duel mabar: kamu kalah dari ${pl.name} (reme ${reme(y)} lawan ${reme(o)}). -${fmt(stake)} koin.`,'lose');}
+  if(win){stGive(my,myCost);stGive(op);S.wins++;you.cheer=2.5;SFX.big();flashFx('#ffe28a');shakeFx();burst(new THREE.Vector3(you.pos.x,you.pos.y+3,you.pos.z),90);
+    banner(`<div class="vs-big win">MENANG!<small>+${stTxt(op)}</small></div>`,'resb',2200);speak(H,`Reme ${reme(y)} lawan ${reme(o)}. Pemenangnya kamu!`);
+    logLine('sys',null,`Duel mabar: kamu mengalahkan ${pl.name} (reme ${reme(y)} lawan ${reme(o)}). +${stTxt(op)}.`,'win');crowdCheer(you.pos);}
+  else{S.losses++;e.cheer=2.5;SFX.lose();banner(`<div class="vs-big lose">KALAH<small>-${stTxt(my)}</small></div>`,'resb',2200);speak(H,`Reme ${reme(y)} lawan ${reme(o)}. ${pl.name} menang.`);
+    logLine('sys',null,`Duel mabar: kamu kalah dari ${pl.name} (reme ${reme(y)} lawan ${reme(o)}). -${stTxt(my)}.`,'lose');}
   save();savePF();render();
   qAdd('duel');await wait(2600);cineOff();pl.lock=false;MP.duel=null;busy=false;ctxKey=null;render();setTimeout(checkBroke,50);
 }
@@ -2708,15 +2720,20 @@ function openMabar(){
         <div class="slotr"><div><b>${esc(mpName())} (kamu)</b><small>🪙 ${fmt(Math.floor(S.bal))}</small></div></div>
         ${list.map(p=>`<div class="slotr"><div><b>${esc(p.name)}</b><small>${Math.round(p.e.pos.distanceTo(you.pos))} m dari kamu</small></div><button class="pbtn" data-duel="${esc(p.id)}" ${MP.duel||busy?'disabled':''}>⚔️ Duel</button></div>`).join('')||'<p class="muted">Belum ada teman yang masuk. Bagikan kodenya.</p>'}
         </section>
-        <section class="setg"><h4>Taruhan duel</h4><label class="rng"><span>Koin</span><input id="mStake" type="number" min="100" step="100" value="${SET.mpStake||500}" inputmode="numeric"></label>
+        <section class="setg"><h4>Taruhan duel</h4><div class="stk"><span>Kamu</span><select id="mMyK">${stOptsMine(SET.mpMyK||'coin')}</select><input id="mMyQ" class="dotin" inputmode="decimal" value="${dots(SET.mpMyQ||500)}"></div><div class="pct" id="mMyP">${[25,50,100].map(p=>`<button data-p="${p}">${p===100?'All in':p+'%'}</button>`).join('')}</div>
+        <div class="stk"><span>Dia</span><select id="mOpK">${stOptsAll(SET.mpOpK||'coin')}</select><input id="mOpQ" class="dotin" inputmode="decimal" value="${dots(SET.mpOpQ||500)}"></div>
+        <p class="muted">Contoh: kamu taruh 1.000.000 lembar saham KOPI, temanmu taruh 500.000.000 koin. Temanmu yang memutuskan terima atau tolak.</p>
         <p class="muted">Duel reme di Meja Duel dengan midman Sinta. Buff hoki dan bonus tidak berlaku saat duel antar pemain, biar adil.</p></section>
         <section class="setg"><h4>Chat</h4><p class="muted">Buka bar chat di atas untuk kirim pesan ke semua pemain.</p></section>
         <p class="pmsg" id="mMsg">${MP.duel&&MP.duel.stage==='sent'?'Menunggu jawaban tantangan...':''}</p>`;
       $('mLeave').onclick=()=>{mpLeave();};
       $('mCopy').onclick=()=>{const link=location.href.split('#')[0].split('?')[0];const t=`Main Lounge bareng aku! Buka ${link} lalu tekan 👥 dan masukkan kode: ${MP.code}`;
         const ok=()=>{$('mMsg').textContent='Tersalin. Tempel di chat ke temanmu.';};try{navigator.clipboard.writeText(t).then(ok,()=>{$('mMsg').textContent=t;});}catch(e){$('mMsg').textContent=t;}};
-      $('mStake').onchange=e=>{SET.mpStake=Math.max(100,Math.floor(+e.target.value||100));saveSet();};
-      body.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{const s=Math.floor(+$('mStake').value||0);SET.mpStake=s;saveSet();const er=mpChallenge(b.dataset.duel,s);$('mMsg').textContent=er||'Tantangan dikirim. Menunggu jawaban...';draw();});
+      ['mMyQ','mOpQ'].forEach(i=>dotInput($(i)));
+      const rd=()=>{SET.mpMyK=$('mMyK').value;SET.mpOpK=$('mOpK').value;SET.mpMyQ=stQ(SET.mpMyK,parseDots($('mMyQ').value));SET.mpOpQ=stQ(SET.mpOpK,parseDots($('mOpQ').value));saveSet();return {mine:{k:SET.mpMyK,q:SET.mpMyQ},theirs:{k:SET.mpOpK,q:SET.mpOpQ}};};
+      ['mMyK','mOpK','mMyQ','mOpQ'].forEach(i=>$(i).onchange=rd);
+      $('mMyP').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const k=$('mMyK').value,base=k==='coin'?S.bal:(PF.hold[k]||0);$('mMyQ').value=dots(k==='coin'?Math.floor(base*(+b.dataset.p)/100):stQ(k,base*(+b.dataset.p)/100));rd();SFX.chip();});
+      body.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{const sa=rd();const er=mpChallenge(b.dataset.duel,0,sa);$('mMsg').textContent=er||'Tantangan dikirim. Menunggu jawaban...';draw();});
     }else{
       body.innerHTML=`<section class="setg"><h4>Nama kamu</h4><input id="mName" maxlength="14" value="${esc(SET.name||'')}" placeholder="Nama yang dilihat teman"></section>
         <section class="setg"><h4>Bikin room</h4><p class="muted">Kamu dapat kode 4 huruf. Teman yang masukin kode itu bakal muncul di kasino yang sama.</p><button class="pbtn" id="mCreate" ${MP.st==='wait'?'disabled':''}>Bikin room</button></section>
@@ -2776,13 +2793,13 @@ function ndShow(rv,g,stake){
   setTimeout(()=>{if(ndOffer&&ndOffer.el===el){ndClose();logLine('sys',null,`Tantangan ${rv.n} kedaluwarsa.`);}},25000);
 }
 function ndClose(){if(ndOffer&&ndOffer.el)ndOffer.el.remove();ndOffer=null;}
-async function ndPlay(rv,g,stake){
+async function ndPlay(rv,g,stake,my,op){my=my||{k:'coin',q:stake};op=op||{k:'coin',q:stake};let myCost=0;
   if(modal)closeGame();closePhone();for(const k in keys)keys[k]=false;
   const el=document.createElement('div');el.className='modal';
   el.innerHTML=`<div class="panel" role="dialog" aria-label="Duel"><div class="phead"><h3>${g.ic} Duel ${g.n}</h3></div><div class="pbody ndb">
-    <div class="ndvs"><div><small>KAMU</small><div class="ndr" id="ndY">?</div></div><div class="ndm">VS<small>🪙 ${fmt(stake)}</small></div><div><small>${esc(rv.n).toUpperCase()}</small><div class="ndr" id="ndO">?</div></div></div>
+    <div class="ndvs"><div><small>KAMU</small><div class="ndr" id="ndY">?</div></div><div class="ndm">VS<small>${stTxt(my)}<br>vs ${stTxt(op)}</small></div><div><small>${esc(rv.n).toUpperCase()}</small><div class="ndr" id="ndO">?</div></div></div>
     <p class="pmsg" id="ndMsg">${g.rule}</p><button class="pbtn" id="ndX" disabled>Tutup</button></div></div>`;
-  stage.appendChild(el);modal={el,st:{label:'Duel'},busy:true,refresh(){}};busy=true;S.bal-=stake;render();
+  stage.appendChild(el);modal={el,st:{label:'Duel'},busy:true,refresh(){}};busy=true;myCost=stTake(my);render();
   const roll=async(id,mine)=>{const box=$(id);for(let k=0;k<18;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(65+k*6);}
     let r=ndRoll(g.id);
     if(mine){const L=buffs().luck;const opp=ndOpp;if(L>0&&ndOpp&&r.v<=opp.v&&Math.random()<L/100){box.textContent=r.show;await wait(500);luckFx(L);$('ndMsg').textContent='🍀 Hoki aktif! Diulang...';await wait(800);
@@ -2794,8 +2811,8 @@ async function ndPlay(rv,g,stake){
     $('ndMsg').textContent='Giliran kamu...';y=await roll('ndY',true);await wait(400);
   }while(y.v===o.v&&round<5);
   const win=y.v>o.v;
-  if(win){S.bal+=stake*2;S.wins++;rv.w=Math.max(100,rv.w-stake);SFX.big();you.cheer=2;$('ndMsg').innerHTML=`<b class="okc">MENANG!</b> +🪙 ${fmt(stake)}`;logLine('sys',null,`Duel ${g.n}: kamu mengalahkan ${rv.n}. +${fmt(stake)} koin.`,'win');}
-  else{S.losses++;rv.w+=stake;SFX.lose();$('ndMsg').innerHTML=`<b style="color:var(--red)">KALAH</b> -🪙 ${fmt(stake)}`;logLine('sys',null,`Duel ${g.n}: kamu kalah dari ${rv.n}. -${fmt(stake)} koin.`,'lose');}
+  if(win){stGive(my,myCost);stGive(op);S.wins++;oppW(rv,-stVal(op));SFX.big();you.cheer=2;$('ndMsg').innerHTML=`<b class="okc">MENANG!</b> +${stTxt(op)}`;logLine('sys',null,`Duel ${g.n}: kamu mengalahkan ${rv.n}. +${stTxt(op)}.`,'win');}
+  else{S.losses++;oppW(rv,stVal(my));SFX.lose();$('ndMsg').innerHTML=`<b style="color:var(--red)">KALAH</b> -${stTxt(my)}`;logLine('sys',null,`Duel ${g.n}: kamu kalah dari ${rv.n}. -${stTxt(my)}.`,'lose');}
   qAdd('duel');save();savePF();render();busy=false;modal.busy=false;const x=$('ndX');x.disabled=false;x.onclick=()=>{closeGame();setTimeout(checkBroke,50);};
 }
 
@@ -2926,13 +2943,19 @@ function buildCity(){
   gplane(G,CITY.x1-OUT_X,OUT_Z-ROOM-6.4,new THREE.MeshLambertMaterial({map:paveT}),(CITY.x1+OUT_X)/2,(ROOM+OUT_Z-6.4)/2,.005);
   gplane(G,CITY.x1-OUT_X,7,new THREE.MeshBasicMaterial({color:0x1d4a7a}),(CITY.x1+OUT_X)/2,OUT_Z-2.5,.03);
   cBox(G,CITY.x1-OUT_X,.4,.4,0xb0a898,(CITY.x1+OUT_X)/2,.2,OUT_Z-6.2,true);
-  const road=new THREE.MeshLambertMaterial({color:0x2b2b33});gplane(G,CITY.x1-60,12,road,(CITY.x1+60)/2,8,.008);gplane(G,6,30,road,99,29,.008);gplane(G,10,12,road,55,8,.008);
+  const road=new THREE.MeshLambertMaterial({color:0x2b2b33});gplane(G,CITY.x1-60,12,road,(CITY.x1+60)/2,8,.008);gplane(G,6,30,road,99,29,.008);
   const lineM=new THREE.MeshBasicMaterial({color:0xf2f2f2});for(let x=64;x<CITY.x1-2;x+=5)gplane(G,2.2,.18,lineM,x,8,.012);
   // hedges around the housing complex (gate at the north road and the west street)
   const hedge=mat(0x2a6e34);const hb=(w,d,x,z)=>cBox(G,w,1.1,d,0x2a6e34,x,.55,z,true);
-  hb(36,.8,78,44.6);hb(72,.8,138,44.6);hb(.8,30,60.4,29.6);hb(.8,40,60.4,-19.6);hb(CITY.x1-60,.8,(CITY.x1+60)/2,CITY.z0+.8);
+  hb(36,.8,78,44.6);hb(72,.8,138,44.6);hb(.8,30,60.4,29.6);hb(.8,40,60.4,-19.6);hb(.8,14.4,60.4,7.5);hb(CITY.x1-60,.8,(CITY.x1+60)/2,CITY.z0+.8);
   G.add(neon('PERUMAHAN ELITE PERMATA',99,6.6,45.1,0,'#ffd25f','#ff9f1c',11,1.4));
   [[96,99],[102,99]].forEach(([x])=>cBox(G,.6,5,.6,0xd8a648,x,2.5,44.6,true));cBox(G,6.6,.5,.6,0xd8a648,99,5,44.6);
+  // roundabout fountain where the street ends, wall + tall trees hiding the casino's back
+  {const fx=63.6,fz=8;const bs=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.6,.6,24),mat(0xe8d8b8));bs.position.set(fx,.3,fz);G.add(bs);const wt=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.1,.1,24),new THREE.MeshBasicMaterial({color:0x3aa8d8}));wt.position.set(fx,.62,fz);G.add(wt);
+    const tw=new THREE.Mesh(new THREE.CylinderGeometry(.3,.45,2,12),mat(0xe8d8b8));tw.position.set(fx,1.6,fz);G.add(tw);const jt=new THREE.Mesh(new THREE.ConeGeometry(.3,1.2,10),new THREE.MeshBasicMaterial({color:0xbfeaff,transparent:true,opacity:.6}));jt.position.set(fx,3.1,fz);G.add(jt);colliders.push({x0:fx-2.5,x1:fx+2.5,z0:fz-2.5,z1:fz+2.5,top:.6});}
+  cBox(G,.8,4.2,84,0x5a4a44,47.7,2.1,2,true);cBox(G,1,.3,84,0xd8a648,47.7,4.3,2);
+  for(let z=-36;z<=42;z+=6)G.add(neon('✦',46.75,6+((z/6)&1)*2,z,Math.PI/2,'#ffd25f','#ff9f1c',1.2,1.2));
+  G.add(neon('LOUNGE VEGAS',46.75,10,4,Math.PI/2,'#ffd25f','#ff9f1c',18,2.6));
   // street lamps (glow only, no extra lights)
   const lampHead=new THREE.MeshBasicMaterial({color:0xfff1c0});
   [[70,67],[95,67],[120,67],[145,67],[80,15],[115,15],[150,15],[80,1],[115,1],[150,1],[56,40]].forEach(([x,z])=>{cBox(G,.22,5,.22,0x222228,x,2.5,z,true);const h=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),lampHead);h.position.set(x,5.2,z);G.add(h);});
@@ -3095,7 +3118,7 @@ function cityLife(){const G=cityGrp;
   [[118,-26,7,4],[150,36,5,3]].forEach(([x,z,w,d])=>{const pd=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.1,24),new THREE.MeshBasicMaterial({color:0x3aa8d8}));pd.scale.set(w,1,d);pd.position.set(x,.06,z);G.add(pd);colliders.push({x0:x-w*.8,x1:x+w*.8,z0:z-d*.8,z1:z+d*.8,top:.3});});
   [[100,-22],[106,-30],[136,38],[164,38]].forEach(([x,z])=>cBox(G,2.4,.45,.7,0x8a5a30,x,.45,z,true));
   // trees between the kiosk plaza and the sea wall, and along the agency lane
-  for(let x=70;x<156;x+=12)tree(G,x,84.5,.9);for(let z=-36;z<44;z+=10)tree(G,50,z,1);
+  for(let x=70;x<156;x+=12)tree(G,x,84.5,.9);for(let z=-36;z<44;z+=7)tree(G,50.2,z,1.7);
   // distant skyline so the edges are not empty
   const keys=['apt','glass','pent','studio','glass','apt'];let n=0;
   const tower=(x,z)=>{const h=14+((n*37)%34),w=8+(n*13)%6,k=keys[n%keys.length];n++;tBox(G,w,h,w,k,0x1b1d26,x,h/2,z,false);if(n%3===0){const a=new THREE.Mesh(new THREE.BoxGeometry(.2,4,.2),new THREE.MeshBasicMaterial({color:0xff2f4a}));a.position.set(x,h+2,z);G.add(a);}};
@@ -3110,7 +3133,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible)continue;co
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v14';
+const GAME_VER='v15';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v\d+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -3207,6 +3230,56 @@ function padsTick(){const now=performance.now();if(!you||modal||busy){padOn=null
   if(on.kind==='reg'){if(now>padCool){const b=bizS();if(!(b.mgr&&b.mgr[on.id])&&((b.reg||{})[on.id]||0)>=1){collectArea(on.id);padCool=now+1500;}}return;}
   const b=bizS(),own=on.kind==='k'?b.k[on.id]:on.kind==='m'?b.m[on.id]:b.h[on.id];if(own||now<padCool)return;
   const k=(now-padT)/1000;on.m.scale.setScalar(1+Math.min(1,k)*.25);if(k>=1){padT=now;on.m.scale.setScalar(1);padCool=now+2500;const before=S.bal;bizDo(on.kind==='k'?'buyK':on.kind==='m'?'buyM':'buyH',on.id);if(S.bal!==before)refreshPads();}}
+/* ---------- number inputs with dots, asset stakes, asset duels, tycoon leaderboard ---------- */
+const parseDots=s=>{s=String(s||'').replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'');const v=parseFloat(s);return isFinite(v)?v:0;};
+const dots=v=>{if(!isFinite(v))return '';const [i,d]=String(+(+v).toFixed(4)).split('.');return (+i).toLocaleString('id-ID')+(d?','+d:'');};
+function dotInput(el){if(!el||el._dot)return;el._dot=1;el.addEventListener('input',()=>{const raw=el.value.replace(/\./g,''),m=raw.match(/^(\d*)(,\d{0,4})?/);const i=m&&m[1]?(+m[1]).toLocaleString('id-ID'):'';el.value=i+(m&&m[2]?m[2]:'');});}
+const assetOf=k=>MK.find(a=>a.id===k);
+const stVal=st=>{if(!st)return 0;if(st.k==='coin')return st.q;const a=assetOf(st.k);return a?st.q*fairLo(a):0;};
+const stTxt=st=>{if(!st)return '-';if(st.k==='coin')return `🪙 ${fmt(Math.round(st.q))}`;const a=assetOf(st.k);return a?`${fmtQ(a,st.q)} ${a.t==='saham'?'lembar ':''}${a.id}`:'-';};
+const stOk=st=>st&&isFinite(st.q)&&st.q>0&&(st.k==='coin'||!!assetOf(st.k));
+function stHave(st){return stOk(st)&&(st.k==='coin'?S.bal>=st.q:(PF.hold[st.k]||0)>=st.q-1e-9);}
+function stTake(st){if(st.k==='coin'){S.bal-=st.q;return 0;}const h=PF.hold[st.k]||0,c=h?(PF.cost[st.k]||0)*(st.q/h):0;PF.hold[st.k]=h-st.q;PF.cost[st.k]=(PF.cost[st.k]||0)-c;if(PF.hold[st.k]<1e-9){PF.hold[st.k]=0;PF.cost[st.k]=0;}return c;}
+function stGive(st,cost){if(st.k==='coin'){S.bal+=st.q;return;}const a=assetOf(st.k);let q=st.q;if(a&&a.sh){const room=Math.max(0,a.sh*.4-(PF.hold[st.k]||0)),x=q-room;if(x>0){S.bal+=Math.round(x*fairLo(a));if(cost!=null)cost*=room/q;q=a.t==='saham'?Math.floor(room):room;logLine('sys',null,`Kepemilikan ${a.id} sudah maksimal, sisanya dicairkan jadi koin.`);}}PF.hold[st.k]=(PF.hold[st.k]||0)+q;PF.cost[st.k]=(PF.cost[st.k]||0)+(cost!=null?cost:stVal({k:st.k,q}));}
+const stOptsMine=sel=>[`<option value="coin" ${sel==='coin'?'selected':''}>🪙 Koin</option>`].concat(MK.filter(a=>(PF.hold[a.id]||0)>0).map(a=>`<option value="${a.id}" ${sel===a.id?'selected':''}>${a.t==='saham'?'📈':'₿'} ${a.id} (punya ${fmtQ(a,PF.hold[a.id])})</option>`)).join('');
+const stOptsAll=sel=>[`<option value="coin" ${sel==='coin'?'selected':''}>🪙 Koin</option>`].concat(MK.map(a=>`<option value="${a.id}" ${sel===a.id?'selected':''}>${a.t==='saham'?'📈':'₿'} ${a.id}</option>`)).join('');
+const stQ=(k,v)=>{const a=assetOf(k);return a&&a.t==='saham'?Math.floor(v):v;};
+/* leaderboard: company owners count their controlling stakes */
+function tyBase(n){let h=7;for(const ch of n)h=(h*31+ch.charCodeAt(0))>>>0;return 40e6+(h%560)*1e6;}
+function oppW(rv,d){const r=PF.rivals.find(x=>x.n===rv.n);if(r){r.w=Math.max(100,r.w+d);return;}PF.tyW=PF.tyW||{};PF.tyW[rv.n]=(PF.tyW[rv.n]||0)+d;}
+function ranking(){const me={n:'Kamu',w:Math.round(netWorth()),me:true};const L=PF.rivals.map(r=>Object.assign({},r));
+  TYCOONS.forEach(n=>{const co=MK.filter(a=>a.t==='saham'&&corpS(a).o===n),sv=co.reduce((s,a)=>s+CTRL*a.sh*fairLo(a),0),ex=L.find(r=>r.n===n);
+    if(ex){ex.w=Math.round(ex.w+sv);ex.co=co.map(a=>a.id);ex.ty=1;}else L.push({n,w:Math.max(1000,Math.round(tyBase(n)+sv+((PF.tyW||{})[n]||0))),d:0,co:co.map(a=>a.id),ty:1,only:1});});
+  return L.concat([me]).sort((a,b)=>b.w-a.w);}
+/* duel with assets against an NPC */
+function openAssetDuel(name){if(modal||busy)return;const R=ranking(),opp=R.find(r=>r.n===name&&!r.me);if(!opp)return;closePhone();for(const k in keys)keys[k]=false;
+  let g=NDG[0],my={k:SET.adK&&(SET.adK==='coin'||(PF.hold[SET.adK]||0)>0)?SET.adK:'coin',q:0},ratio=.8+Math.random()*.45,useCo=opp.co&&opp.co.length&&Math.random()<.65,coId=useCo?opp.co[pick(opp.co.length)]:null,op=null;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);modal={el,st:{label:'Duel aset'},busy:false,refresh(){}};
+  const counter=()=>{const v=Math.min(stVal(my)*ratio,opp.w*.5);if(v<1000)return null;if(coId){const a=assetOf(coId),q=Math.floor(v/fairLo(a));return q>0?{k:coId,q}:null;}return {k:'coin',q:Math.round(v/1000)*1000};};
+  const draw=()=>{op=counter();
+    el.innerHTML=`<div class="panel" role="dialog" aria-label="Duel aset"><div class="phead"><h3>⚔️ Duel aset vs ${esc(opp.n)}</h3><button class="pclose" aria-label="Tutup">✕</button></div><div class="pbody setb">
+      <section class="setg"><h4>Game</h4><div class="srow">${NDG.filter(x=>x.id!=='reme').map(x=>`<button class="pbtn ${x.id===g.id?'':'ghost'}" data-g="${x.id}">${x.ic} ${x.n}</button>`).join('')}</div><p class="muted">${g.rule}</p></section>
+      <section class="setg"><h4>Taruhanmu</h4><div class="stk"><select id="adK">${stOptsMine(my.k)}</select><input id="adQ" class="dotin" inputmode="decimal" placeholder="Jumlah" value="${my.q?dots(my.q):''}"></div>
+        <div class="pct">${[25,50,100].map(p=>`<button data-p="${p}">${p===100?'All in':p+'%'}</button>`).join('')}</div><p class="muted">Nilai taruhanmu ≈ 🪙 ${fmt(Math.round(stVal(my)))}</p></section>
+      <section class="setg"><h4>Taruhan ${esc(opp.n)}</h4><p class="adop">${op?stTxt(op)+` <small>(≈ 🪙 ${fmt(Math.round(stVal(op)))})</small>`:'Isi taruhanmu dulu.'}</p><p class="muted">Kekayaan ${esc(opp.n)}: ${fmtBig(opp.w)}${opp.co&&opp.co.length?' · pemilik 🏢 '+opp.co.join(', '):''}</p>
+        <div class="srow"><button class="pbtn ghost" id="adRe">Minta tawaran lain</button><button class="pbtn" id="adGo" ${op&&stHave(my)?'':'disabled'}>Mulai duel</button></div><p class="pmsg" id="adMsg"></p></section></div></div>`;
+    el.querySelector('.pclose').onclick=()=>{modal=null;el.remove();};
+    el.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{g=NDG.find(x=>x.id===b.dataset.g);SFX.pop();draw();});
+    const K=$('adK'),Q=$('adQ');dotInput(Q);
+    K.onchange=()=>{my.k=K.value;SET.adK=my.k;saveSet();my.q=0;draw();};
+    Q.onchange=()=>{my.q=stQ(my.k,parseDots(Q.value));draw();};
+    el.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const base=my.k==='coin'?S.bal:(PF.hold[my.k]||0);my.q=stQ(my.k,base*(+b.dataset.p)/100);if(my.k==='coin')my.q=Math.floor(my.q);SFX.chip();draw();});
+    $('adRe').onclick=()=>{ratio=.8+Math.random()*.45;if(opp.co&&opp.co.length){coId=Math.random()<.6?opp.co[pick(opp.co.length)]:null;}SFX.pop();draw();};
+    $('adGo').onclick=()=>{if(!op||!stHave(my)){SFX.error();$('adMsg').textContent='Taruhanmu belum cukup.';return;}if(Math.random()<.12){SFX.error();$('adMsg').textContent=`${opp.n}: "Lagi nggak mood duel, coba tawaran lain."`;ratio=.8+Math.random()*.45;return;}
+      const m={k:my.k,q:my.q},o=op;modal=null;el.remove();logLine('sys',null,`⚔️ Duel aset vs ${opp.n}: ${stTxt(m)} lawan ${stTxt(o)} (${g.n}).`);ndPlay({n:opp.n,w:opp.w},g,0,m,o);};};
+  draw();}
+/* custom bet controls shared by all casino games */
+function betExtras(cur,on,label){const box=document.createElement('div');box.className='bxt';
+  box.innerHTML=`<button data-bp="25">25%</button><button data-bp="50">50%</button><button data-bp="100" class="allin">ALL IN</button><input class="dotin" inputmode="numeric" placeholder="Atur sendiri"><button class="go2">${label||'Pakai'}</button>`;
+  const inp=box.querySelector('input');dotInput(inp);
+  box.querySelectorAll('[data-bp]').forEach(b=>b.onclick=()=>{const v=Math.floor(S.bal*(+b.dataset.bp)/100);if(v<1){SFX.error();return;}inp.value=dots(v);SFX.chip();on(v);});
+  box.querySelector('.go2').onclick=()=>{const v=Math.floor(parseDots(inp.value));if(v<1){SFX.error();return;}SFX.chip();on(v);};
+  return box;}
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
