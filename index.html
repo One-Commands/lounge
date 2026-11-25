@@ -93,7 +93,12 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .rng{display:flex;align-items:center;gap:10px}.rng span{flex:0 0 110px}.rng input{flex:1;accent-color:var(--gold)}.rng b{width:44px;text-align:right}
 .slotr{display:flex;align-items:center;gap:8px}.slotr div{flex:1}.slotr small{display:block;color:var(--muted)}
 .setg textarea{width:100%;background:rgba(0,0,0,.35);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px monospace;resize:vertical}
-.srow{display:flex;gap:6px;flex-wrap:wrap}.pbtn.danger{background:#7a1f1f;color:#fff}
+.srow{display:flex;gap:6px;flex-wrap:wrap}
+.mpchat{display:none;gap:6px}.chatpanel.mpc .mpchat{display:flex}.mpchat input{flex:1;min-width:0;min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);padding:0 10px;font:inherit}
+#btnMp{position:relative}#btnMp.live{background:linear-gradient(180deg,#1f8a5a,#0f4d33);border-color:#6fe0a8}#btnMp[data-n]:not([data-n=''])::after{content:attr(data-n);position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 3px}
+.mpcode .code{font-family:var(--display);font-size:44px;letter-spacing:.18em;color:var(--gold);text-align:center;padding:6px 0}
+.mpb input:not([type=range]){min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);padding:0 10px;font:inherit;width:100%;box-sizing:border-box}.mpb .srow input{width:auto}.pbtn.ghost{background:transparent;border:1px solid var(--line)}
+.mpinv{position:absolute;left:50%;top:30%;transform:translateX(-50%);z-index:9;background:var(--glass2);border:2px solid var(--gold);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;width:min(360px,calc(100% - 32px));box-shadow:0 10px 40px rgba(0,0,0,.6);animation:mpin .35s ease}.mpinv small{color:var(--muted)}.mpinv div{display:flex;gap:8px;margin-top:4px}@keyframes mpin{from{transform:translate(-50%,-14px);opacity:0}}.pbtn.danger{background:#7a1f1f;color:#fff}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.07);border-radius:12px;padding:4px;gap:4px}.seg button{min-height:38px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-family:var(--display);font-weight:700;font-size:15px}.seg button.on.buy{background:var(--green);color:#06281a}.seg button.on.sell{background:var(--red);color:#2a0705}
 .tbox{background:rgba(255,255,255,.07);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}.tbox .row{display:flex;justify-content:space-between;font-size:13.5px}
 .tin{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:4px 10px}.tin span{color:var(--muted);font-size:12px}.tin input{flex:1;min-width:0;background:transparent;border:0;color:var(--fg);font:700 20px var(--display);text-align:right;outline:none}.tin em{font-style:normal;color:var(--muted);font-size:12px}
@@ -283,12 +288,14 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
     <button id="btnPhone" aria-label="Buka HP" title="HP">📱</button>
     <button id="btnShop" aria-label="Toko" title="Toko">🏪</button>
     <button id="btnRank" aria-label="Ranking" title="Ranking">🏆</button>
+    <button id="btnMp" aria-label="Mabar" title="Mabar (main bareng teman)">👥</button>
     <button id="btnSet" aria-label="Setting" title="Setting (volume, musik, simpan)">⚙️</button>
     <button id="btnFull" aria-label="Layar penuh" title="Layar penuh">⛶</button>
   </div>
   <div class="chatpanel hidden" id="chatpanel">
     <div class="cp-head">Chat & riwayat <button class="xbtn" id="cpClose" aria-label="Tutup riwayat">✕</button></div>
     <div class="chat" id="chat" aria-live="polite"></div>
+    <form class="mpchat" id="mpChatF" autocomplete="off"><input id="mpChatI" maxlength="120" placeholder="Ketik pesan ke semua pemain..." aria-label="Pesan chat"><button class="pbtn">Kirim</button></form>
     <h4>Riwayat Reme</h4>
     <div class="hist" id="hist"></div>
   </div>
@@ -1546,7 +1553,7 @@ function youPal(){const it=PF.items||{},eq=id=>it[id]&&it[id].eq,inS=s=>{const x
   if(p.handT==='watch')p.watch=true;if(p.handT==='ring')p.ring=true;
   const shc={sneak:0xf4f4f4,leather:0x3a2216,goldsh:0xffd24a,rocket:0xd8321f};if(shc[p.shoeT])p.shoes=shc[p.shoeT];
   return p;}
-function rebuildYou(){if(!you)return;const pos=you.pos.clone(),yaw=you.yaw;scene.remove(you.av.root);you.av=makeAvatar(youPal());you.av.root.position.copy(pos);you.pos=you.av.root.position;you.yaw=yaw;}
+function rebuildYou(){if(!you)return;const pos=you.pos.clone(),yaw=you.yaw;scene.remove(you.av.root);you.av=makeAvatar(youPal());you.av.root.position.copy(pos);you.pos=you.av.root.position;you.yaw=yaw;if(typeof mpLookChanged==='function')mpLookChanged();}
 const ownVal=()=>SHOP.filter(x=>PF.items[x.id]).reduce((s,x)=>s+Math.round(x.p*.7),0);
 const netWorth=()=>S.bal+S.bet+portVal()+PF.bank.save+ownVal()-PF.bank.loan;
 const loanLimit=()=>{const b=PF.bank,nw=S.bal+portVal()+b.save;return Math.max(1000,Math.min(100000,Math.round((1000+(b.score-500)*30+nw*.6)/100)*100));};
@@ -2153,6 +2160,7 @@ function loop(){
   dealers.forEach(d=>moveEnt(d,0,0,false,dt,false));
   marq.forEach(b=>b.m.color.setHex((Math.floor(now/110)+b.i)%4<2?0xfff1b0:0x553a10));
   diceMeshes.forEach(d=>{if(d.t>0){d.t-=dt;d.m.position.y=d.base.y+Math.abs(Math.sin(d.t*9))*.5*d.t;d.m.rotation.x+=dt*12;d.m.rotation.z+=dt*9;if(d.t<=0){d.m.position.copy(d.base);d.m.rotation.set(0,0,0);}}});
+  mpTick(dt,now);
   ents.forEach(e=>animate(e,dt,now));
   for(const w of wheels){
     if(w.spin){const s=w.spin,k=Math.min(1,(now-s.t0)/s.dur),e=1-Math.pow(1-k,3);
@@ -2180,7 +2188,199 @@ function loop(){
   renderer.render(scene,camera);
   requestAnimationFrame(loop);
 }
-function boot(){buildWorld();buildCharacters();if(location.hash==='#dev')window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal}};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
+/* ---------- mabar: room code multiplayer (PeerJS, host relays to everyone) ---------- */
+const MP={peer:null,conns:{},host:false,code:null,myId:null,players:{},sendT:0,last:'',st:'off',err:'',duel:null,inv:null};
+const MP_PRE='lounge-reme-v1-',MP_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789',MP_MAX=6;
+function mpOpts(){const m=location.hash.match(/peer=([^&]+)/);if(m){const [h,p]=decodeURIComponent(m[1]).split(':');return {host:h,port:+p||9000,path:'/',secure:false,debug:0};}return {debug:0};}
+function mpLoad(){return new Promise((res,rej)=>{if(window.Peer)return res();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=()=>res();s.onerror=()=>rej(new Error('load'));document.head.appendChild(s);});}
+const mpName=()=>((SET.name||'').trim().slice(0,14)||'Pemain');
+const mpOn=()=>MP.st==='host'||MP.st==='in';
+function mpMe(){return {id:MP.myId,name:mpName(),look:youPal(),x:+you.pos.x.toFixed(2),y:+you.pos.y.toFixed(2),z:+you.pos.z.toFixed(2),yaw:+you.yaw.toFixed(2)};}
+function mpSend(m,except){m.id=m.id||MP.myId;for(const k in MP.conns){if(k===except)continue;const c=MP.conns[k];if(c.open)try{c.send(m);}catch(e){}}}
+function mpSetSt(st,err){MP.st=st;MP.err=err||'';mpBadge();if(modal&&modal.st&&modal.st.label==='Mabar')modal.refresh();document.getElementById('chatpanel').classList.toggle('mpc',mpOn());}
+function mpBadge(){const b=$('btnMp');if(!b)return;const n=Object.keys(MP.players).length;b.dataset.n=mpOn()?String(n+1):'';b.classList.toggle('live',mpOn());}
+function mpFail(e){const t=e&&e.type;const msg=t==='peer-unavailable'?'Room tidak ditemukan. Cek lagi kodenya, atau minta temanmu bikin room baru.':t==='browser-incompatible'?'Browser ini belum mendukung mabar. Coba Chrome terbaru.':t==='unavailable-id'?'Kode room bentrok, coba lagi.':'Gagal tersambung ke server mabar. Coba cek internet atau ganti jaringan.';mpLeave(true);mpSetSt('off',msg);SFX.error();}
+async function mpStart(){if(MP.peer)mpLeave(true);mpSetSt('wait');try{await mpLoad();}catch(e){mpSetSt('off','Gagal memuat modul mabar. Cek koneksi internet.');return false;}return true;}
+async function mpCreate(){
+  if(!await mpStart())return;
+  let code='';for(let i=0;i<4;i++)code+=MP_ABC[pick(MP_ABC.length)];
+  const p=new Peer(MP_PRE+code,mpOpts());MP.peer=p;
+  p.on('open',id=>{MP.myId=id;MP.host=true;MP.code=code;mpSetSt('host');logLine('sys',null,`Room mabar dibuat. Kode: ${code}. Bagikan ke temanmu.`);SFX.coin();});
+  p.on('connection',c=>{if(Object.keys(MP.conns).length>=MP_MAX-1){c.on('open',()=>{c.send({t:'full'});setTimeout(()=>c.close(),300);});return;}mpWire(c);});
+  p.on('error',mpFail);p.on('disconnected',()=>{if(MP.peer===p&&!p.destroyed)try{p.reconnect();}catch(e){}});
+}
+async function mpJoin(code){
+  code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4){mpSetSt('off','Kode room harus 4 huruf/angka.');return;}
+  if(!await mpStart())return;
+  const p=new Peer(undefined,mpOpts());MP.peer=p;
+  p.on('open',id=>{MP.myId=id;MP.host=false;MP.code=code;const c=p.connect(MP_PRE+code,{reliable:true});mpWire(c);
+    setTimeout(()=>{if(MP.peer===p&&MP.st==='wait')mpFail({type:'peer-unavailable'});},12000);});
+  p.on('error',mpFail);
+}
+function mpWire(c){
+  c.on('open',()=>{MP.conns[c.peer]=c;if(!MP.host){mpSetSt('in');logLine('sys',null,`Masuk room ${MP.code}.`);SFX.coin();}c.send(Object.assign({t:'hello'},mpMe()));
+    if(MP.host)for(const id in MP.players){const pl=MP.players[id];if(id!==c.peer&&pl.hello)c.send(Object.assign({},pl.hello,{x:pl.tx.x,y:pl.tx.y,z:pl.tx.z,yaw:pl.tyaw}));}});
+  c.on('data',d=>mpData(c,d));
+  const gone=()=>{delete MP.conns[c.peer];if(MP.host){if(MP.players[c.peer]){mpDrop(c.peer);mpSend({t:'bye',id:c.peer});}}else if(MP.st==='in'){logLine('sys',null,'Room ditutup oleh pembuatnya.');mpLeave(true);mpSetSt('off','Room sudah ditutup.');}};
+  c.on('close',gone);c.on('error',gone);
+}
+function mpData(c,d){
+  if(!d||typeof d!=='object'||typeof d.t!=='string')return;
+  if(d.t==='full'){mpLeave(true);mpSetSt('off',`Room penuh (maks ${MP_MAX} orang).`);return;}
+  if(MP.host){d.id=c.peer;mpSend(d,c.peer);}   // host relays with a trusted sender id
+  if(d.id===MP.myId)return;
+  if(d.to&&d.to!==MP.myId)return;
+  const pl=MP.players[d.id];
+  switch(d.t){
+    case 'hello':mpAdd(d);break;
+    case 'st':if(pl){pl.tx.set(+d.x||0,+d.y||0,+d.z||0);pl.tyaw=+d.yaw||0;pl.e.speed=+d.sp||0;pl.e.ground=d.g!==false;pl.seen=performance.now();}break;
+    case 'look':if(pl){if(d.name)pl.name=String(d.name).slice(0,14);pl.hello.look=d.look;pl.hello.name=pl.name;mpRebuild(pl,d.look);}break;
+    case 'chat':if(pl&&d.text)speak(pl.e,String(d.text).slice(0,120));break;
+    case 'bye':mpDrop(d.id);break;
+    case 'dinv':mpGotInvite(d);break;
+    case 'ddec':if(MP.duel&&MP.duel.with===d.id&&MP.duel.stage==='sent'){logLine('sys',null,`${pl?pl.name:'Temanmu'} menolak duel${d.why?' ('+d.why+')':''}.`);MP.duel=null;SFX.error();if(modal&&modal.st.label==='Mabar')modal.refresh();}break;
+    case 'dacc':if(MP.duel&&MP.duel.with===d.id&&MP.duel.stage==='sent'&&Array.isArray(d.rounds)){MP.duel.stage='live';pvpDuel(d.id,d.rounds.map(r=>[r[0],r[1]]),MP.duel.stake);}break;
+  }
+}
+function mpAdd(h){
+  if(MP.players[h.id])return;
+  const name=String(h.name||'Pemain').slice(0,14);
+  const e=mkEnt(name,+h.x||0,+h.z||0,mpPal(h.look),{label:name,color:'#7fe0ff',remote:true});e.pos.y=+h.y||0;e.yaw=+h.yaw||0;ents.push(e);
+  MP.players[h.id]={id:h.id,name,e,hello:{t:'hello',id:h.id,name,look:h.look},tx:new THREE.Vector3(e.pos.x,e.pos.y,e.pos.z),tyaw:e.yaw,lock:false,seen:performance.now()};
+  burst(new THREE.Vector3(e.pos.x,2,e.pos.z),24);logLine('sys',null,`${name} masuk ke lounge.`);SFX.pop();mpBadge();if(modal&&modal.st.label==='Mabar')modal.refresh();
+}
+function mpPal(look){const base=randPal();if(look&&typeof look==='object')for(const k in look){const v=look[k];if(typeof v==='number'||typeof v==='boolean'||(typeof v==='string'&&v.length<40))base[k]=v;}return base;}
+function mpRebuild(pl,look){const e=pl.e,pos=e.pos.clone();scene.remove(e.av.root);e.av=makeAvatar(mpPal(look));e.av.root.position.copy(pos);e.pos=e.av.root.position;e.tagEl.textContent=pl.name;}
+function mpDrop(id){const pl=MP.players[id];if(!pl)return;scene.remove(pl.e.av.root);pl.e.tagEl.remove();pl.e.bubEl.remove();const i=ents.indexOf(pl.e);if(i>=0)ents.splice(i,1);delete MP.players[id];
+  if(MP.duel&&MP.duel.with===id&&MP.duel.stage!=='live')MP.duel=null;if(MP.inv&&MP.inv.id===id)mpCloseInvite();
+  logLine('sys',null,`${pl.name} keluar dari lounge.`);mpBadge();if(modal&&modal.st.label==='Mabar')modal.refresh();}
+function mpLeave(silent){
+  if(MP.peer&&!silent)mpSend({t:'bye'});
+  for(const id in MP.players)mpDrop(id);
+  const p=MP.peer;MP.peer=null;MP.conns={};MP.host=false;MP.code=null;MP.duel=null;mpCloseInvite();
+  if(p)setTimeout(()=>{try{p.destroy();}catch(e){}},150);
+  if(!silent){logLine('sys',null,'Kamu keluar dari room mabar.');mpSetSt('off');}
+}
+addEventListener('pagehide',()=>{if(MP.peer)mpSend({t:'bye'});});
+function mpTick(dt,now){
+  if(!mpOn())return;
+  for(const id in MP.players){const pl=MP.players[id],e=pl.e;if(pl.lock)continue;
+    const k=Math.min(1,dt*10);e.pos.lerp(pl.tx,k);let dy=pl.tyaw-e.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));e.yaw+=dy*k;
+    if(now-pl.seen>800)e.speed*=.8;}
+  if(now-MP.sendT>100){MP.sendT=now;const m={t:'st',x:+you.pos.x.toFixed(2),y:+you.pos.y.toFixed(2),z:+you.pos.z.toFixed(2),yaw:+you.yaw.toFixed(2),sp:+(you.speed||0).toFixed(2),g:you.ground!==false};
+    const key=m.x+','+m.y+','+m.z+','+m.yaw+','+m.sp;if(key!==MP.last||now-(MP.full||0)>1000){MP.last=key;MP.full=now;mpSend(m);}}
+}
+function mpLookChanged(){if(mpOn())mpSend({t:'look',look:youPal(),name:mpName()});}
+function mpChat(text){text=String(text||'').trim().slice(0,120);if(!text)return;speak(you,text);if(mpOn())mpSend({t:'chat',text});}
+
+/* --- duel between players --- */
+function mpChallenge(id,stake){
+  const pl=MP.players[id];if(!pl||busy||MP.duel)return SFX.error();
+  stake=Math.floor(stake);if(!(stake>=100)){SFX.error();return 'Taruhan minimal 100 koin.';}
+  if(S.bal<stake){SFX.error();return 'Koinmu kurang untuk taruhan itu.';}
+  MP.duel={with:id,stake,stage:'sent',t:Date.now()};mpSend({t:'dinv',to:id,stake});SFX.whoosh();
+  logLine('sys',null,`Tantangan duel ${fmt(stake)} koin dikirim ke ${pl.name}. Menunggu jawaban...`);
+  setTimeout(()=>{if(MP.duel&&MP.duel.with===id&&MP.duel.stage==='sent'){MP.duel=null;logLine('sys',null,`${pl.name} tidak menjawab tantangan duel.`);if(modal&&modal.st.label==='Mabar')modal.refresh();}},25000);
+}
+function mpGotInvite(d){
+  const pl=MP.players[d.id];if(!pl)return;const stake=Math.floor(+d.stake||0);
+  const no=why=>mpSend({t:'ddec',to:d.id,why});
+  if(busy||MP.duel||MP.inv)return no('lagi sibuk');
+  if(stake<100)return no('taruhan tidak valid');
+  MP.inv={id:d.id,stake};SFX.riser();
+  const el=document.createElement('div');el.className='mpinv';el.setAttribute('role','alertdialog');
+  el.innerHTML=`<b>⚔️ ${esc(pl.name)} menantang kamu duel reme!</b><small>Taruhan 🪙 ${fmt(stake)} koin · midman Sinta</small><div><button class="pbtn" data-a="1">Terima</button><button class="pbtn ghost" data-a="0">Tolak</button></div>`;
+  stage.appendChild(el);MP.inv.el=el;
+  el.querySelector('[data-a="0"]').onclick=()=>{no('ditolak');mpCloseInvite();};
+  el.querySelector('[data-a="1"]').onclick=()=>{
+    if(S.bal<stake){no('koinnya kurang');mpCloseInvite();logLine('sys',null,'Koinmu kurang untuk duel itu.');SFX.error();return;}
+    if(busy){no('lagi sibuk');mpCloseInvite();return;}
+    const rounds=[];let a,b;do{a=rnd();b=rnd();rounds.push([a,b]);}while(duelVal(a)===duelVal(b)&&rounds.length<6);
+    if(duelVal(a)===duelVal(b))rounds[rounds.length-1][1]=(b+1)%37;
+    mpSend({t:'dacc',to:d.id,rounds});mpCloseInvite();if(modal)closeGame();
+    MP.duel={with:d.id,stake,stage:'live'};pvpDuel(d.id,rounds.map(r=>[r[1],r[0]]),stake);   // rounds are [inviter, accepter]; flip so mine comes first
+  };
+  setTimeout(()=>{if(MP.inv&&MP.inv.el===el){no('tidak dijawab');mpCloseInvite();}},20000);
+}
+function mpCloseInvite(){if(MP.inv&&MP.inv.el)MP.inv.el.remove();MP.inv=null;}
+async function pvpDuel(id,rounds,stake){
+  const pl=MP.players[id];if(!pl){MP.duel=null;return;}
+  if(modal)closeGame();closePhone();toggleChat(false);for(const k in keys)keys[k]=false;
+  const H=DUEL.hostEnt,e=pl.e,TX=ROOM-6,z=DUEL.z;
+  busy=true;pl.lock=true;S.bal-=stake;render();
+  const u=DUEL.pw.use;you.pos.set(u.x-.6,0,u.z);you.yaw=Math.atan2(DUEL.pw.x-you.pos.x,DUEL.pw.z-you.pos.z);
+  const r=DUEL.rw.use;e.pos.set(r.x-.2,0,r.z);e.yaw=Math.atan2(DUEL.rw.x-e.pos.x,DUEL.rw.z-e.pos.z);e.speed=0;
+  cineOn();SFX.riser();shotTo(TX-10,5,z,TX,1.6,z);
+  banner(`<div class="vs-l"><b>${esc(mpName())}</b><small>Kamu</small></div><div class="vs-m">VS<small>🪙 ${fmt(stake)}</small></div><div class="vs-r"><b>${esc(pl.name)}</b><small>Teman</small></div>`,'duelb',2400);
+  await wait(500);SFX.whoosh();await wait(900);SFX.boom();
+  speak(H,`Duel antar pemain! Masing-masing ${fmt(stake)} koin, saya yang pegang. Reme tertinggi menang, 0 paling kuat.`);
+  const pa=chipPile(Math.min(10,2+Math.round(stake/500)),0x2f6fe0),pb=chipPile(Math.min(10,2+Math.round(stake/500)),0xd8435b);
+  pa.position.set(TX-.4,1.15,z+2);pb.position.set(TX-.4,1.15,z-2);scene.add(pa,pb);shotTo(TX-4.5,3.6,z+.01,TX,1.2,z);
+  await wait(700);SFX.chip();slideTo(pa,new THREE.Vector3(TX,1.15,z+.25),600);await wait(250);SFX.chip();await slideTo(pb,new THREE.Vector3(TX,1.15,z-.25),600);
+  await wait(500);
+  let y=0,o=0;
+  for(let i=0;i<rounds.length;i++){[y,o]=rounds[i];
+    speak(H,i>0?'Seri! Putar ulang.':'Silakan putar.');await wait(700);
+    shotWheel(DUEL.pw);you.arm=1.4;SFX.drum(3);await spinWheel(DUEL.pw,y,3000);SFX.stop();flashFx();showFloat(DUEL.pw,y,5000);showResult(`KAMU: ${numSpan(y)} → REME ${reme(y)}`);
+    await wait(900);
+    shotWheel(DUEL.rw);e.arm=1.4;SFX.drum(3);await spinWheel(DUEL.rw,o,3000);SFX.stop();flashFx();showFloat(DUEL.rw,o,5000);showResult(`${esc(pl.name).toUpperCase()}: ${numSpan(o)} → REME ${reme(o)}`);
+    await wait(900);}
+  const win=duelVal(y)>duelVal(o),winE=win?you:e;shotEnt(winE);await wait(500);
+  [pa,pb].forEach(p=>slideTo(p,new THREE.Vector3(winE.pos.x,1.4,winE.pos.z),700));await wait(750);scene.remove(pa,pb);
+  if(win){S.bal+=stake*2;S.wins++;you.cheer=2.5;SFX.big();flashFx('#ffe28a');shakeFx();burst(new THREE.Vector3(you.pos.x,you.pos.y+3,you.pos.z),90);
+    banner(`<div class="vs-big win">MENANG!<small>+🪙 ${fmt(stake)}</small></div>`,'resb',2200);speak(H,`Reme ${reme(y)} lawan ${reme(o)}. Pemenangnya kamu!`);
+    logLine('sys',null,`Duel mabar: kamu mengalahkan ${pl.name} (reme ${reme(y)} lawan ${reme(o)}). +${fmt(stake)} koin.`,'win');crowdCheer(you.pos);}
+  else{S.losses++;e.cheer=2.5;SFX.lose();banner(`<div class="vs-big lose">KALAH<small>-🪙 ${fmt(stake)}</small></div>`,'resb',2200);speak(H,`Reme ${reme(y)} lawan ${reme(o)}. ${pl.name} menang.`);
+    logLine('sys',null,`Duel mabar: kamu kalah dari ${pl.name} (reme ${reme(y)} lawan ${reme(o)}). -${fmt(stake)} koin.`,'lose');}
+  save();savePF();render();
+  await wait(2600);cineOff();pl.lock=false;MP.duel=null;busy=false;ctxKey=null;render();setTimeout(checkBroke,50);
+}
+
+/* --- panel --- */
+function openMabar(){
+  if(modal||!started)return;for(const k in keys)keys[k]=false;closePhone();
+  const el=document.createElement('div');el.className='modal';
+  el.innerHTML=`<div class="panel" role="dialog" aria-label="Mabar"><div class="phead"><h3>👥 Mabar</h3><button class="pclose" aria-label="Tutup">✕</button></div><div class="pbody setb mpb"></div></div>`;
+  stage.appendChild(el);const body=el.querySelector('.mpb');
+  const draw=()=>{
+    if(MP.st==='host'||MP.st==='in'){
+      const list=Object.values(MP.players);
+      body.innerHTML=`<section class="setg mpcode"><h4>Kode room</h4><div class="code">${MP.code}</div><p class="muted">${MP.host?'Kamu pembuat room. Room tetap hidup selama game ini terbuka.':'Kamu tamu di room ini.'} Temanmu tinggal buka game, tekan 👥, lalu masukkan kode ini.</p>
+        <div class="srow"><button class="pbtn" id="mCopy">Salin kode & link</button><button class="pbtn danger" id="mLeave">Keluar room</button></div></section>
+        <section class="setg"><h4>Pemain (${list.length+1}/${MP_MAX})</h4>
+        <div class="slotr"><div><b>${esc(mpName())} (kamu)</b><small>🪙 ${fmt(Math.floor(S.bal))}</small></div></div>
+        ${list.map(p=>`<div class="slotr"><div><b>${esc(p.name)}</b><small>${Math.round(p.e.pos.distanceTo(you.pos))} m dari kamu</small></div><button class="pbtn" data-duel="${esc(p.id)}" ${MP.duel||busy?'disabled':''}>⚔️ Duel</button></div>`).join('')||'<p class="muted">Belum ada teman yang masuk. Bagikan kodenya.</p>'}
+        </section>
+        <section class="setg"><h4>Taruhan duel</h4><label class="rng"><span>Koin</span><input id="mStake" type="number" min="100" step="100" value="${SET.mpStake||500}" inputmode="numeric"></label>
+        <p class="muted">Duel reme di Meja Duel dengan midman Sinta. Buff hoki dan bonus tidak berlaku saat duel antar pemain, biar adil.</p></section>
+        <section class="setg"><h4>Chat</h4><p class="muted">Buka bar chat di atas untuk kirim pesan ke semua pemain.</p></section>
+        <p class="pmsg" id="mMsg">${MP.duel&&MP.duel.stage==='sent'?'Menunggu jawaban tantangan...':''}</p>`;
+      $('mLeave').onclick=()=>{mpLeave();};
+      $('mCopy').onclick=()=>{const link=location.href.split('#')[0].split('?')[0];const t=`Main Lounge bareng aku! Buka ${link} lalu tekan 👥 dan masukkan kode: ${MP.code}`;
+        const ok=()=>{$('mMsg').textContent='Tersalin. Tempel di chat ke temanmu.';};try{navigator.clipboard.writeText(t).then(ok,()=>{$('mMsg').textContent=t;});}catch(e){$('mMsg').textContent=t;}};
+      $('mStake').onchange=e=>{SET.mpStake=Math.max(100,Math.floor(+e.target.value||100));saveSet();};
+      body.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{const s=Math.floor(+$('mStake').value||0);SET.mpStake=s;saveSet();const er=mpChallenge(b.dataset.duel,s);$('mMsg').textContent=er||'Tantangan dikirim. Menunggu jawaban...';draw();});
+    }else{
+      body.innerHTML=`<section class="setg"><h4>Nama kamu</h4><input id="mName" maxlength="14" value="${esc(SET.name||'')}" placeholder="Nama yang dilihat teman"></section>
+        <section class="setg"><h4>Bikin room</h4><p class="muted">Kamu dapat kode 4 huruf. Teman yang masukin kode itu bakal muncul di kasino yang sama.</p><button class="pbtn" id="mCreate" ${MP.st==='wait'?'disabled':''}>Bikin room</button></section>
+        <section class="setg"><h4>Gabung room</h4><div class="srow"><input id="mCode" maxlength="4" placeholder="Kode, mis. K7QM" autocapitalize="characters" style="text-transform:uppercase;flex:1"><button class="pbtn" id="mJoin" ${MP.st==='wait'?'disabled':''}>Gabung</button></div></section>
+        <p class="muted">Koin, barang, dan progres tetap punya masing-masing. Maks ${MP_MAX} orang per room.</p>
+        <p class="pmsg" id="mMsg">${MP.st==='wait'?'Menyambungkan...':esc(MP.err||'')}</p>`;
+      const nm=()=>{const v=$('mName').value.trim().slice(0,14);if(v!==SET.name){SET.name=v;saveSet();}};
+      $('mName').onchange=nm;
+      $('mCreate').onclick=()=>{nm();audio();mpCreate();};
+      $('mJoin').onclick=()=>{nm();audio();mpJoin($('mCode').value);};
+      $('mCode').onkeydown=e=>{if(e.key==='Enter')$('mJoin').click();};
+    }
+  };
+  modal={el,st:{label:'Mabar'},busy:false,refresh(){const a=document.activeElement;if(a&&a.tagName==='INPUT'&&el.contains(a))return;draw();}};
+  el.querySelector('.pclose').onclick=closeGame;el.addEventListener('pointerdown',e=>{if(e.target===el)closeGame();});
+  draw();
+}
+
+$('btnMp').addEventListener('click',()=>{audio();openMabar();});
+$('mpChatF').addEventListener('submit',e=>{e.preventDefault();const i=$('mpChatI');mpChat(i.value);i.value='';});
+function boot(){buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
 })();
