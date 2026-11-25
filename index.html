@@ -1302,8 +1302,12 @@ function spark(cv,h,col){const g=cv.getContext('2d'),w=cv.width,hh=cv.height;g.c
   g.beginPath();h.forEach((p,i)=>{const x=i/(h.length-1)*w,y=hh-3-(p-mn)/r*(hh-6);i?g.lineTo(x,y):g.moveTo(x,y);});g.strokeStyle=col;g.lineWidth=2;g.stroke();
   g.lineTo(w,hh);g.lineTo(0,hh);g.closePath();g.fillStyle=col+'33';g.fill();}
 function chg(a){return (a.p/a.open-1)*100;}
+let phTouch=false,phPend=false,phKey='',phScrollT=0;
+{const ph=document.getElementById('phone');const up=()=>{phTouch=false;};ph.addEventListener('touchstart',()=>{phTouch=true;},{passive:true});ph.addEventListener('scroll',()=>{phScrollT=performance.now();},{capture:true,passive:true});ph.addEventListener('touchend',up,{passive:true});ph.addEventListener('touchcancel',up,{passive:true});ph.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;phTouch=true;});}
 function phoneRender(){
   const ph=$('phone');if(ph.classList.contains('hidden'))return;
+  const vk=phView+'|'+(phAsset?phAsset.id:'');if(vk===phKey&&(phTouch||performance.now()-phScrollT<700)){if(!phPend){phPend=true;setTimeout(()=>{phPend=false;phoneRender();},750);}return;}
+  const ob=ph.querySelector('.ph-body'),keep=ob&&vk===phKey?ob.scrollTop:0;phKey=vk;
   const now=new Date(),tm=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
   const pv=portVal(),cost=MK.reduce((s,a)=>s+(PF.cost[a.id]||0),0),B=PF.bank,own=ownVal(),net=netWorth();
   const titles={home:'',rank:'Ranking',bank:'Bank Merdeka',toko:'Toko Aksesoris',crypto:'Crypto',saham:'Saham',detail:phAsset?phAsset.n:'',jobs:'Kerja sampingan',guide:'Panduan kasino',wallet:'Dompet'};
@@ -1396,6 +1400,7 @@ function phoneRender(){
   ph.innerHTML=`<div class="scr"><div class="ph-status"><span>${tm}</span><span>5G ▮▮▮ 87%</span></div>
     <div class="ph-top">${phView==='home'?'<h4>LoungePhone</h4>':`<button id="phBack">‹ Kembali</button><h4>${esc(titles[phView])}</h4>`}<button id="phClose" aria-label="Tutup HP">✕</button></div>
     <div class="ph-body">${body}</div></div>`;
+  if(keep){const nb=ph.querySelector('.ph-body');if(nb)nb.scrollTop=keep;}
   ph.querySelectorAll('.app[data-v]').forEach(b=>b.onclick=()=>{phView=b.dataset.v;SFX.pop();phoneRender();});
   ph.querySelectorAll('.asset').forEach(b=>b.onclick=()=>{phAsset=MK.find(a=>a.id===b.dataset.a);phView='detail';SFX.pop();phoneRender();});
   ph.querySelectorAll('canvas[data-s]').forEach(cv=>{const a=MK.find(x=>x.id===cv.dataset.s);spark(cv,phView==='detail'?a.h:a.h.slice(-30),a.c);});
@@ -2199,7 +2204,7 @@ function mpMe(){return {id:MP.myId,name:mpName(),look:youPal(),x:+you.pos.x.toFi
 function mpSend(m,except){m.id=m.id||MP.myId;for(const k in MP.conns){if(k===except)continue;const c=MP.conns[k];if(c.open)try{c.send(m);}catch(e){}}}
 function mpSetSt(st,err){MP.st=st;MP.err=err||'';mpBadge();if(modal&&modal.st&&modal.st.label==='Mabar')modal.refresh();document.getElementById('chatpanel').classList.toggle('mpc',mpOn());}
 function mpBadge(){const b=$('btnMp');if(!b)return;const n=Object.keys(MP.players).length;b.dataset.n=mpOn()?String(n+1):'';b.classList.toggle('live',mpOn());}
-function mpFail(e){const t=e&&e.type;const msg=t==='peer-unavailable'?'Room tidak ditemukan. Cek lagi kodenya, atau minta temanmu bikin room baru.':t==='browser-incompatible'?'Browser ini belum mendukung mabar. Coba Chrome terbaru.':t==='unavailable-id'?'Kode room bentrok, coba lagi.':'Gagal tersambung ke server mabar. Coba cek internet atau ganti jaringan.';mpLeave(true);mpSetSt('off',msg);SFX.error();}
+function mpFail(e){const t=e&&e.type;const msg=t==='peer-unavailable'?'Room tidak ditemukan. Pastikan kodenya benar dan pembuat room sedang membuka game (bukan di WA/aplikasi lain), lalu coba lagi.':t==='ice'?'Room ketemu tapi koneksi ke HP temanmu gagal. Coba salah satu pakai data seluler, atau ganti Wi-Fi.':t==='browser-incompatible'?'Browser ini belum mendukung mabar. Coba Chrome terbaru.':t==='unavailable-id'?'Kode room bentrok, coba lagi.':'Gagal tersambung ke server mabar. Coba cek internet atau ganti jaringan.';mpLeave(true);mpSetSt('off',msg);SFX.error();}
 async function mpStart(){if(MP.peer)mpLeave(true);mpSetSt('wait');try{await mpLoad();}catch(e){mpSetSt('off','Gagal memuat modul mabar. Cek koneksi internet.');return false;}return true;}
 async function mpCreate(){
   if(!await mpStart())return;
@@ -2207,16 +2212,20 @@ async function mpCreate(){
   const p=new Peer(MP_PRE+code,mpOpts());MP.peer=p;
   p.on('open',id=>{MP.myId=id;MP.host=true;MP.code=code;mpSetSt('host');logLine('sys',null,`Room mabar dibuat. Kode: ${code}. Bagikan ke temanmu.`);SFX.coin();});
   p.on('connection',c=>{if(Object.keys(MP.conns).length>=MP_MAX-1){c.on('open',()=>{c.send({t:'full'});setTimeout(()=>c.close(),300);});return;}mpWire(c);});
-  p.on('error',mpFail);p.on('disconnected',()=>{if(MP.peer===p&&!p.destroyed)try{p.reconnect();}catch(e){}});
+  p.on('error',e=>{if(MP.st==='host'&&e&&['network','server-error','socket-error','socket-closed','disconnected','peer-unavailable','webrtc'].includes(e.type))return;mpFail(e);});p.on('disconnected',()=>{if(MP.peer===p&&!p.destroyed)try{p.reconnect();}catch(e){}});
 }
 async function mpJoin(code){
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4){mpSetSt('off','Kode room harus 4 huruf/angka.');return;}
   if(!await mpStart())return;
-  const p=new Peer(undefined,mpOpts());MP.peer=p;
-  p.on('open',id=>{MP.myId=id;MP.host=false;MP.code=code;const c=p.connect(MP_PRE+code,{reliable:true});mpWire(c);
-    setTimeout(()=>{if(MP.peer===p&&MP.st==='wait')mpFail({type:'peer-unavailable'});},12000);});
-  p.on('error',mpFail);
+  const p=new Peer(undefined,mpOpts());MP.peer=p;MP.tries=0;
+  const attempt=()=>{if(MP.peer!==p||MP.st!=='wait')return;MP.tries++;MP.err='';mpNote(`Mencari room ${code}... (percobaan ${MP.tries}/4)`);
+    const c=p.connect(MP_PRE+code,{reliable:true});mpWire(c);
+    const my=MP.tries;setTimeout(()=>{if(MP.peer===p&&MP.st==='wait'&&MP.tries===my){try{c.close();}catch(e){}
+      if(MP.tries<4)attempt();else mpFail({type:'ice'});}},9000);};
+  p.on('open',id=>{MP.myId=id;MP.host=false;MP.code=code;attempt();});
+  p.on('error',e=>{if(e&&e.type==='peer-unavailable'&&MP.peer===p&&MP.tries<4){mpNote(`Room ${code} belum ketemu, coba lagi...`);const my=MP.tries;setTimeout(()=>{if(MP.tries===my)attempt();},2500);return;}mpFail(e);});
 }
+function mpNote(t){const m=document.getElementById('mMsg');if(m&&MP.st==='wait')m.textContent=t;}
 function mpWire(c){
   c.on('open',()=>{MP.conns[c.peer]=c;if(!MP.host){mpSetSt('in');logLine('sys',null,`Masuk room ${MP.code}.`);SFX.coin();}c.send(Object.assign({t:'hello'},mpMe()));
     if(MP.host)for(const id in MP.players){const pl=MP.players[id];if(id!==c.peer&&pl.hello)c.send(Object.assign({},pl.hello,{x:pl.tx.x,y:pl.tx.y,z:pl.tx.z,yaw:pl.tyaw}));}});
@@ -2262,6 +2271,9 @@ function mpLeave(silent){
   if(!silent){logLine('sys',null,'Kamu keluar dari room mabar.');mpSetSt('off');}
 }
 addEventListener('pagehide',()=>{if(MP.peer)mpSend({t:'bye'});});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;const p=MP.peer;if(!p)return;if(MP.host&&p.disconnected&&!p.destroyed){try{p.reconnect();}catch(e){}}if(MP.host&&p.destroyed&&MP.code)mpRehost(MP.code);});
+setInterval(()=>{const p=MP.peer;if(p&&MP.host&&p.disconnected&&!p.destroyed&&!document.hidden){try{p.reconnect();}catch(e){}}},5000);
+function mpRehost(code){const old=MP.players;const p=new Peer(MP_PRE+code,mpOpts());MP.peer=p;p.on('open',id=>{MP.myId=id;logLine('sys',null,`Room ${code} aktif lagi.`);});p.on('connection',c=>mpWire(c));p.on('error',e=>{if(e.type==='unavailable-id')setTimeout(()=>{if(MP.peer===p){try{p.destroy();}catch(_){}mpRehost(code);}},3000);});p.on('disconnected',()=>{if(MP.peer===p&&!p.destroyed)try{p.reconnect();}catch(e){}});}
 function mpTick(dt,now){
   if(!mpOn())return;
   for(const id in MP.players){const pl=MP.players[id],e=pl.e;if(pl.lock)continue;
@@ -2345,7 +2357,7 @@ function openMabar(){
   const draw=()=>{
     if(MP.st==='host'||MP.st==='in'){
       const list=Object.values(MP.players);
-      body.innerHTML=`<section class="setg mpcode"><h4>Kode room</h4><div class="code">${MP.code}</div><p class="muted">${MP.host?'Kamu pembuat room. Room tetap hidup selama game ini terbuka.':'Kamu tamu di room ini.'} Temanmu tinggal buka game, tekan 👥, lalu masukkan kode ini.</p>
+      body.innerHTML=`<section class="setg mpcode"><h4>Kode room</h4><div class="code">${MP.code}</div><p class="muted">${MP.host?'Kamu pembuat room. <b>Setelah kirim kode lewat WA, balik lagi ke game ini</b>, karena room cuma aktif saat game terbuka di layar.':'Kamu tamu di room ini.'} Temanmu tinggal buka game, tekan 👥, lalu masukkan kode ini.</p>
         <div class="srow"><button class="pbtn" id="mCopy">Salin kode & link</button><button class="pbtn danger" id="mLeave">Keluar room</button></div></section>
         <section class="setg"><h4>Pemain (${list.length+1}/${MP_MAX})</h4>
         <div class="slotr"><div><b>${esc(mpName())} (kamu)</b><small>🪙 ${fmt(Math.floor(S.bal))}</small></div></div>
