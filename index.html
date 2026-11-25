@@ -105,6 +105,13 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .mpcode .code{font-family:var(--display);font-size:44px;letter-spacing:.18em;color:var(--gold);text-align:center;padding:6px 0}
 .mpb input:not([type=range]){min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);padding:0 10px;font:inherit;width:100%;box-sizing:border-box}.mpb .srow input{width:auto}.pbtn.ghost{background:transparent;border:1px solid var(--line)}
 .mpinv{position:absolute;left:50%;top:30%;transform:translateX(-50%);z-index:9;background:var(--glass2);border:2px solid var(--gold);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;width:min(360px,calc(100% - 32px));box-shadow:0 10px 40px rgba(0,0,0,.6);animation:mpin .35s ease}.mpinv small{color:var(--muted)}.mpinv div{display:flex;gap:8px;margin-top:4px}@keyframes mpin{from{transform:translate(-50%,-14px);opacity:0}}.pbtn.danger{background:#7a1f1f;color:#fff}
+.go.alt{background:#2a3550;color:#fff;box-shadow:0 4px 0 #121a2c}#ctx .go{font-size:15px;min-height:42px}
+.bzr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);margin:6px 0;font-size:13px}.bzr small{display:block;color:var(--muted);font-size:11px}.bzr em{font-style:normal;color:#8ef0a8;font-weight:800;white-space:nowrap}.bzr.sub{margin-left:14px;background:rgba(125,243,255,.08)}
+.bzgo{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.bzgo button{font-size:12px}
+.ndb{text-align:center}.ndvs{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:8px 0 12px}.ndvs small{color:var(--muted);font-weight:800;letter-spacing:.05em}
+.ndr{font-size:30px;min-height:64px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:2px solid var(--line);border-radius:14px;margin-top:6px;padding:6px;font-weight:800;word-break:break-word}
+.ndm{font-family:var(--display);font-size:26px;color:var(--gold);display:flex;flex-direction:column}.ndm small{font-size:12px}
+
 .seg{display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.07);border-radius:12px;padding:4px;gap:4px}.seg button{min-height:38px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-family:var(--display);font-weight:700;font-size:15px}.seg button.on.buy{background:var(--green);color:#06281a}.seg button.on.sell{background:var(--red);color:#2a0705}
 .tbox{background:rgba(255,255,255,.07);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}.tbox .row{display:flex;justify-content:space-between;font-size:13.5px}
 .tin{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:4px 10px}.tin span{color:var(--muted);font-size:12px}.tin input{flex:1;min-width:0;background:transparent;border:0;color:var(--fg);font:700 20px var(--display);text-align:right;outline:none}.tin em{font-style:normal;color:var(--muted);font-size:12px}
@@ -458,7 +465,7 @@ stage.insertBefore(renderer.domElement,ov);
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x1a120e);
 scene.fog=new THREE.Fog(0x1a120e,70,170);
-const camera=new THREE.PerspectiveCamera(60,16/9,.1,340);
+const camera=new THREE.PerspectiveCamera(60,16/9,.1,700);
 function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(stage);resize();
 
@@ -908,14 +915,14 @@ function updateCamera(dt){
   let d=camDist;
   const cx=camTarget.x+Math.sin(camYaw)*cp*d,cz=camTarget.z+Math.cos(camYaw)*cp*d;
   // keep camera inside the room
-  const out=camTarget.z>ROOM+.2,bx=out?OUT_X-.6:ROOM-.6,bz0=out?ROOM+.9:-ROOM+.6,bz1=out?OUT_Z-.6:ROOM-.6;let k=1;const t=camTarget;
-  if(cx>bx)k=Math.min(k,(bx-t.x)/Math.max(.01,cx-t.x));if(cx<-bx)k=Math.min(k,(-bx-t.x)/Math.min(-.01,cx-t.x));
+  const CB=camBounds(camTarget),bx0=CB[0],bx=CB[1],bz0=CB[2],bz1=CB[3];let k=1;const t=camTarget;
+  if(cx>bx)k=Math.min(k,(bx-t.x)/Math.max(.01,cx-t.x));if(cx<bx0)k=Math.min(k,(bx0-t.x)/Math.min(-.01,cx-t.x));
   if(cz>bz1)k=Math.min(k,(bz1-t.z)/Math.max(.01,cz-t.z));if(cz<bz0)k=Math.min(k,(bz0-t.z)/Math.min(-.01,cz-t.z));
   d*=Math.max(.3,Math.min(1,k));d=Math.max(2.6,d);
   for(let tries=0;tries<12&&d>2;tries++){const px=camTarget.x+Math.sin(camYaw)*cp*d,pz=camTarget.z+Math.cos(camYaw)*cp*d,py=camTarget.y+Math.sin(camPitch)*d;
     let hit=false;for(const c of colliders){if(px>c.x0-.3&&px<c.x1+.3&&pz>c.z0-.3&&pz<c.z1+.3&&py<c.top+.3&&py>(c.bottom||0)-.3){hit=true;break;}}
     if(!hit)break;d-=.7;}
-  const tp=new THREE.Vector3(camTarget.x+Math.sin(camYaw)*cp*d,Math.min(camTarget.z>ROOM+.2?16:8.4,Math.max(.6,camTarget.y+Math.sin(camPitch)*d)),camTarget.z+Math.cos(camYaw)*cp*d);
+  const tp=new THREE.Vector3(camTarget.x+Math.sin(camYaw)*cp*d,Math.min(CB[4],Math.max(.6,camTarget.y+Math.sin(camPitch)*d)),camTarget.z+Math.cos(camYaw)*cp*d);
   if(cineBlend>0){cineBlend-=dt*1.6;camera.position.lerp(tp,Math.min(1,dt*4));cineLook.lerp(camTarget,Math.min(1,dt*5));camera.lookAt(cineLook);}else{camera.position.copy(tp);camera.lookAt(camTarget);}
 }
 
@@ -979,7 +986,7 @@ function nearestWheel(){
 }
 async function interact(){
   if(!started||modal)return;audio();
-  const st=stationPick();if(st){if(st.type==='garage'){openShop('prop');return;}openGame(st);return;}
+  const st=stationPick();if(st){if(st.act){st.act(st);return;}if(st.type==='garage'){openShop('prop');return;}openGame(st);return;}
   const w=nearestWheel();
   if(w&&w.role==='duelP'){if(!busy)duelAtTable();return;}
   if(w&&w.role==='duelR'){speak(DUEL.hostEnt,'Itu roda lawan. Kamu pakai roda KAMU di sebelah sana.');SFX.error();return;}
@@ -1052,8 +1059,10 @@ async function remeRound(t){
   speak(H,`Bet ${fmt(bet)} diterima. Kamu putar duluan.`);
   await wait(900);
   you.arm=1.4;shotWheel(w);SFX.drum(3.2);
-  const sc=n=>{const v=V(n);return v===t.sp?99:v;};let pn=luckRoll(rnd,sc,n=>sc(n)<6);
+  const sc=n=>{const v=V(n);return v===t.sp?99:v;};let pn=rnd();
   await spinWheel(w,pn,3200);
+  {const L=buffs().luck;if(L>0&&sc(pn)<6&&Math.random()<L/100){SFX.stop();showFloat(w,pn,1600);showResult(`KAMU: ${numSpan(pn)} → ${K} ${V(pn)}`);await wait(800);luckFx(L);speak(H,`Wih, hoki ${L}% aktif! Roda kamu diputar ulang.`);await wait(1100);
+    let best=pn;for(let k=0;k<3;k++){const c=rnd();if(sc(c)>sc(best))best=c;}let g=0;while(sc(best)<=sc(pn)&&g<40){best=rnd();g++;}pn=best;you.arm=1.4;shotWheel(w);SFX.drum(2.6);await spinWheel(w,pn,2800);}}
   SFX.stop();showFloat(w,pn,5000);flashFx();
   const pr=V(pn);showResult(`KAMU: ${numSpan(pn)} → ${K} ${pr}`);
   logLine('sys',null,`Kamu memutar roda dan dapat ${pn}. ${K} ${pr}.`);
@@ -1130,6 +1139,7 @@ function buildCtx(t){
   const el=$('ctx'),ta=$('tAct');
   if(!t){el.classList.add('hidden');el.innerHTML='';ta.textContent='AKSI';return;}
   el.classList.remove('hidden');
+  if(t.st&&t.st.ctx){el.innerHTML=t.st.ctx(t.st);const g=$('ctxGo');if(g)g.onclick=()=>interact();ta.textContent=t.st.btn||'AKSI';return;}
   if(t.st&&t.st.type==='garage'){const x=SHOP.find(i=>i.id===t.st.item),own=PF.items[x.id];
     el.innerHTML=`<div class="ctx-head"><h3>${x.ic} ${esc(x.n)}</h3><small>${own?'Koleksimu · '+buffTxt(x.b).join(', '):'Belum dimiliki · 🪙 '+fmt(x.p)+' · '+buffTxt(x.b).join(', ')}</small></div><div class="ctx-row"><button class="go" id="ctxGo">${own?'Lihat di Toko (E)':'Beli di Toko (E)'}</button></div>`;
     $('ctxGo').onclick=()=>interact();ta.textContent='TOKO';return;}
@@ -1222,12 +1232,12 @@ $('btnSet').addEventListener('click',()=>{audio();openSettings();});
 /* ---------- Toko (full-screen shop) ---------- */
 const SHOP_CATS=[['promo','🎁','Promo'],['dia','💎','Diamond'],['gacha','✨','Gacha'],['aks','🎀','Aksesoris'],['set','👑','Set Aksesoris'],['prop','🏠','Properti'],['pass','🎫','Pass'],['tas','🎒','Tas']];
 const PROMOS=[
-  {id:'starter2',n:'⭐ Starter Pack',items:['fedora','hawaii','sneak','shades'],coins:10000,dia:50,tix:3,p:2000,was:14000,once:true,hot:true},
-  {id:'starterpk',n:'Paket Pemula',items:['fedora','sneak','shades'],coins:500,p:1000,was:1800,once:true},
-  {id:'investpk',n:'Paket Investor',items:['watch','suit'],coins:20000,dia:30,p:15000,was:24000,once:true},
-  {id:'luckypk',n:'Paket Hoki',items:['ring','catp','heartg'],coins:0,p:7500,was:9900,once:true},
-  {id:'pirpk',n:'Paket Bajak Laut',items:['pirate','parrot','boots'],coins:0,p:16000,was:21000,once:true},
-  {id:'sultanpk',n:'Paket Sultan',items:['crown','rolex','car'],coins:0,p:55000,was:68000,once:true}
+  {id:'starter2',n:'⭐ Starter Pack',items:['fedora','hawaii','sneak','shades'],coins:10000,dia:50,tix:3,p:12000,was:15000,once:true,hot:true},
+  {id:'starterpk',n:'Paket Pemula',items:['fedora','sneak','shades'],coins:500,p:1500,was:1800,once:true},
+  {id:'investpk',n:'Paket Investor',items:['watch','suit'],coins:20000,dia:30,p:21000,was:24000,once:true},
+  {id:'luckypk',n:'Paket Hoki',items:['ring','catp','heartg'],coins:0,p:8900,was:9900,once:true},
+  {id:'pirpk',n:'Paket Bajak Laut',items:['pirate','parrot','boots'],coins:0,p:18500,was:21000,once:true},
+  {id:'sultanpk',n:'Paket Sultan',items:['crown','rolex','car'],coins:0,p:61000,was:68000,once:true}
 ];
 const GACHA_RATE={C:50,R:30,E:14,L:5,M:1},GACHA_P=1500;
 const DIA_EX=[
@@ -1357,27 +1367,87 @@ const MK=[
   {id:'EMRY',n:'Tambang Emas Raya',t:'saham',p:74,v:.02,c:'#f6c45a'},
   {id:'SWIT',n:'Sawit Makmur Tbk',t:'saham',p:42,v:.015,c:'#6bbf3a'},
   {id:'ANGK',n:'Angkasa Air Tbk',t:'saham',p:28,v:.025,c:'#7fd6ff'},
-  {id:'PROP',n:'Properti Megah Tbk',t:'saham',p:55,v:.018,c:'#d6a8ff'}
+  {id:'PROP',n:'Properti Megah Tbk',t:'saham',p:55,v:.018,c:'#d6a8ff'},
+  {id:'ENRG',n:'Energi Nusantara Tbk',t:'saham',p:96,v:.018,c:'#ff9f1c'},
+  {id:'MINY',n:'Minyak Samudra Tbk',t:'saham',p:130,v:.02,c:'#5a3a20'},
+  {id:'SEHT',n:'Sehat Farma Tbk',t:'saham',p:48,v:.016,c:'#4dd6c8'},
+  {id:'RSMD',n:'RS Medika Tbk',t:'saham',p:72,v:.014,c:'#ff7aa8'},
+  {id:'RTLX',n:'Ritel Express Tbk',t:'saham',p:33,v:.017,c:'#ffd25f'},
+  {id:'OJEK',n:'Ojek Daring Tbk',t:'saham',p:58,v:.03,c:'#2fae5a'},
+  {id:'CHIP',n:'Chip Semesta Tbk',t:'saham',p:210,v:.026,c:'#8a9cff'},
+  {id:'BATU',n:'Batubara Jaya Tbk',t:'saham',p:44,v:.022,c:'#3a3a44'},
+  {id:'GAME',n:'Game Studio Nusa Tbk',t:'saham',p:26,v:.032,c:'#ff5ab4'},
+  {id:'BRAS',n:'Beras Sejahtera Tbk',t:'saham',p:19,v:.014,c:'#e8dcb0'},
+  {id:'KAPL',n:'Pelayaran Nusa Tbk',t:'saham',p:37,v:.021,c:'#2f6fe0'},
+  {id:'AVLN',n:'Avalan',t:'crypto',p:28,v:.05,c:'#e84142'},
+  {id:'LINX',n:'Chainlinx',t:'crypto',p:14,v:.048,c:'#2a5ada'},
+  {id:'TONK',n:'Tonkoin',t:'crypto',p:5.6,v:.046,c:'#0098ea'},
+  {id:'AIKN',n:'AI Koin',t:'crypto',p:1.9,v:.07,c:'#b46bff'},
+  {id:'GAMX',n:'GameFi X',t:'crypto',p:.74,v:.075,c:'#ff7a1c'},
+  {id:'SHBU',n:'Shibu Inu',t:'crypto',p:.06,v:.1,c:'#ffa31c'},
+  {id:'FLOK',n:'Floki Kita',t:'crypto',p:.12,v:.11,c:'#d6a65a'},
+  {id:'EMAS',n:'Emas Digital',t:'crypto',p:62,v:.012,c:'#f6c45a'}
 ];
 MK.forEach(a=>{a.b0=a.p;});
+const SEC={BTX:'major',ETR:'major',SOLR:'major',TONK:'major',ADAN:'defi',RPLX:'defi',MATX:'defi',NUSC:'defi',AVLN:'defi',LINX:'defi',AIKN:'defi',GAMX:'defi',DOGI:'meme',PEPI:'meme',LUNR:'meme',SHBU:'meme',FLOK:'meme',EMAS:'gold',
+  NUSA:'consumer',BMDK:'bank',TLNU:'telco',KOPI:'consumer',TKNO:'tech',MOBJ:'auto',EMRY:'mining',SWIT:'agri',ANGK:'airline',PROP:'property',ENRG:'energy',MINY:'energy',SEHT:'health',RSMD:'health',RTLX:'retail',OJEK:'tech',CHIP:'tech',BATU:'mining',GAME:'tech',BRAS:'agri',KAPL:'shipping'};
+const LIQ={major:40e6,defi:8e6,meme:3e6,gold:20e6,bank:30e6,telco:25e6};
+MK.forEach(a=>{a.sec=SEC[a.id]||'other';a.liq=LIQ[a.sec]||12e6;});
+let mDay=1,mDayT=Date.now();
+// trade impact: big buys push the price up, big sells push it down (partly reverts later)
+function impactPct(a,amt){const s=Math.sign(amt),k=Math.min(.3,.5*Math.abs(amt)/a.liq);return s*k;}
+function applyImpact(a,imp){a.p=Math.max(a.t==='crypto'?.0001:1,a.p*(1+imp));a.f=(a.f||a.p)*(1+imp*.35);a.h[a.h.length-1]=a.p;a.tr+=imp*.15;}
+const EVENTS=[
+  ['Krisis di Timur Tengah, harga minyak dunia melonjak',{energy:.18,airline:-.15,auto:-.06,shipping:-.05}],
+  ['Bank sentral menaikkan suku bunga',{bank:.08,property:-.12,tech:-.08,crypto:-.1}],
+  ['Bank sentral memangkas suku bunga',{property:.12,tech:.08,crypto:.1,bank:-.04}],
+  ['Krisis pangan dunia, harga sawit dan beras naik',{agri:.2,consumer:-.06}],
+  ['Wabah flu baru menyebar',{health:.2,airline:-.2,retail:-.08,shipping:-.06}],
+  ['Musim liburan, tiket pesawat ludes',{airline:.15,retail:.06,consumer:.04}],
+  ['ETF Bitkoin disetujui regulator',{major:.2,crypto:.08}],
+  ['Bursa crypto besar diretas hacker',{crypto:-.18,major:-.06}],
+  ['Influencer pamer koin meme di live streaming',{meme:.4}],
+  ['Regulasi crypto diperketat',{crypto:-.15,gold:.04}],
+  ['Harga emas cetak rekor baru',{mining:.15,gold:.12}],
+  ['Chip langka, produksi mobil terhambat',{auto:-.12,tech:.06}],
+  ['Startup AI lokal tembus pasar global',{tech:.18,defi:.1}],
+  ['Proyek ibu kota baru dipercepat',{property:.15,mining:.05,energy:.04}],
+  ['Resesi global mengintai',{saham:-.08,crypto:-.12,gold:.06,mining:.04}],
+  ['Ekonomi tumbuh di atas target',{saham:.07,crypto:.04}],
+  ['Kopi dan produk lokal laris di luar negeri',{consumer:.12,shipping:.06}],
+  ['Tarif internet naik',{telco:.1,consumer:-.03}],
+  ['Developer properti besar gagal bayar',{property:-.18,bank:-.06}],
+  ['Pemerintah bangun rumah sakit di 10 kota',{health:.1,property:.04}],
+  ['Perang dagang memanas, ekspor tertahan',{shipping:-.15,agri:-.08,mining:-.06}],
+  ['Harga batubara anjlok karena energi hijau',{mining:-.14,energy:.08}],
+  ['Game lokal jadi viral di seluruh dunia',{tech:.1,defi:.08}],
+  ['Paus crypto jual besar-besaran',{crypto:-.14,meme:-.1}],
+  ['Paus crypto borong koin besar',{major:.15,crypto:.06}],
+  ['Belanja online cetak rekor Harbolnas',{retail:.12,tech:.06,shipping:.05}]
+];
+function fireEvent(){const [t,eff]=EVENTS[pick(EVENTS.length)];const ups=[],dns=[];
+  MK.forEach(a=>{let pc=0;for(const k in eff){if(k===a.sec||k===a.t)pc+=eff[k];}if(!pc)return;pc*=.6+Math.random()*.8;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*(1+pc));a.f=(a.f||a.p)*(1+pc*.7);a.tr+=pc*.2;a.h[a.h.length-1]=a.p;(pc>0?ups:dns).push(a.id);});
+  const msg=`${t}. ${ups.length?'Naik: '+ups.slice(0,5).join(', ')+'.':''} ${dns.length?'Turun: '+dns.slice(0,5).join(', ')+'.':''}`.trim();news.unshift(msg);news=news.slice(0,8);logLine('sys',null,'📰 '+msg);}
 let PF={hold:{},cost:{}};
 try{const s=JSON.parse(localStorage.getItem('lounge-vegas-hp')||'null');if(s&&s.hold){PF=s;if(s.px)MK.forEach(a=>{if(s.px[a.id])a.p=s.px[a.id];});}}catch(e){}
 function savePF(){try{localStorage.setItem('lounge-vegas-hp',JSON.stringify({hold:PF.hold,cost:PF.cost,bank:PF.bank,items:PF.items,tx:PF.tx,rivals:PF.rivals,aidT:PF.aidT||0,rankBest:PF.rankBest||99,pass:PF.pass,promo:PF.promo,dia:PF.dia||0,qd:PF.qd,tix:PF.tix||0,bonds:PF.bonds||[],px:Object.fromEntries(MK.map(a=>[a.id,a.p]))}));}catch(e){}}
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
-MK.forEach(a=>{a.tr=0;a.h=[];let p=a.p;const tmp=[p];for(let i=0;i<59;i++){p=p/Math.exp(a.v*.6*gauss());tmp.push(p);}a.h=tmp.reverse();a.h[a.h.length-1]=a.p;a.open=a.h[0];});
+MK.forEach(a=>{a.tr=0;a.h=[];let p=a.p;const tmp=[p];for(let i=0;i<59;i++){p=p/Math.exp(a.v*.6*gauss());tmp.push(p);}a.h=tmp.reverse();a.h[a.h.length-1]=a.p;a.open=a.p;a.f=a.p;});
 let news=['Pasar buka. Harga bergerak tiap 2 detik.'];
 const fmtP=p=>p<10?p.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}):p.toLocaleString('id-ID',{maximumFractionDigits:1});
 const portVal=()=>MK.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);
 function marketTick(){
-  MK.forEach(a=>{a.tr=a.tr*.92+(Math.random()-.5)*a.v*.25;const dr=a.p>a.b0*8?-a.v*.15:a.v*(a.t==='crypto'?.07:.12);a.p=Math.max(a.t==='crypto'&&a.p<5?.05:1,a.p*Math.exp(a.tr*.35+a.v*.55*gauss()+dr));a.h.push(a.p);if(a.h.length>80)a.h.shift();});
-  if(Math.random()<.06){const a=MK[pick(MK.length)],up=Math.random()<.65,k=(.12+Math.random()*.25);a.p*=up?1+k:1-k;a.h[a.h.length-1]=a.p;a.tr+=up?a.v:-a.v;
+  MK.forEach(a=>{a.tr=a.tr*.92+(Math.random()-.5)*a.v*.25;a.f=(a.f||a.p)*Math.exp(a.t==='crypto'?.00025:.0004);const dr=Math.log(a.f/a.p)*.03;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*Math.exp(a.tr*.35+a.v*.5*gauss()+dr));a.h.push(a.p);if(a.h.length>80)a.h.shift();});
+  if(Date.now()-mDayT>=300000){mDay++;mDayT=Date.now();MK.forEach(a=>{a.open=a.p;});logLine('sys',null,`📅 Hari bursa ke-${mDay} dimulai. Persentase saham & crypto direset.`);}
+  if(Math.random()<.045)fireEvent();
+  if(Math.random()<.03){const a=MK[pick(MK.length)],up=Math.random()<.6,k=(.08+Math.random()*.2);a.p*=up?1+k:1-k;a.h[a.h.length-1]=a.p;a.tr+=up?a.v:-a.v;
     const msg=up?`${a.n} (${a.id}) melonjak ${Math.round(k*100)}%! Banyak yang borong.`:`${a.n} (${a.id}) anjlok ${Math.round(k*100)}%. Investor panik.`;
     news.unshift(msg);news=news.slice(0,6);logLine('sys',null,'Berita: '+msg);}
   $('assetVal').textContent=fmt(Math.round(portVal()));
   savePF();phoneSoft(true);
 }
 setInterval(marketTick,2000);
-setInterval(()=>{if(!started)return;let d=0;MK.forEach(a=>{if(a.t==='saham'&&PF.hold[a.id])d+=PF.hold[a.id]*a.p*.01;});if(d<1)return;d=Math.round(d*(PF.pass.investor?2:1));S.bal+=d;SFX.coin();logLine('sys',null,`📈 Dividen saham: +${fmt(d)} koin.`,'win');render();},60000);
+setInterval(()=>{if(!started)return;let d=0;MK.forEach(a=>{if(a.t==='saham'&&PF.hold[a.id])d+=PF.hold[a.id]*a.p*.01;});if(d<1)return;d=Math.round(d*(PF.pass.investor?2:1)*(1+buffs().inv/100));S.bal+=d;SFX.coin();logLine('sys',null,`📈 Dividen saham: +${fmt(d)} koin.`,'win');render();},60000);
 const JOBS=[
   {id:'antar',n:'Antar pesanan',d:5,min:150,max:300,desc:'Antar makanan ke kamar tamu hotel.'},
   {id:'kurir',n:'Kurir chip',d:8,min:300,max:550,desc:'Bantu kasir antar chip ke meja.'},
@@ -1435,7 +1505,7 @@ function phoneRender(){
   const ob=ph.querySelector('.ph-body'),keep=ob&&vk===phKey?ob.scrollTop:0;phKey=vk;
   const now=new Date(),tm=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
   const pv=portVal(),cost=MK.reduce((s,a)=>s+(PF.cost[a.id]||0),0),B=PF.bank,own=ownVal(),net=netWorth();
-  const titles={home:'',rank:'Ranking',bank:'Bank Merdeka',toko:'Toko Aksesoris',crypto:'Crypto',saham:'Saham',detail:phAsset?phAsset.n:'',jobs:'Kerja sampingan',guide:'Panduan kasino',quest:'Quest harian',wallet:'Dompet'};
+  const titles={home:'',rank:'Ranking',bank:'Bank Merdeka',toko:'Toko Aksesoris',crypto:'Crypto',saham:'Saham',detail:phAsset?phAsset.n:'',jobs:'Kerja sampingan',guide:'Panduan kasino',biz:'Bisnis & Properti',quest:'Quest harian',wallet:'Dompet'};
   let body='';
   if(phView==='home'){
     body=`<div class="wallet"><small>Kekayaan bersih</small><b>${fmt(Math.round(net))}</b><div class="row"><span>Koin tunai</span><span>${fmt(S.bal)}</span></div><div class="row"><span>Investasi</span><span class="${pv>=cost?'up':'dn'}">${fmt(Math.round(pv))}</span></div><div class="row"><span>Tabungan</span><span>${fmt(Math.round(B.save))}</span></div>${B.loan>0?`<div class="row"><span>Hutang bank</span><span class="dn">-${fmt(Math.round(B.loan))}</span></div>`:''}</div>
@@ -1448,6 +1518,7 @@ function phoneRender(){
         <button class="app" id="appShop"><i style="background:linear-gradient(135deg,#ff7cc3,#8e1f5a)">🛍</i>Toko</button>
         <button class="app" id="appMusic"><i style="background:linear-gradient(135deg,#ff5ab4,#6a2aff)">🎵</i>Musik</button>
         <button class="app" data-v="quest"><i style="background:linear-gradient(135deg,#4dd6ff,#1a5fa8)">📜</i>Quest${(()=>{const q=qState(),n=QUESTS.filter(Q=>(q.p[Q.id]||0)>=Q.g&&!q.c[Q.id]).length+(qAllReady()?1:0);return n?`<em class="qdot">${n}</em>`:'';})()}</button>
+        <button class="app" data-v="biz"><i style="background:linear-gradient(135deg,#8ef0a8,#1f7a45)">🏢</i>Bisnis</button>
         <button class="app" data-v="rank"><i style="background:linear-gradient(135deg,#ffd25f,#b7791f)">🏆</i>Ranking</button>
         <button class="app" id="appSet"><i style="background:linear-gradient(135deg,#8a8f9e,#3b3f4a)">⚙️</i>Setting</button>
         <button class="app" data-v="guide"><i style="background:linear-gradient(135deg,#b46bff,#5a23a8)">📖</i>Panduan</button>
@@ -1459,7 +1530,7 @@ function phoneRender(){
       <button class="small" id="qShop">💎 Tukar diamond di Toko</button><p class="news">Quest reset tiap hari. Diamond bisa ditukar jadi koin, tiket gacha, atau item eksklusif.</p>`;
   }else if(phView==='crypto'||phView==='saham'){
     body=MK.filter(a=>a.t===phView).map(a=>{const c=chg(a);return `<button class="asset" data-a="${a.id}"><div class="nm"><b>${a.id}</b><small>${a.n}${PF.hold[a.id]?' · punya '+(+PF.hold[a.id].toFixed(a.t==='crypto'?3:0)):''}</small></div><canvas width="128" height="56" data-s="${a.id}"></canvas><div class="px">${fmtP(a.p)}<br><span class="${c>=0?'up':'dn'}">${c>=0?'+':''}${c.toFixed(1)}%</span></div></button>`;}).join('')+
-      `<p class="news">${phView==='crypto'?'Crypto naik-turun cepat. Bisa untung besar, bisa rugi besar.':'Saham lebih tenang dan cenderung naik. Pemegang saham dapat dividen 1% tiap menit.'}</p>`;
+      `<p class="news">${phView==='crypto'?'Crypto naik-turun cepat. Bisa untung besar, bisa rugi besar.':'Saham lebih tenang dan cenderung naik. Pemegang saham dapat dividen 1% tiap menit.'}</p><p class="news">📅 Hari bursa ke-${mDay} · persen dihitung sejak buka (1 hari = 5 menit, sisa ${Math.max(0,Math.ceil((300000-(Date.now()-mDayT))/60000))} menit). Beli/jual besar menggerakkan harga.${''}</p>`;
   }else if(phView==='detail'){
     const a=phAsset,q=PF.hold[a.id]||0,co=PF.cost[a.id]||0,avg=q>0?co/q:0,unit=a.t==='saham'?'lembar':a.id;
     body=`<div class="wallet"><small>${esc(a.n)} · ${a.t==='crypto'?'Crypto':'Saham'}</small><b style="color:${a.c}" id="dPx">${fmtP(a.p)}</b><div class="row"><span>Sejak buka</span><span id="dChg"></span></div><div class="row"><span>Tertinggi / terendah</span><span id="dHL"></span></div></div>
@@ -1501,7 +1572,7 @@ function phoneRender(){
     let dh='';
     if(duel){const rv=PF.rivals.find(r=>r.n===duel.n);
       if(duel.stage==='pick')dh=`<div class="duel"><h5>Duel lawan ${esc(duel.n)}</h5><p class="muted">Duel reme: masing-masing putar 0-36, reme lebih tinggi menang, reme 0 paling kuat. Seri diulang.</p>
-        <div class="bk">${[100,500,1000,5000].map(v=>`<button class="p" data-stake="${v}" ${v>S.bal||v>rv.w?'disabled':''}>${fmt(v)}</button>`).join('')}</div><p class="muted">Setelah pilih taruhan, ${esc(duel.n)} menunggu di Meja Duel dan midman Sinta memimpin duelnya.</p><button class="small" data-dx>Batal</button></div>`;
+        <div class="bk">${[1000,10000,100000,1000000].map(v=>`<button class="p" data-stake="${v}" ${v>S.bal||v>rv.w?'disabled':''}>${fmt(v)}</button>`).join('')}</div><div class="srow"><input id="dStakeC" type="number" min="100" step="100" inputmode="numeric" placeholder="Taruhan custom (maks ${fmt(Math.floor(Math.min(S.bal,rv.w)))})" style="flex:1;min-width:0;min-height:40px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);padding:0 10px;font:inherit"><button class="small" id="dStakeGo">Tantang</button></div><p class="muted">Setelah pilih taruhan, ${esc(duel.n)} menunggu di Meja Duel dan midman Sinta memimpin duelnya.</p><button class="small" data-dx>Batal</button></div>`;
       else if(duel.stage==='wait')dh=`<div class="duel"><h5>Duel lawan ${esc(duel.n)} · 🪙 ${fmt(duel.stake)}</h5><p class="muted">${esc(duel.n)} sudah menunggu di <b>Meja Duel</b> (sisi kanan, dekat pintu masuk). Datangi roda KAMU lalu tekan E.</p><div class="srow"><button class="pbtn" data-goduel>Antar ke meja</button><button class="pbtn" data-dx>Batalkan</button></div></div>`;
       else if(duel.stage==='live')dh=`<div class="duel"><h5>Duel sedang berlangsung di Meja Duel...</h5></div>`;
       else dh=`<div class="duel"><h5>Duel lawan ${esc(duel.n)} · ${fmt(duel.stake)} koin</h5><div class="duelv"><div><small>Kamu</small><b id="dY">${duel.y??'?'}</b><i id="dYr">${duel.y!=null?'reme '+reme(duel.y):''}</i></div><span>VS</span><div><small>${esc(duel.n)}</small><b id="dO">${duel.o??'?'}</b><i id="dOr">${duel.o!=null?'reme '+reme(duel.o):''}</i></div></div>
@@ -1515,6 +1586,7 @@ function phoneRender(){
     const rows=MK.filter(a=>PF.hold[a.id]>0).map(a=>{const v=PF.hold[a.id]*a.p,co=PF.cost[a.id]||0;return `<button class="asset" data-a="${a.id}"><div class="nm"><b>${a.id}</b><small>${+PF.hold[a.id].toFixed(a.t==='crypto'?4:0)} ${a.t==='saham'?'lembar':''}</small></div><div class="px">${fmt(Math.round(v))}<br><span class="${v>=co?'up':'dn'}">${v>=co?'+':''}${fmt(Math.round(v-co))}</span></div></button>`;}).join('');
     body=`<div class="wallet"><small>Koin tunai</small><b>${fmt(S.bal)}</b><div class="row"><span>Nilai investasi</span><span>${fmt(Math.round(pv))}</span></div><div class="row"><span>Untung/rugi</span><span class="${pv-cost>=0?'up':'dn'}">${pv-cost>=0?'+':''}${fmt(Math.round(pv-cost))}</span></div><div class="row"><span>Tabungan</span><span>${fmt(Math.round(B.save))}</span></div><div class="row"><span>Hutang</span><span class="${B.loan>0?'dn':''}">${fmt(Math.round(B.loan))}</span></div>${own?`<div class="row"><span>Barang mewah</span><span>${fmt(own)}</span></div>`:''}<div class="row"><span><b>Kekayaan bersih</b></span><span><b>${fmt(Math.round(net))}</b></span></div></div>`+(rows||'<p class="news">Belum punya aset. Coba beli di app Crypto atau Saham.</p>')+
       `<div class="wallet"><small>Riwayat transaksi</small>${txRows(PF.tx.slice(0,12))||'<p class="muted">Belum ada transaksi.</p>'}</div><div class="news">Riwayat berita:<br>${news.map(n=>'• '+esc(n)).join('<br>')}</div>`;
+  }else if(phView==='biz'){body=bizPhone();
   }else if(phView==='guide'){
     body=`<div class="guide"><h5>Meja host (sebelah kanan)</h5><p>Empat meja berjajar di kanan: Meja Reme (Bang Rio), Reme VIP (Koh Hendra), Meja Qeme (Mas Dodi), Qeme VIP (Tante Mira). Meja VIP minimal 500 koin dan bayaran besar 4x.</p>
       <h5>Reme</h5><p>Roda 0-36. Reme = jumlah digit, ambil digit terakhir (28 → 0). Kamu putar duluan. Reme 0 menang 3x. Host reme 0, host menang. Lebih tinggi menang 2x.</p>
@@ -1570,20 +1642,21 @@ function phoneRender(){
   ph.querySelectorAll('[data-goduel]').forEach(b=>b.onclick=()=>goDuelTable());
   ph.querySelectorAll('[data-again]').forEach(b=>b.onclick=()=>{duel={n:duel.n,stage:'pick'};phoneRender();});
   ph.querySelectorAll('[data-stake]').forEach(b=>b.onclick=()=>inviteDuel(+b.dataset.stake));
+  {const g=$('dStakeGo');if(g)g.onclick=()=>{const v=Math.floor(+$('dStakeC').value||0),rv=PF.rivals.find(r=>r.n===duel.n);if(v<100||v>S.bal||!rv||v>rv.w){SFX.error();$('dStakeC').value='';$('dStakeC').placeholder=v>S.bal?'Koinmu kurang':rv&&v>rv.w?`${duel.n} cuma sanggup ${fmt(Math.floor(rv.w))}`:'Minimal 100';return;}inviteDuel(v);};}
   const dAmt=$('dAmt');
   if(dAmt){const a=phAsset,msg=t=>{const m=$('phMsg');if(m)m.textContent=t;};
     dAmt.oninput=()=>{phAmt=Math.max(0,Math.floor(+dAmt.value||0));phAll=false;detailTick();};
     ph.querySelectorAll('[data-side]').forEach(b=>b.onclick=()=>{phSide=b.dataset.side;phAmt=0;phAll=false;SFX.pop();phoneRender();});
     ph.querySelectorAll('[data-pct]').forEach(b=>b.onclick=()=>{const pc=+b.dataset.pct,base=phSide==='buy'?S.bal:(PF.hold[a.id]||0)*a.p;phAmt=Math.floor(base*pc/100);phAll=pc===100;dAmt.value=phAmt||'';SFX.chip();detailTick();});
     $('dGo').onclick=()=>{const have=PF.hold[a.id]||0;
-      if(phSide==='buy'){let amt=Math.floor(Math.min(phAmt,S.bal)),q=amt/a.p;if(a.t==='saham'){q=Math.floor(amt/a.p);amt=Math.ceil(q*a.p);if(amt>S.bal){q--;amt=Math.ceil(q*a.p);}}
+      if(phSide==='buy'){let amt=Math.floor(Math.min(phAmt,S.bal));const imp=impactPct(a,amt),ap=a.p*(1+imp/2);let q=amt/ap;if(a.t==='saham'){q=Math.floor(amt/ap);amt=Math.ceil(q*ap);if(amt>S.bal){q--;amt=Math.ceil(q*ap);}}
         if(q<=0||amt<=0){SFX.error();msg(phAmt<=0?'Isi nominal dulu atau pilih persen.':a.t==='saham'?`Koin belum cukup untuk 1 lembar (${fmtP(a.p)}).`:'Koin tidak cukup.');return;}
-        S.bal=Math.round(S.bal-amt);PF.hold[a.id]=have+q;PF.cost[a.id]=(PF.cost[a.id]||0)+amt;addTx({id:a.id,side:'buy',q,px:a.p,amt});
+        S.bal=Math.round(S.bal-amt);PF.hold[a.id]=have+q;PF.cost[a.id]=(PF.cost[a.id]||0)+amt;addTx({id:a.id,side:'buy',q,px:ap,amt});const p0=a.p;applyImpact(a,imp);if(imp>.01)logLine('sys',null,`Order besar! Harga ${a.id} naik ${(imp*100).toFixed(1)}% karena pembelianmu.`);
         SFX.coin();logLine('sys',null,`Beli ${fmtQ(a,q)} ${a.id} seharga ${fmt(Math.round(amt))} koin.`);}
       else{if(have<=0){SFX.error();msg('Kamu belum punya aset ini.');return;}if(phAmt<=0&&!phAll){SFX.error();msg('Isi nominal dulu atau pilih persen.');return;}
         let q=phAll||phAmt>=have*a.p?have:phAmt/a.p;if(a.t==='saham')q=Math.min(have,Math.max(1,Math.round(q)));
-        const got=Math.round(q*a.p),frac=q/have,cb=(PF.cost[a.id]||0)*frac;PF.cost[a.id]=(PF.cost[a.id]||0)-cb;PF.hold[a.id]=have-q;if(PF.hold[a.id]<1e-6){PF.hold[a.id]=0;PF.cost[a.id]=0;}
-        S.bal+=got;addTx({id:a.id,side:'sell',q,px:a.p,amt:got,pl:got-cb});SFX.coin();logLine('sys',null,`Jual ${fmtQ(a,q)} ${a.id}, dapat ${fmt(got)} koin (${got-cb>=0?'untung':'rugi'} ${fmt(Math.abs(Math.round(got-cb)))}).`,got>=cb?'win':'lose');}
+        const imp=impactPct(a,-q*a.p),got=Math.round(q*a.p*(1+imp/2)),frac=q/have,cb=(PF.cost[a.id]||0)*frac;PF.cost[a.id]=(PF.cost[a.id]||0)-cb;PF.hold[a.id]=have-q;if(PF.hold[a.id]<1e-6){PF.hold[a.id]=0;PF.cost[a.id]=0;}
+        S.bal+=got;addTx({id:a.id,side:'sell',q,px:got/q,amt:got,pl:got-cb});applyImpact(a,imp);if(imp<-.01)logLine('sys',null,`Jual besar! Harga ${a.id} turun ${(-imp*100).toFixed(1)}%.`);SFX.coin();logLine('sys',null,`Jual ${fmtQ(a,q)} ${a.id}, dapat ${fmt(got)} koin (${got-cb>=0?'untung':'rugi'} ${fmt(Math.abs(Math.round(got-cb)))}).`,got>=cb?'win':'lose');}
       phAmt=0;phAll=false;save();savePF();render();phoneRender();};
     detailTick();}
 
@@ -1613,7 +1686,7 @@ const SHOP=[
   {id:'halo',s:'hat',ic:'😇',n:'Halo malaikat',p:45000,r:'M',b:{luck:15,bonus:5},d:'Cahaya suci di atas kepala.'},
   {id:'hoodie',s:'shirt',ic:'🧥',n:'Hoodie abu',p:500,r:'C',b:{job:5},d:'Santai untuk begadang.'},
   {id:'hawaii',s:'shirt',ic:'🌺',n:'Kemeja pantai',p:900,r:'C',b:{luck:2},d:'Santai tapi hoki.'},
-  {id:'suit',s:'shirt',ic:'🤵',n:'Jas hitam mewah',p:1500,r:'R',b:{bonus:3},d:'Jas, dasi, dan wibawa.'},
+  {id:'suit',s:'shirt',ic:'🤵',n:'Jas hitam mewah',p:1500,r:'R',b:{bonus:3,inv:5},d:'Jas, dasi, dan wibawa.'},
   {id:'tux',s:'shirt',ic:'🤍',n:'Tuksedo putih',p:8000,r:'E',b:{luck:3,bonus:5},d:'Untuk malam gala.'},
   {id:'goldjkt',s:'shirt',ic:'✨',n:'Jaket emas',p:12000,r:'E',b:{luck:8},d:'Berkilau dari ujung ke ujung.'},
   {id:'robe',s:'shirt',ic:'🦸',n:'Jubah raja',p:30000,r:'L',b:{luck:12,bonus:5},d:'Jubah merah berjumbai emas.'},
@@ -1637,10 +1710,10 @@ const SHOP=[
   {id:'chain',s:'neck',ic:'📿',n:'Kalung emas',p:800,r:'R',b:{luck:2},d:'Berkilau di bawah lampu kristal.'},
   {id:'diamn',s:'neck',ic:'💎',n:'Kalung berlian',p:10000,r:'E',b:{luck:6,bonus:3},d:'Berlian mainan, kilau asli.'},
   {id:'medal',s:'neck',ic:'🏅',n:'Medali juara',p:26000,r:'L',b:{luck:8,bonus:5},d:'Untuk juara lounge.'},
-  {id:'watch',s:'hand',ic:'⌚',n:'Jam tangan emas',p:1200,r:'R',b:{bonus:2},d:'Melingkar di tangan kiri.'},
+  {id:'watch',s:'hand',ic:'⌚',n:'Jam tangan emas',p:1200,r:'R',b:{bonus:2,inv:5},d:'Melingkar di tangan kiri.'},
   {id:'ring',s:'hand',ic:'💍',n:'Cincin keberuntungan',p:3500,r:'R',b:{luck:4},d:'Katanya membawa hoki.'},
   {id:'bracelet',s:'hand',ic:'🟢',n:'Gelang giok',p:9000,r:'E',b:{luck:6},d:'Batu hijau penolak sial.'},
-  {id:'rolex',s:'hand',ic:'⏱',n:'Jam berlian',p:28000,r:'L',b:{bonus:8},d:'Waktu adalah koin.'},
+  {id:'rolex',s:'hand',ic:'⏱',n:'Jam berlian',p:28000,r:'L',b:{bonus:8,inv:15},d:'Waktu adalah koin.'},
   {id:'bunny',s:'pet',ic:'🐰',n:'Kelinci putih',p:3000,r:'R',b:{job:10},d:'Melompat di sampingmu.'},
   {id:'catp',s:'pet',ic:'🐱',n:'Kucing hoki',p:4000,r:'R',b:{luck:4},d:'Kucing pembawa rezeki.'},
   {id:'parrot',s:'pet',ic:'🦜',n:'Beo emas',p:12000,r:'E',b:{luck:7,bonus:2},d:'Suka teriak "reme nol!"'},
@@ -1661,7 +1734,7 @@ const SHOP=[
   {id:'sandal',s:'shoes',ic:'🩴',n:'Sandal jepit',p:200,r:'C',b:{job:6},d:'Santai, tapi kerja jalan terus.',v:{shoes:0x2fae5a}},
   {id:'neonsh',s:'shoes',ic:'👟',n:'Sepatu neon',p:9500,r:'E',b:{luck:7,job:5},d:'Jejak cahaya di karpet.',v:{shoes:0x19f0ff}},
   {id:'galaxysh',s:'shoes',ic:'✨',n:'Sepatu galaksi',p:60000,r:'M',b:{luck:12,bonus:5},d:'Melangkah di antara bintang.',v:{shoes:0x6a3cff}},
-  {id:'monocle',s:'eyes',ic:'🧐',n:'Monokel emas',p:2800,r:'R',b:{bonus:3,luck:1},d:'Bangsawan pembaca peluang.',v:{visor:0xffd24a,mono:1}},
+  {id:'monocle',s:'eyes',ic:'🧐',n:'Monokel emas',p:2800,r:'R',b:{bonus:3,luck:1,inv:10},d:'Bangsawan pembaca peluang.',v:{visor:0xffd24a,mono:1}},
   {id:'neonv',s:'eyes',ic:'🥽',n:'Visor neon',p:12000,r:'E',b:{luck:7,bonus:2},d:'Lihat roda dalam gerak lambat.',v:{visor:0x19f0ff}},
   {id:'galaxye',s:'eyes',ic:'🔮',n:'Visor galaksi',p:55000,r:'M',b:{luck:12,bonus:6},d:'Melihat masa depan roda.',v:{visor:0x9b5cf6}},
   {id:'pearl',s:'neck',ic:'⚪',n:'Kalung mutiara',p:3000,r:'R',b:{luck:3,bonus:1},d:'Mutiara laut selatan.',v:{chain:0xf4f0e8}},
@@ -1702,6 +1775,10 @@ const SHOP=[
   {id:'penthouse',s:'status',ic:'🌇',n:'Penthouse',p:120000,r:'L',b:{save:150,bonus:3},d:'Lantai teratas, kolam di atap.'},
   {id:'mansion',s:'status',ic:'🏰',n:'Mansion',p:220000,r:'L',b:{save:100,luck:5,bonus:5},d:'Rumah megah dengan taman.'},
   {id:'tower',s:'status',ic:'🌃',n:'Menara Sultan',p:400000,r:'M',b:{save:200,bonus:12},d:'Gedung pencakar langit milikmu.'},
+  {id:'briefcase',s:'hand',ic:'💼',n:'Koper eksekutif',p:22000,r:'E',b:{inv:20,bonus:2},d:'Isinya kontrak bisnis.',v:{watchC:0x3a2216,gem:0xffd24a}},
+  {id:'tickerv',s:'eyes',ic:'📈',n:'Kacamata ticker',p:16000,r:'E',b:{inv:15,luck:2},d:'Grafik saham di depan mata.',v:{visor:0x3ddc84}},
+  {id:'bullpet',s:'pet',ic:'🐂',n:'Banteng emas',p:90000,r:'L',b:{inv:30,luck:5},d:'Simbol pasar naik.',v:{pet:[0xd8a648,0x3a2216],horn:1}},
+  {id:'tycoonhat',s:'hat',ic:'🎩',n:'Topi taipan',p:40000,r:'L',b:{inv:20,bonus:4},d:'Topi para konglomerat.',v:{hat:'top',c:0x2a1a10,c2:0xffd24a}},
   {id:'moto',s:'status',ic:'🏍',n:'Moge hitam',p:15000,r:'R',b:{job:15},d:'Parkir di depan lounge.'},
   {id:'car',s:'status',ic:'🏎',n:'Mobil sport',p:25000,r:'E',b:{job:20},d:'Antar pesanan lebih cepat.'},
   {id:'suv',s:'status',ic:'🚙',n:'SUV mewah',p:40000,r:'E',b:{job:10,luck:2},d:'Gagah di parkiran.'},
@@ -1725,6 +1802,7 @@ const SETS=[
   {id:'galaxy',n:'Set Galaksi',ic:'🌌',items:['galaxyh','galaxys','galaxyw','galaxysh'],b:{luck:10,bonus:10}},
   {id:'fireset',n:'Set Api',ic:'🔥',items:['firecap','firesuit','firesh','firev'],b:{luck:6,bonus:6}},
   {id:'crystal',n:'Set Kristal',ic:'💎',items:['diacrown','diasuit','diawing','diapet'],b:{luck:10,bonus:15}},
+  {id:'tycoon',n:'Set Taipan',ic:'📊',items:['tycoonhat','suit','briefcase','bullpet'],b:{inv:25,bonus:5}},
   {id:'samuraiset',n:'Set Samurai',ic:'⛩',items:['samurai','kimono','foxp','dicebr'],b:{luck:5,bonus:4}}
 ];
 const PASSES=[
@@ -1733,18 +1811,18 @@ const PASSES=[
   {id:'worker',n:'Kerja Keras',ic:'💼',p:3000,b:{job:50},d:['Kerja +50%','Kerja selesai 30% lebih cepat']},
   {id:'bank',n:'Bank Premium',ic:'🏦',p:5000,b:{save:100},d:['Bunga pinjaman separuh','Bunga tabungan 2x']},
   {id:'sultan',n:'Sultan Pass',ic:'💰',p:20000,b:{job:100,bonus:5},d:['Bonus main 3x (1.500 / 2 menit)','Hadiah harian 2x','Kerja +100%','Diamond quest +50%']},
-  {id:'investor',n:'Investor Pass',ic:'📊',p:10000,b:{save:50},d:['Kupon obligasi +50%','Dividen saham 2x','Bunga tabungan +50%']}
+  {id:'investor',n:'Investor Pass',ic:'📊',p:10000,b:{save:50,inv:25},d:['Investasi +25% (dividen, obligasi, bisnis)','Kupon obligasi +50%','Dividen saham 2x','Bunga tabungan +50%']}
 ];
 if(!PF.pass)PF.pass={};if(!PF.promo)PF.promo={};
 const setDone=st=>st.items.every(id=>PF.items[id]&&PF.items[id].eq);
 const luckCap=()=>PF.pass.hoki?60:50;
-function buffs(){const r={luck:0,bonus:0,job:0,save:0},add=b=>{for(const k in b)r[k]+=b[k];};
+function buffs(){const r={luck:0,bonus:0,job:0,save:0,inv:0},add=b=>{for(const k in b)r[k]+=b[k];};
   SHOP.forEach(x=>{const o=PF.items[x.id];if(o&&(o.eq||!isWear(x)))add(x.b);});
   SETS.forEach(st=>{if(setDone(st))add(st.b);});PASSES.forEach(ps=>{if(PF.pass[ps.id])add(ps.b);});
   r.luck=Math.min(luckCap(),r.luck);return r;}
-const BI={luck:'🍀',bonus:'💰',job:'💼',save:'🏦'};
-const buffTxt=b=>['luck','bonus','job','save'].filter(k=>b[k]).map(k=>`${BI[k]} ${k==='luck'?'Hoki ':k==='bonus'?'Cuan ':k==='job'?'Kerja ':'Bunga '}+${b[k]}%`);
-const buffChips=b=>['luck','bonus','job','save'].filter(k=>b[k]).map(k=>`<span title="${k==='luck'?'Hoki':k==='bonus'?'Cuan':k==='job'?'Kerja':'Bunga tabungan'}">${BI[k]} +${b[k]}%</span>`).join('');
+const BI={luck:'🍀',bonus:'💰',job:'💼',save:'🏦',inv:'📊'};
+const buffTxt=b=>['luck','bonus','job','save','inv'].filter(k=>b[k]).map(k=>`${BI[k]} ${k==='luck'?'Hoki ':k==='bonus'?'Cuan ':k==='job'?'Kerja ':k==='inv'?'Investasi ':'Bunga '}+${b[k]}%`);
+const buffChips=b=>['luck','bonus','job','save','inv'].filter(k=>b[k]).map(k=>`<span title="${k==='luck'?'Hoki':k==='bonus'?'Cuan':k==='job'?'Kerja':k==='inv'?'Investasi: dividen, kupon obligasi, sewa & bisnis':'Bunga tabungan'}">${BI[k]} +${b[k]}%</span>`).join('');
 function luckTry(bad){const L=buffs().luck;if(L>0&&bad&&Math.random()<L/100){luckFx(L);return true;}return false;}
 const QUESTS=[
   {id:'reme',n:'Main 5 ronde Reme/Qeme di meja host',g:5,d:10},
@@ -1793,13 +1871,13 @@ function youPal(){const it=PF.items||{},eq=id=>it[id]&&it[id].eq,inS=s=>{const x
   return p;}
 function rebuildYou(){if(!you)return;const pos=you.pos.clone(),yaw=you.yaw;scene.remove(you.av.root);you.av=makeAvatar(youPal());you.av.root.position.copy(pos);you.pos=you.av.root.position;you.yaw=yaw;if(typeof mpLookChanged==='function')mpLookChanged();}
 const ownVal=()=>SHOP.filter(x=>PF.items[x.id]).reduce((s,x)=>s+Math.round(x.p*.7),0);
-const netWorth=()=>S.bal+S.bet+portVal()+PF.bank.save+ownVal()-PF.bank.loan;
+const netWorth=()=>S.bal+S.bet+portVal()+PF.bank.save+ownVal()+(typeof bizVal==='function'?bizVal():0)-PF.bank.loan;
 const loanLimit=()=>{const b=PF.bank;return Math.max(2000,Math.min(500000,Math.round((2000+(b.score-500)*80+Math.max(0,netWorth())*.5+(b.paid||0)*.3)/100)*100));};
 const scoreLabel=s=>s>=760?'Sangat baik':s>=680?'Baik':s>=600?'Cukup':s>=520?'Kurang':'Buruk';
 const LOAN_R=.001,SAVE_R=.0005;
 const BONDS=[{id:'ori',n:'ORI Lounge',r:.02,min:1000,per:120},{id:'sbr',n:'SBR Merdeka',r:.035,min:5000,per:180},{id:'sultan',n:'Obligasi Sultan',r:.06,min:50000,per:180}];
 if(!Array.isArray(PF.bonds))PF.bonds=[];
-const bondRate=b=>b.r*(PF.pass.investor?1.5:1);
+const bondRate=b=>b.r*(PF.pass.investor?1.5:1)*(1+buffs().inv/100);
 setInterval(()=>{const now=Date.now();let paid=0;PF.bonds.forEach(h=>{const b=BONDS.find(x=>x.id===h.id);if(!b)return;let k=0;while(now>=h.next&&k<20){const c=Math.round(h.amt*bondRate(b));S.bal+=c;paid+=c;h.next+=b.per*1000;k++;}});
   if(paid>0){SFX.coin();logLine('sys',null,`💵 Kupon obligasi cair: +${fmt(paid)} koin.`,'win');save();savePF();render();phoneSoft(true);}},5000);
 let collectorT=0;
@@ -1880,7 +1958,7 @@ function buildOutside(){
   const skyTex=canvasTex(1024,512,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#05061a');gr.addColorStop(.55,'#1a1440');gr.addColorStop(1,'#4a2a50');g.fillStyle=gr;g.fillRect(0,0,w,h);
     for(let i=0;i<500;i++){g.fillStyle=`rgba(255,255,255,${Math.random()*.8+.2})`;const s=Math.random()<.1?2:1;g.fillRect(Math.random()*w,Math.random()*h*.6,s,s);}
     g.fillStyle='#fff6d8';g.beginPath();g.arc(w*.8,h*.18,18,0,Math.PI*2);g.fill();});
-  const sky=new THREE.Mesh(new THREE.SphereGeometry(160,32,16),new THREE.MeshBasicMaterial({map:skyTex,side:THREE.BackSide,fog:false}));sky.position.set(0,0,ROOM+20);scene.add(sky);
+  const sky=new THREE.Mesh(new THREE.SphereGeometry(330,32,16),new THREE.MeshBasicMaterial({map:skyTex,side:THREE.BackSide,fog:false}));sky.position.set(60,0,ROOM);scene.add(sky);
   // exterior shell of the building
   const stone=mat(0x2a1c26),trim=mat(0xd8a648),H=13;
   [[-(ROOM+3)/2-1.5,ROOM+1-3],[(ROOM+3)/2+1.5,ROOM+1-3]].forEach(([cx,w])=>{box(w,H,.6,stone,cx,H/2,ROOM+.35,false);box(w,.3,.7,trim,cx,H,ROOM+.4,false);box(w,.2,.7,trim,cx,.1,ROOM+.4,false);});
@@ -1916,6 +1994,7 @@ function buildOutside(){
   colliders.push({x0:-3.4,x1:3.4,z0:ROOM+16.6,z1:ROOM+23.4,top:.4});
   garage=new THREE.Group();scene.add(garage);
   refreshGarage(true);
+  buildCity();
 }
 function sportModel(kind,ghost){
   const g=new THREE.Group();const C={toro:[0xffc81c,0x111111],rosso:[0xd8141f,0x111111],royale:[0x15131c,0xc8ccd6],aero:[0x16d6c8,0x6a2aff]}[kind];
@@ -1948,20 +2027,6 @@ function carModel(kind,ghost){if(['toro','rosso','royale','aero'].includes(kind)
   if(kind==='supercar')add(w,.08,.5,0x111111,0,1.05,-d/2+.3);
   return g;
 }
-function propModel(kind,ghost){
-  const g=new THREE.Group();const M=c=>ghost?new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.16,depthWrite:false}):mat(c);
-  const add=(w,h,d,c,x,y,z,basic)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),basic&&!ghost?new THREE.MeshBasicMaterial({color:c}):M(c));m.position.set(x,y,z);m.castShadow=!ghost;g.add(m);return m;};
-  if(kind==='apt'){add(8,22,8,0x3a4a6a,0,11,0);for(let y=2;y<21;y+=2.4)for(let x=-3;x<=3;x+=2){add(1.2,1.2,.05,Math.random()<.7?0xffd58a:0x223044,x,y,4.03,true);}add(8.4,.5,8.4,0xd8a648,0,22.2,0);}
-  else if(kind==='villa'){add(10,4,7,0xf2e6d0,0,2,0);const roof=new THREE.Mesh(new THREE.ConeGeometry(7.4,3,4),M(0xb5442a));roof.rotation.y=Math.PI/4;roof.position.y=5.5;roof.scale.z=.75;g.add(roof);
-    add(2,3,.1,0x6b3e1f,0,1.5,3.55);for(const x of [-3.2,3.2])add(1.8,1.4,.1,0xffd58a,x,2.4,3.55,true);add(6,.2,4,0x3aa8d8,0,.1,6,true);}
-  else if(kind==='studio'){add(5,10,5,0x8a5a4a,0,5,0);for(let y=1.5;y<9.5;y+=2)for(const x of [-1.2,1.2])add(1.3,1.1,.05,Math.random()<.7?0xffd58a:0x223044,x,y,2.53,true);add(5.4,.4,5.4,0x5a3a30,0,10.2,0);}
-  else if(kind==='penthouse'){add(7,16,6,0x2a3440,0,8,0);for(let y=1.5;y<15;y+=2)for(let x=-2.4;x<=2.4;x+=1.6)add(1.1,1.2,.05,Math.random()<.65?0xffd58a:0x1a2430,x,y,3.03,true);add(6,3,5,0xe8e8f0,0,17.5,0);add(5.6,2.2,.06,0x9ad0ff,0,17.6,2.53,true);add(3,.15,2,0x3aa8d8,0,19.1,0,true);}
-  else if(kind==='mansion'){add(12,5,7,0xf2ead8,0,2.5,0);add(5,8,6,0xf2ead8,0,4,.6);const roof=new THREE.Mesh(new THREE.ConeGeometry(4.6,3,4),M(0x3a2a2a));roof.rotation.y=Math.PI/4;roof.position.y=9.5;g.add(roof);
-    for(const x of [-1.6,-.5,.5,1.6])add(.4,4.6,.4,0xffffff,x,2.3,3.8);add(1.6,2.8,.1,0x6b3e1f,0,1.4,3.62);for(const x of [-4.6,-3,3,4.6])for(const y of [1.6,3.6])add(1,1.2,.08,0xffd58a,x,y,3.55,true);add(4,.2,3,0x3aa8d8,-3.5,.1,6,true);add(.6,.8,.6,0x2f9e4a,4.5,.4,5.5);}
-  else if(kind==='tower'){add(7,30,7,0x15131c,0,15,0);for(let y=1.5;y<29;y+=2.2)for(let x=-2.4;x<=2.4;x+=1.6)add(1.1,1.5,.05,Math.random()<.6?0x7ad0ff:0x1a2430,x,y,3.53,true);const sp=new THREE.Mesh(new THREE.ConeGeometry(2.4,6,4),M(0xd8a648));sp.rotation.y=Math.PI/4;sp.position.y=33;g.add(sp);add(.2,4,.2,0xff2f4a,0,38,0,true);add(7.4,.4,7.4,0xd8a648,0,30.2,0);}
-  else if(kind==='yacht'){add(3.2,1.4,12,0xf4f4f4,0,1,0);add(2.6,1.2,6,0xf4f4f4,0,2.3,-.8);add(2.4,.6,3,0x223044,0,3.2,-1);add(3.3,.25,12.1,0x1b2650,0,.45,0);const pole=add(.1,3,.1,0xcccccc,0,4.5,-1.5);}
-  return g;
-}
 function labelPlane(top,sub,col){const tex=canvasTex(512,160,(g,w,h)=>{g.fillStyle='rgba(10,8,20,.82)';g.beginPath();g.roundRect?g.roundRect(4,4,w-8,h-8,28):g.rect(4,4,w-8,h-8);g.fill();g.strokeStyle=col;g.lineWidth=6;g.stroke();
   g.textAlign='center';g.textBaseline='middle';g.fillStyle='#fff';g.font='700 52px Fredoka, sans-serif';g.fillText(top,w/2,58);g.fillStyle=col;g.font='700 38px Nunito, sans-serif';g.fillText(sub,w/2,118);});
   const m=new THREE.Mesh(new THREE.PlaneGeometry(4.2,1.3),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));return m;}
@@ -1988,8 +2053,9 @@ function inWorld(x,z){const R=ROOM-.5;
   if(Math.abs(x)<R&&Math.abs(z)<R)return true;
   if(Math.abs(x)<2.5&&z>ROOM-1.5&&z<ROOM+1.5)return true;
   if(Math.abs(x)<OUT_X-.5&&z>ROOM+.6&&z<OUT_Z-.5)return true;
+  if(inCity(x,z)||inMall(x,z))return true;
   return false;}
-const isOutside=()=>you&&you.pos.z>ROOM+.2;
+const isOutside=()=>you&&(you.pos.z>ROOM+.2||you.pos.x>ROOM+.8);
 
 /* ---------- cinematic camera, letterbox, banners ---------- */
 let cine=null,cineBlend=0;const cineLook=new THREE.Vector3();
@@ -2068,8 +2134,8 @@ async function duelAtTable(){
   do{round++;
     speak(H,round>1?'Seri! Putar ulang, giliran kamu.':'Kamu putar duluan.');await wait(700);
     shotWheel(DUEL.pw);you.arm=1.4;you.yaw=Math.atan2(DUEL.pw.x-you.pos.x,DUEL.pw.z-you.pos.z);SFX.drum(3);
-    y=luckRoll(rnd,duelVal,v=>duelVal(v)<6);
-    await spinWheel(DUEL.pw,y,3000);SFX.stop();flashFx();showFloat(DUEL.pw,y,5000);showResult(`KAMU: ${numSpan(y)} → REME ${reme(y)}`);
+    y=rnd();await spinWheel(DUEL.pw,y,3000);
+    {const L=buffs().luck;if(L>0&&duelVal(y)<6&&Math.random()<L/100){SFX.stop();showFloat(DUEL.pw,y,1500);await wait(700);luckFx(L);speak(H,'Hoki aktif, putar ulang!');await wait(1000);let best=y;for(let k=0;k<3;k++){const c=rnd();if(duelVal(c)>duelVal(best))best=c;}let g=0;while(duelVal(best)<=duelVal(y)&&g<40){best=rnd();g++;}y=best;you.arm=1.4;shotWheel(DUEL.pw);SFX.drum(2.4);await spinWheel(DUEL.pw,y,2600);}}SFX.stop();flashFx();showFloat(DUEL.pw,y,5000);showResult(`KAMU: ${numSpan(y)} → REME ${reme(y)}`);
     shotTo(TX-6,3.2,z+1.5,TX-1.6,2.6,z+2);await wait(900);
     speak(e,reme(y)===0?'Waduh, reme 0...':`Reme ${reme(y)}? Saya bisa lewati.`,false);await wait(700);
     shotWheel(DUEL.rw);e.arm=1.4;SFX.drum(3);o=rnd();
@@ -2446,13 +2512,14 @@ function loop(){
     if(p.life<=0){scene.remove(p.m);p.m.geometry.dispose();confetti.splice(i,1);}}
   if(fountainJet){fountainJet.scale.y=1+Math.sin(now/180)*.15;}
   if(podium)podium.rotation.y+=dt*.35;
+  cityTick();
   if(garage&&isOutside())garage.children.forEach(o=>{if(o.userData.bill)o.lookAt(camera.position.x,o.position.y,camera.position.z);});
   bulbs.forEach(b=>{const on=(Math.floor(now/400)+b.i)%3!==0;b.m.color.setHex(on?b.col:0x2a2040);});
   updateCamera(dt);
   ents.forEach(e=>{const far=e!==you&&e.pos.distanceTo(camera.position)>(e.isHost?30:22);e.tagEl.classList.toggle('off',far);if(!far)placeEl(e.tagEl,e.pos,e.isHost?3.75:3.25);if(now<e.bubbleUntil&&e.pos.distanceTo(camera.position)<34)placeEl(e.bubEl,e.pos,e.isHost?4.2:3.7);else e.bubEl.classList.add('off');});
   const stP=started&&!modal?stationPick():null;
   const nw=started&&!busy&&!modal&&!stP?nearestWheel():null;
-  if(stP){prompt.innerHTML=`<b>E</b>${stP.type==='garage'?'Lihat':'Main'} ${stP.label}`;prompt.classList.remove('off');placeEl(prompt,stP.pos,2.6);}
+  if(stP){prompt.innerHTML=`<b>E</b>${stP.verb||(stP.type==='garage'?'Lihat':'Main')} ${stP.label}`;prompt.classList.remove('off');placeEl(prompt,stP.pos,2.6);}
   else if(nw&&!nw.spin){prompt.innerHTML=`<b>E</b>${nw.role==='host'?'Roda milik host':nw.role==='player'?'Main '+nw.table.name:nw.role==='duelP'?(duel&&duel.stage==='wait'?'Mulai duel':'Meja duel'):nw.role==='duelR'?'Roda lawan':'Putar roda'}`;prompt.classList.remove('off');placeEl(prompt,nw.center,1.5);}
   else prompt.classList.add('off');
   updateCtx();
@@ -2658,7 +2725,350 @@ function openMabar(){
 
 $('btnMp').addEventListener('click',()=>{audio();openMabar();});
 $('mpChatF').addEventListener('submit',e=>{e.preventDefault();const i=$('mpChatI');mpChat(i.value);i.value='';});
-function boot(){buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
+/* ---------- NPC challenges: rivals invite you to duel in different games ---------- */
+const NDG=[
+  {id:'dice',n:'Dadu',ic:'🎲',rule:'Masing-masing lempar 3 dadu, jumlah terbesar menang.'},
+  {id:'card',n:'Kartu Tinggi',ic:'🃏',rule:'Masing-masing ambil 1 kartu, kartu lebih tinggi menang (As paling tinggi).'},
+  {id:'slot',n:'Slot',ic:'🎰',rule:'Masing-masing putar 3 gulungan, skor kombinasi tertinggi menang.'},
+  {id:'roul',n:'Roulette',ic:'🎡',rule:'Masing-masing putar roda 0-36, angka lebih besar menang.'},
+  {id:'reme',n:'Reme',ic:'🎯',rule:'Duel reme di Meja Duel dengan midman Sinta.'}
+];
+let ndOffer=null,ndNext=Date.now()+90000;
+const CARDS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+function ndRoll(g){
+  if(g==='dice'){const d=[1+pick(6),1+pick(6),1+pick(6)];return {v:d[0]+d[1]+d[2],show:d.map(x=>'⚀⚁⚂⚃⚄⚅'[x-1]).join(' ')+` = ${d[0]+d[1]+d[2]}`};}
+  if(g==='card'){const r=pick(13),su=pick(4);return {v:r*4+su,show:CARDS[r]+SUITS[su]};}
+  if(g==='slot'){const S3=['🍒','🍋','🔔','⭐','💎','7'];const r=[pick(6),pick(6),pick(6)];const same=r[0]===r[1]&&r[1]===r[2],pair=r[0]===r[1]||r[1]===r[2]||r[0]===r[2];
+    return {v:(same?100:pair?20:0)+Math.max(...r)*2+r[0]*.01,show:r.map(i=>S3[i]).join(' ')};}
+  const n=rnd();return {v:n,show:String(n)};
+}
+function ndTick(){
+  if(!started||busy||modal||ndOffer||duel||MP.duel||document.hidden||Date.now()<ndNext)return;
+  ndNext=Date.now()+120000+pick(90000);
+  const pool=PF.rivals.filter(r=>r.w>=500);if(!pool.length||S.bal<500)return;
+  const rv=pool[pick(pool.length)],g=NDG[pick(NDG.length)];
+  let stake=Math.round(Math.min(rv.w*.25,S.bal*(.03+Math.random()*.09))/100)*100;stake=Math.max(500,stake);if(stake>S.bal)return;
+  ndShow(rv,g,stake);
+}
+setInterval(ndTick,5000);
+function ndShow(rv,g,stake){
+  ndOffer={rv,g,stake};SFX.riser();
+  const el=document.createElement('div');el.className='mpinv';el.setAttribute('role','alertdialog');
+  const draw=()=>{el.innerHTML=`<b>${g.ic} ${esc(rv.n)} nantang kamu duel ${g.n}!</b><small>${g.rule}</small><small>Taruhan 🪙 <b>${fmt(ndOffer.stake)}</b> · ${titleOf(rv.w)}</small>
+    <div><button class="pbtn" data-n="ok">Terima</button><button class="pbtn ghost" data-n="up" ${ndOffer.stake*2>S.bal||ndOffer.stake*2>rv.w?'disabled':''}>Naikkan 2x</button><button class="pbtn ghost" data-n="no">Tolak</button></div>`;
+    el.querySelector('[data-n="no"]').onclick=()=>{ndClose();speak(you,'Lain kali aja ya.',false);logLine('sys',null,`Kamu menolak tantangan ${rv.n}.`);};
+    el.querySelector('[data-n="up"]').onclick=()=>{ndOffer.stake*=2;SFX.chip();draw();};
+    el.querySelector('[data-n="ok"]').onclick=()=>{const st=ndOffer.stake;ndClose();if(S.bal<st){SFX.error();logLine('sys',null,'Koinmu kurang untuk taruhan itu.');return;}
+      if(g.id==='reme'){duel={n:rv.n,stage:'pick'};inviteDuel(st);return;}ndPlay(rv,g,st);};};
+  draw();stage.appendChild(el);ndOffer.el=el;logLine('sys',null,`${g.ic} ${rv.n} menantang kamu duel ${g.n} (${fmt(stake)} koin).`);
+  setTimeout(()=>{if(ndOffer&&ndOffer.el===el){ndClose();logLine('sys',null,`Tantangan ${rv.n} kedaluwarsa.`);}},25000);
+}
+function ndClose(){if(ndOffer&&ndOffer.el)ndOffer.el.remove();ndOffer=null;}
+async function ndPlay(rv,g,stake){
+  if(modal)closeGame();closePhone();for(const k in keys)keys[k]=false;
+  const el=document.createElement('div');el.className='modal';
+  el.innerHTML=`<div class="panel" role="dialog" aria-label="Duel"><div class="phead"><h3>${g.ic} Duel ${g.n}</h3></div><div class="pbody ndb">
+    <div class="ndvs"><div><small>KAMU</small><div class="ndr" id="ndY">?</div></div><div class="ndm">VS<small>🪙 ${fmt(stake)}</small></div><div><small>${esc(rv.n).toUpperCase()}</small><div class="ndr" id="ndO">?</div></div></div>
+    <p class="pmsg" id="ndMsg">${g.rule}</p><button class="pbtn" id="ndX" disabled>Tutup</button></div></div>`;
+  stage.appendChild(el);modal={el,st:{label:'Duel'},busy:true,refresh(){}};busy=true;S.bal-=stake;render();
+  const roll=async(id,mine)=>{const box=$(id);for(let k=0;k<18;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(65+k*6);}
+    let r=ndRoll(g.id);
+    if(mine){const L=buffs().luck;const opp=ndOpp;if(L>0&&ndOpp&&r.v<=opp.v&&Math.random()<L/100){box.textContent=r.show;await wait(500);luckFx(L);$('ndMsg').textContent='🍀 Hoki aktif! Diulang...';await wait(800);
+      for(let k=0;k<3;k++){const c=ndRoll(g.id);if(c.v>r.v)r=c;}for(let k=0;k<10;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(70);}}}
+    box.textContent=r.show;SFX.chip();return r;};
+  let ndOpp=null,o,y,round=0;
+  do{round++;if(round>1){$('ndMsg').textContent='Seri! Diulang...';await wait(900);}
+    $('ndMsg').textContent=`${rv.n} giliran duluan...`;o=await roll('ndO',false);ndOpp=o;await wait(500);
+    $('ndMsg').textContent='Giliran kamu...';y=await roll('ndY',true);await wait(400);
+  }while(y.v===o.v&&round<5);
+  const win=y.v>o.v;
+  if(win){S.bal+=stake*2;S.wins++;rv.w=Math.max(100,rv.w-stake);SFX.big();you.cheer=2;$('ndMsg').innerHTML=`<b class="okc">MENANG!</b> +🪙 ${fmt(stake)}`;logLine('sys',null,`Duel ${g.n}: kamu mengalahkan ${rv.n}. +${fmt(stake)} koin.`,'win');}
+  else{S.losses++;rv.w+=stake;SFX.lose();$('ndMsg').innerHTML=`<b style="color:var(--red)">KALAH</b> -🪙 ${fmt(stake)}`;logLine('sys',null,`Duel ${g.n}: kamu kalah dari ${rv.n}. -${fmt(stake)} koin.`,'lose');}
+  qAdd('duel');save();savePF();render();busy=false;modal.busy=false;const x=$('ndX');x.disabled=false;x.onclick=()=>{closeGame();setTimeout(checkBroke,50);};
+}
+
+/* ---------- business district: kiosks, elite housing, property agency, 4-floor mall ---------- */
+const CITY={x0:47.2,x1:176,z0:-40};
+const MALL={z0:-420,dz:70,hw:32,hd:22};
+const mallZ=k=>MALL.z0-k*MALL.dz;
+function mallFloorAt(z){if(z>-380)return -1;const k=Math.round((MALL.z0-z)/MALL.dz);return k>=0&&k<4&&Math.abs(z-mallZ(k))<MALL.hd+2?k:-1;}
+function inCity(x,z){return x>CITY.x0&&x<CITY.x1-.5&&z>CITY.z0+.5&&z<OUT_Z-.5;}
+function inMall(x,z){const k=mallFloorAt(z);return k>=0&&Math.abs(x)<MALL.hw-.5&&Math.abs(z-mallZ(k))<MALL.hd-.5;}
+function camBounds(t){
+  const k=mallFloorAt(t.z);if(k>=0){const zc=mallZ(k);return [-MALL.hw+.6,MALL.hw-.6,zc-MALL.hd+.6,zc+MALL.hd-.6,8.4];}
+  if(t.x>ROOM+.8||t.z>ROOM+.2)return [t.z>ROOM+.9?-OUT_X+.6:CITY.x0+.3,CITY.x1-.6,t.x>CITY.x0+12?CITY.z0+.6:ROOM+.9,OUT_Z-.6,16];
+  return [-ROOM+.6,ROOM-.6,-ROOM+.6,ROOM-.6,8.4];
+}
+/* clean facades: one textured box per block instead of many window boxes (no flicker) */
+const _ft={};
+const FSPEC={apt:['#3a4a6a','#ffd58a',4,10],studio:['#8a5a4a','#ffd58a',2,5],pent:['#26303c','#ffe0a0',4,8],glass:['#16283c','#8fd4ff',5,14,.5],
+  mansion:['#efe6d4','#ffd58a',6,2],villa:['#f4efe6','#ffd58a',4,2],h0:['#f4efe6','#ffd58a',4,1],h1:['#e2d4c2','#ffe2a8',4,1],h2:['#2f3440','#ffd58a',4,1],h3:['#dfe8ee','#bfe6ff',4,1],
+  mall:['#2a2238','#ff9fd8',10,5,.75],agency:['#24324a','#ffd58a',4,2]};
+function fTex(key){if(_ft[key])return _ft[key];const [base,win,cols,rows,lit=.65]=FSPEC[key];let seed=key.charCodeAt(0)*131+key.length*17;const rr=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  const on=[];for(let i=0;i<cols*rows;i++)on.push(rr()<lit);
+  const draw=(em)=>(g,w,h)=>{g.fillStyle=em?'#000':base;g.fillRect(0,0,w,h);const cw=w/cols,rh=h/rows;
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const L=on[r*cols+c];if(em&&!L)continue;g.fillStyle=L?win:'#1a2232';g.fillRect(c*cw+cw*.16,r*rh+rh*.18,cw*.68,rh*.62);
+      if(!em){g.fillStyle='rgba(255,255,255,.25)';g.fillRect(c*cw+cw*.16,r*rh+rh*.18,cw*.68,rh*.04);g.fillStyle='rgba(0,0,0,.35)';g.fillRect(c*cw+cw*.49,r*rh+rh*.18,cw*.02,rh*.62);}}
+    if(!em){g.fillStyle='rgba(0,0,0,.18)';for(let r=0;r<=rows;r++)g.fillRect(0,r*rh-2,w,4);}};
+  _ft[key]={map:canvasTex(256,512,draw(false)),em:canvasTex(256,512,draw(true))};return _ft[key];}
+function tBox(g,w,h,d,key,top,x,y,z,ghost){let m;
+  if(ghost)m=new THREE.MeshBasicMaterial({color:0x9ad0ff,transparent:true,opacity:.16,depthWrite:false});
+  else{const T=fTex(key),s=new THREE.MeshLambertMaterial({map:T.map,emissive:0xffffff,emissiveMap:T.em,emissiveIntensity:.85}),tp=mat(top);m=[s,s,tp,tp,s,s];}
+  const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(x,y,z);g.add(b);return b;}
+function propModel(kind,ghost){
+  const g=new THREE.Group();const M=(c,b)=>ghost?new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.16,depthWrite:false}):b?new THREE.MeshBasicMaterial({color:c}):mat(c);
+  const add=(w,h,d,c,x,y,z,basic)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c,basic));m.position.set(x,y,z);g.add(m);return m;};
+  const cyl=(r,h,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),M(c));m.position.set(x,y,z);g.add(m);return m;};
+  const T=(w,h,d,key,x,y,z,top)=>tBox(g,w,h,d,key,top||0x2a2a33,x,y,z,ghost);
+  if(kind==='apt'){T(8,22,8,'apt',0,11,0,0x2a3448);add(8.6,.5,8.6,0xd8a648,0,22.25,0);add(2.4,1.4,2.4,0x4a5266,1.6,23.2,-1.2);add(3.4,.2,2,0xd8a648,0,3.1,4.9);add(1.8,2.8,.12,0x221812,0,1.4,4.03);}
+  else if(kind==='villa'){add(12,.12,9,0xcfc6b8,0,.06,.8);T(10,3.6,7,'villa',0,1.8,0,0xeeeeee);T(7,3,5.4,'villa',-1.2,5.1,-.5,0xeeeeee);
+    add(10.8,.3,7.8,0x34343e,0,3.75,0);add(7.8,.3,6.2,0x34343e,-1.2,6.75,-.5);add(2.6,3,.14,0x8a5a30,2.9,5.1,2.25);add(1.6,2.6,.12,0x5a3a20,1.6,1.3,3.56);
+    add(6,.14,3.4,0x3aa8d8,0,.1,6.4,true);add(7.2,.08,4.6,0xc8b898,0,.04,6.4);}
+  else if(kind==='studio'){T(5,10,5,'studio',0,5,0,0x5a3a30);add(5.4,.4,5.4,0x5a3a30,0,10.2,0);add(2.6,.15,1.4,0x5a3a30,0,2.9,3.2);add(1.4,2.6,.12,0x221812,0,1.3,2.53);}
+  else if(kind==='penthouse'){T(7,16,6,'pent',0,8,0,0x1a222c);add(7.4,.3,6.4,0xd8a648,0,16.15,0);T(6,3,5,'glass',0,17.8,0,0x1a222c);add(6.4,.22,5.4,0xd8a648,0,19.4,0);add(3,.12,2,0x3aa8d8,0,19.55,0,true);add(1.8,2.8,.12,0x221812,0,1.4,3.03);}
+  else if(kind==='mansion'){add(14,.12,10,0xcfc6b8,0,.06,1);T(12,5.2,7,'mansion',0,2.6,0,0xe8e0cc);T(5,8,6,'mansion',0,4,.6,0xe8e0cc);
+    add(12.6,.35,7.6,0x3a2a2a,0,5.37,0);add(5.6,.35,6.6,0x3a2a2a,0,8.17,.6);add(5.7,.12,6.7,0xd8a648,0,8.4,.6);
+    for(const x of [-1.6,-.55,.55,1.6])cyl(.22,4.6,0xffffff,x,2.3,4.3);add(4.6,.35,1.6,0xf2ead8,0,4.75,4.2);add(1.6,2.8,.12,0x6b3e1f,0,1.4,3.62);
+    add(4,.14,3,0x3aa8d8,-3.6,.1,6.2,true);for(const x of [3,5]){cyl(.15,.6,0x5a3a20,x,.3,5.8);const b=new THREE.Mesh(new THREE.SphereGeometry(.6,10,8),M(0x2f9e4a));b.position.set(x,1,5.8);g.add(b);}}
+  else if(kind==='tower'){T(7,30,7,'glass',0,15,0,0x15131c);add(7.4,.4,7.4,0xd8a648,0,30.2,0);T(5,3,5,'glass',0,31.9,0,0x15131c);add(5.4,.3,5.4,0xd8a648,0,33.55,0);add(3,2,3,0x15131c,0,34.7,0);add(.2,4,.2,0xff2f4a,0,37.7,0,true);add(4,.2,2,0xd8a648,0,3.4,4.4);}
+  else if(kind==='yacht'){add(3.2,1.4,12,0xf4f4f4,0,1,0);add(2.6,1.2,6,0xf4f4f4,0,2.3,-.8);add(2.4,.6,3,0x223044,0,3.2,-1);add(3.3,.25,12.1,0x1b2650,0,.45,0);add(.1,3,.1,0xcccccc,0,4.5,-1.5);}
+  g.traverse(o=>{if(o.isMesh)o.castShadow=!ghost;});
+  return g;
+}
+/* ---------- data ---------- */
+const KIOSKS=[['Es Kelapa','🥥',100],['Pulsa & Data','📱',150],['Gorengan','🍤',120],['Bakso Urat','🍜',300],['Kopi Susu','☕',250],['Martabak','🥞',400],['Sate Ayam','🍢',350],['Jus Buah','🧃',200],['Mainan Anak','🧸',300],['Toko Bunga','💐',450],
+  ['Aksesoris HP','🔌',500],['Sembako','🛒',800],['Laundry','🧺',600],['Fotokopi','🖨️',400],['Pangkas Rambut','💈',500],['Tambal Ban','🛞',250],['Bensin Eceran','⛽',700],['Roti Bakar','🍞',300],['Buah Segar','🍉',350],['Jamu Juragan','🌿',1000]]
+  .map(([n,ic,p],i)=>({id:'k'+i,n,ic,p:p*1000,i}));
+const HOUSES=[];for(let r=0;r<2;r++)for(let j=0;j<6;j++)HOUSES.push({id:'h'+(r*6+j),n:`Villa Permata ${'AB'[r]}${j+1}`,x:72+j*18,z:r?-8:24,ry:r?0:Math.PI,p:2000000+j*600000+(r?800000:0),st:(r*6+j)%4});
+const MCAT=['Fashion','Elektronik','Kuliner','Hiburan'];
+const MBRAND=[[['Batik Lestari','👘'],['Urban Threads','👕'],['Sneaker Lab','👟'],['Tas Nusantara','👜'],['Kacamata Jelita','🕶️'],['Jam Waktu Emas','⌚'],['Hijab Ayu','🧕'],['Denim Raya','👖']],
+  [['GadgetKu','📱'],['Layar Prima','📺'],['Audio Nada','🎧'],['Kamera Fokus','📷'],['Komputer Jaya','💻'],['Game Zona','🎮'],['Smart Rumah','🏠'],['Servis Kilat','🔧']],
+  [['Mie Bang Jago','🍜'],['Sate Pak Kumis','🍢'],['Kopi Senja','☕'],['Geprek Mantap','🍗'],['Boba Ceria','🧋'],['Roti Hangat','🥐'],['Sushi Sakura','🍣'],['Bakso Mercon','🌶️']],
+  [['Bioskop Bintang','🎬'],['Karaoke Merdu','🎤'],['Arcade Galaxy','🕹️'],['Bowling Strike','🎳'],['Gym Kuat','🏋️'],['Salon Cantik','💇'],['Buku Pena','📚'],['Mainan Ceria','🪀']]];
+const MUNITS=[];MBRAND.forEach((fl,k)=>fl.forEach(([n,ic],j)=>MUNITS.push({id:`m${k}_${j}`,n,ic,k,j,p:1500000+k*500000+(j%4)*250000+(j>3?150000:0)})));
+const AGENCY={n:'Agen Properti Permata',p:10000000};
+const KCOL=[0xd8435b,0x2f9e5a,0x2f6fe0,0xf2a33a,0x8d45c9,0x1fa5a5];
+function bizS(){if(!PF.biz)PF.biz={k:{},h:{},m:{},ag:0,earn:0,t:Date.now()};const b=PF.biz;b.k=b.k||{};b.h=b.h||{};b.m=b.m||{};b.earn=b.earn||0;return b;}
+const agOn=()=>!!bizS().ag;
+function bizDaily(){const b=bizS(),inv=1+(buffs().inv||0)/100;let s=0;KIOSKS.forEach(k=>{if(b.k[k.id])s+=k.p*.05;});MUNITS.forEach(u=>{if(b.m[u.id])s+=u.p*.04;});
+  for(const id in b.h){const h=b.h[id];if(h.ten)s+=h.ten.rent*(b.ag?1.1:1);}if(b.ag)s+=AGENCY.p*.02;return s*inv;}
+function bizVal(){const b=bizS();let v=0;KIOSKS.forEach(k=>{if(b.k[k.id])v+=k.p*.7;});MUNITS.forEach(u=>{if(b.m[u.id])v+=u.p*.7;});for(const id in b.h)v+=b.h[id].v*.9;if(b.ag)v+=AGENCY.p*.7;return v;}
+const housePrice=H=>Math.round(H.p*(agOn()?.9:1));
+/* ---------- world ---------- */
+let cityGrp=null,mallGrps=[],tenantEnts={},bizSigns={};
+function signTex(w,h,draw){const t=canvasTex(w,h,draw);return t;}
+function redrawTex(t,draw){const c=t.image,g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);draw(g,c.width,c.height);t.needsUpdate=true;}
+function miniPerson(g,x,z,ry,shirt){const P=randPal(),sk=new THREE.Color(P.skin).getHex();const p=new THREE.Group();
+  const B=(w,h,d,c,y)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.y=y;p.add(m);};
+  B(.6,.9,.35,P.pants,.45);B(.8,.95,.45,shirt||P.shirt,1.35);B(.55,.55,.55,sk,2.12);B(.6,.18,.6,P.hair,2.45);p.position.set(x,0,z);p.rotation.y=ry;g.add(p);return p;}
+function kSignDraw(K,own){return (g,w,h)=>{g.fillStyle=own?'#1f6a3e':'#2a1d3a';g.fillRect(0,0,w,h);g.strokeStyle=own?'#8ef0a8':'#ffd25f';g.lineWidth=8;g.strokeRect(4,4,w-8,h-8);
+  g.textAlign='center';g.textBaseline='middle';g.fillStyle='#fff';g.font='700 54px Fredoka, Nunito, sans-serif';g.fillText(`${K.ic} ${K.n}`,w/2,h*.4);
+  g.font='700 34px Nunito, sans-serif';g.fillStyle=own?'#8ef0a8':'#ffd25f';g.fillText(own?'✓ MILIKMU':`DIJUAL 🪙 ${fmt(K.p)}`,w/2,h*.78);};}
+function hSignDraw(H){return (g,w,h)=>{const s=bizS().h[H.id];g.fillStyle='rgba(10,8,20,.85)';g.fillRect(0,0,w,h);const col=s?(s.ten?'#7df3ff':'#8ef0a8'):'#ffd25f';g.strokeStyle=col;g.lineWidth=8;g.strokeRect(4,4,w-8,h-8);
+  g.textAlign='center';g.textBaseline='middle';g.fillStyle='#fff';g.font='700 46px Fredoka, Nunito, sans-serif';g.fillText(H.n,w/2,h*.36);g.fillStyle=col;g.font='700 34px Nunito, sans-serif';
+  g.fillText(s?(s.ten?`Disewa ${s.ten.n}`:'✓ Milikmu · kosong'):`DIJUAL 🪙 ${fmt(housePrice(H))}`,w/2,h*.76);};}
+function mSignDraw(U,own){return (g,w,h)=>{const pal=['#ff5ab4','#4dd6ff','#ffb347','#b46bff'][U.k];g.fillStyle='#120e1c';g.fillRect(0,0,w,h);g.fillStyle=pal;g.fillRect(0,h-14,w,14);
+  g.textAlign='center';g.textBaseline='middle';g.fillStyle='#fff';g.font='700 60px Fredoka, Nunito, sans-serif';g.fillText(`${U.ic} ${U.n}`,w/2,h*.42);g.font='700 30px Nunito, sans-serif';g.fillStyle=own?'#8ef0a8':pal;g.fillText(own?'✓ UNIT MILIKMU':`Unit dijual 🪙 ${fmt(U.p)}`,w/2,h*.8);};}
+function refreshBizSigns(){const b=bizS();KIOSKS.forEach(K=>{const t=bizSigns[K.id];if(t)redrawTex(t,kSignDraw(K,!!b.k[K.id]));});HOUSES.forEach(H=>{const t=bizSigns[H.id];if(t)redrawTex(t,hSignDraw(H));});
+  MUNITS.forEach(U=>{const t=bizSigns[U.id];if(t)redrawTex(t,mSignDraw(U,!!b.m[U.id]));});if(bizSigns.ag)redrawTex(bizSigns.ag,agSignDraw());}
+function agSignDraw(){return (g,w,h)=>{const own=agOn();g.fillStyle='rgba(10,8,20,.9)';g.fillRect(0,0,w,h);g.strokeStyle=own?'#8ef0a8':'#ffd25f';g.lineWidth=8;g.strokeRect(4,4,w-8,h-8);g.textAlign='center';g.textBaseline='middle';
+  g.fillStyle='#fff';g.font='700 46px Fredoka, Nunito, sans-serif';g.fillText('🏢 AGEN PROPERTI',w/2,h*.36);g.fillStyle=own?'#8ef0a8':'#ffd25f';g.font='700 32px Nunito, sans-serif';g.fillText(own?'✓ Milikmu':`Dijual 🪙 ${fmt(AGENCY.p)}`,w/2,h*.76);};}
+function plane(g,w,h,m,x,y,z,ry){const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);p.position.set(x,y,z);p.rotation.y=ry||0;g.add(p);return p;}
+function gplane(g,w,d,m,x,z,y){const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m);p.rotation.x=-Math.PI/2;p.position.set(x,y||.006,z);g.add(p);return p;}
+function cBox(g,w,h,d,c,x,y,z,col,basic){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),basic?new THREE.MeshBasicMaterial({color:c}):mat(c));m.position.set(x,y,z);g.add(m);if(col)colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,top:y+h/2});return m;}
+function toGrp(g,m){g.add(m);return m;}
+function kioskModel(K,x,z,ry){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;cityGrp.add(g);const c=KCOL[K.i%KCOL.length];
+  cBox(g,6.4,3.2,.3,0xe8e0d0,0,1.6,-1.9);[-3.1,3.1].forEach(sx=>cBox(g,.25,3.2,4,0xe8e0d0,sx,1.6,0));cBox(g,6.8,.22,4.6,c,0,3.31,0);
+  cBox(g,6,1.1,1.2,c,0,.55,1.4);cBox(g,6.2,.08,1.4,0xf2ead8,0,1.14,1.4);
+  const aw=canvasTex(128,32,(q,w,h)=>{for(let i=0;i<8;i++){q.fillStyle=i%2?'#ffffff':'#'+c.toString(16).padStart(6,'0');q.fillRect(i*w/8,0,w/8,h);}});
+  const a=new THREE.Mesh(new THREE.BoxGeometry(6.8,.08,1.5),new THREE.MeshLambertMaterial({map:aw}));a.position.set(0,3.05,2.85);a.rotation.x=.35;g.add(a);
+  for(let i=0;i<3;i++)cBox(g,.6,.45+.2*(i%2),.5,[0xffc83d,0xff7cc3,0x7df3ff][i],-1.6+i*1.6,1.4,1.3);
+  cBox(g,4,.12,.8,0x8a5a30,0,1.9,-1.5);cBox(g,4,.12,.8,0x8a5a30,0,2.6,-1.5);for(let i=0;i<5;i++)cBox(g,.4,.4,.4,KCOL[(i+K.i)%6],-1.6+i*.8,2.2,-1.5);
+  const st=signTex(512,160,kSignDraw(K,!!bizS().k[K.id]));bizSigns[K.id]=st;plane(g,5.6,1.75,new THREE.MeshBasicMaterial({map:st}),0,4.35,2.05);cBox(g,5.8,1.9,.12,0x1b1424,0,4.35,1.97);
+  miniPerson(g,0,-.4,0);
+  const s=Math.sin(ry),co=Math.cos(ry);const lx=(px,pz)=>[x+px*co+pz*s,z-px*s+pz*co];const [ax,az]=lx(-3.3,-2.1),[bx,bz]=lx(3.3,2.1);
+  colliders.push({x0:Math.min(ax,bx),x1:Math.max(ax,bx),z0:Math.min(az,bz),z1:Math.max(az,bz),top:3.4});
+  const [px,pz]=lx(0,2.3);
+  stationAdd('kiosk',px,pz,ry,K.n,{useDist:2.4,verb:'Kios',kid:K.id,act:kioskAct,ctx:kioskCtx,btn:'KIOS'});}
+function eliteHouse(H){const g=new THREE.Group();g.position.set(H.x,0,H.z);g.rotation.y=H.ry;cityGrp.add(g);const key='h'+H.st;
+  const acc=[0x8a5a30,0x2a2a33,0xd8a648,0x3a6a8a][H.st];
+  cBox(g,13,.12,11,0xcfc6b8,0,.06,.5);tBox(g,10,3.4,7,key,0xdddddd,0,1.8,-.5);tBox(g,7.4,3,6,key,0xdddddd,-1.2,5,-1);
+  cBox(g,10.6,.3,7.6,acc,0,3.65,-.5);cBox(g,8,.3,6.6,acc,-1.2,6.65,-1);cBox(g,2.6,.8,.08,0x9ad0ff,3,4.2,2.9);
+  cBox(g,3,2.4,.1,0x55565e,2.8,1.3,3.02);cBox(g,1.2,2.4,.1,0x5a3a20,-1.6,1.3,3.02);cBox(g,3,.04,2.6,0x8a8078,2.8,.08,4.6);
+  if(H.st%2===0){cBox(g,3.4,.12,2,0x3aa8d8,-3.4,.1,4.6,false,true);}
+  cBox(g,.25,1.4,.25,0x6b4a2a,4.8,.7,4.8);const tr=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1,0),mat(0x2f8e4a));tr.position.set(4.8,2.1,4.8);g.add(tr);
+  cBox(g,13,.7,.15,0xf2f2f2,0,.35,5.95);
+  const st=signTex(512,160,hSignDraw(H));bizSigns[H.id]=st;const sp=plane(g,4.2,1.3,new THREE.MeshBasicMaterial({map:st,transparent:true}),-3.4,2.6,6.1);
+  const s=Math.sin(H.ry),c=Math.cos(H.ry);const lx=(px,pz)=>[H.x+px*c+pz*s,H.z-px*s+pz*c];const [ax,az]=lx(-5,-4),[bx,bz]=lx(5,3);
+  colliders.push({x0:Math.min(ax,bx),x1:Math.max(ax,bx),z0:Math.min(az,bz),z1:Math.max(az,bz),top:7});
+  const [fx,fz]=lx(-6.5+6.5,6.3);
+  // the low front fence has a gate in the middle; collider only on the side parts
+  [[-6.5,-1.5],[1.5,6.5]].forEach(([a0,a1])=>{const [p,q]=lx(a0,5.9),[r,t]=lx(a1,6.02);colliders.push({x0:Math.min(p,r),x1:Math.max(p,r),z0:Math.min(q,t),z1:Math.max(q,t),top:.7});});
+  const [sx,sz]=lx(0,6.6);H.yard=lx(-2.6,4.4);H.front=[sx,sz];
+  stationAdd('house',sx,sz,H.ry,H.n,{useDist:2.6,verb:'Rumah',hid:H.id,act:houseAct,ctx:houseCtx,btn:'RUMAH'});
+}
+function buildCity(){
+  cityGrp=new THREE.Group();scene.add(cityGrp);const G=cityGrp;
+  const grassT=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#2e5a2e';g.fillRect(0,0,w,h);for(let i=0;i<600;i++){g.fillStyle=`rgba(${Math.random()<.5?'90,140,70':'20,50,25'},.5)`;g.fillRect(Math.random()*w,Math.random()*h,2,2);}});grassT.wrapS=grassT.wrapT=THREE.RepeatWrapping;grassT.repeat.set(40,28);
+  gplane(G,CITY.x1-46.4,ROOM-CITY.z0+.6,new THREE.MeshLambertMaterial({map:grassT}),(CITY.x1+46.4)/2,(ROOM+.6+CITY.z0)/2,.004);
+  const paveT=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#8f857a';g.fillRect(0,0,w,h);g.strokeStyle='rgba(0,0,0,.18)';g.lineWidth=2;for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*32,0);g.lineTo(i*32,h);g.stroke();g.beginPath();g.moveTo(0,i*32);g.lineTo(w,i*32);g.stroke();}});
+  paveT.wrapS=paveT.wrapT=THREE.RepeatWrapping;paveT.repeat.set(30,11);
+  gplane(G,CITY.x1-OUT_X,OUT_Z-ROOM-6.4,new THREE.MeshLambertMaterial({map:paveT}),(CITY.x1+OUT_X)/2,(ROOM+OUT_Z-6.4)/2,.005);
+  gplane(G,CITY.x1-OUT_X,7,new THREE.MeshBasicMaterial({color:0x1d4a7a}),(CITY.x1+OUT_X)/2,OUT_Z-2.5,.03);
+  cBox(G,CITY.x1-OUT_X,.4,.4,0xb0a898,(CITY.x1+OUT_X)/2,.2,OUT_Z-6.2,true);
+  const road=new THREE.MeshLambertMaterial({color:0x2b2b33});gplane(G,CITY.x1-60,12,road,(CITY.x1+60)/2,8,.008);gplane(G,6,30,road,99,29,.008);gplane(G,10,12,road,55,8,.008);
+  const lineM=new THREE.MeshBasicMaterial({color:0xf2f2f2});for(let x=64;x<CITY.x1-2;x+=5)gplane(G,2.2,.18,lineM,x,8,.012);
+  // hedges around the housing complex (gate at the north road and the west street)
+  const hedge=mat(0x2a6e34);const hb=(w,d,x,z)=>cBox(G,w,1.1,d,0x2a6e34,x,.55,z,true);
+  hb(36,.8,78,44.6);hb(72,.8,138,44.6);hb(.8,30,60.4,29.6);hb(.8,40,60.4,-19.6);hb(CITY.x1-60,.8,(CITY.x1+60)/2,CITY.z0+.8);
+  G.add(neon('PERUMAHAN ELITE PERMATA',99,6.6,45.1,0,'#ffd25f','#ff9f1c',11,1.4));
+  [[96,99],[102,99]].forEach(([x])=>cBox(G,.6,5,.6,0xd8a648,x,2.5,44.6,true));cBox(G,6.6,.5,.6,0xd8a648,99,5,44.6);
+  // street lamps (glow only, no extra lights)
+  const lampHead=new THREE.MeshBasicMaterial({color:0xfff1c0});
+  [[70,67],[95,67],[120,67],[145,67],[80,15],[115,15],[150,15],[80,1],[115,1],[150,1],[56,40]].forEach(([x,z])=>{cBox(G,.22,5,.22,0x222228,x,2.5,z,true);const h=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),lampHead);h.position.set(x,5.2,z);G.add(h);});
+  // kiosks
+  KIOSKS.forEach((K,i)=>{const row=i<10?0:1,j=i%10;kioskModel(K,70+j*9,row?80:55,row?Math.PI:0);});
+  const arch=neon('PASAR KIOS',63.5,6.4,67.5,-Math.PI/2,'#7df3ff','#22c8ff',9,1.4);G.add(arch);
+  [[63.6,62],[63.6,73]].forEach(([x,z])=>cBox(G,.5,7,.5,0x1b1424,x,3.5,z,true));cBox(G,.6,.5,11.5,0x7df3ff,63.6,7.1,67.5,false,true);
+  for(let j=0;j<5;j++){const x=75+j*18;cBox(G,2.4,.45,.7,0x8a5a30,x,.45,67.5,true);const pl=new THREE.Mesh(new THREE.CylinderGeometry(.7,.6,.7,12),mat(0x6b4a2a));pl.position.set(x+5,.35,67.5);G.add(pl);
+    const tr=new THREE.Mesh(new THREE.IcosahedronGeometry(.9,0),mat(0x2f9e4a));tr.position.set(x+5,1.3,67.5);G.add(tr);colliders.push({x0:x+4.3,x1:x+5.7,z0:66.8,z1:68.2,top:.7});}
+  // elite houses
+  HOUSES.forEach(eliteHouse);
+  // property agency office
+  const ag=new THREE.Group();ag.position.set(54,0,28);cityGrp.add(ag);tBox(ag,8,6,7,'agency',0x1b2430,0,3,0);cBox(ag,8.6,.4,7.6,0xd8a648,0,6.2,0);cBox(ag,3,.2,1.6,0xd8a648,0,3.2,4.3);cBox(ag,2,2.8,.1,0x9ad0ff,0,1.4,3.56,false,true);
+  colliders.push({x0:50,x1:58,z0:24.5,z1:31.5,top:6.4});
+  bizSigns.ag=signTex(512,160,agSignDraw());plane(ag,4.6,1.45,new THREE.MeshBasicMaterial({map:bizSigns.ag,transparent:true}),0,4.6,3.62);
+  stationAdd('agency',54,32,0,AGENCY.n,{useDist:2.6,verb:'Masuk',act:agencyAct,ctx:agencyCtx,btn:'AGEN'});
+  // mall exterior
+  const mg=new THREE.Group();mg.position.set(168,0,68);cityGrp.add(mg);tBox(mg,16,18,36,'mall',0x1b1424,0,9,0);cBox(mg,16.6,.6,36.6,0xd8a648,0,18.3,0);
+  cBox(mg,.2,4.4,7,0x9ad0ff,-8.05,2.2,0,false,true);cBox(mg,1.6,.4,9,0xd8a648,-8.6,4.7,0);
+  colliders.push({x0:160,x1:176,z0:50,z1:86,top:18.6});
+  const mn=neon('GRAND PLAZA MALL',159.7,13.5,68,-Math.PI/2,'#ff9fd8','#ff2f9e',18,2.6);G.add(mn);const mn2=neon('4 LANTAI · 32 MERCHANT',159.7,10.6,68,-Math.PI/2,'#ffd25f','#ff9f1c',12,1.2);G.add(mn2);
+  stationAdd('malldoor',159.4,68,-Math.PI/2,'Grand Plaza Mall',{useDist:2.8,verb:'Masuk',act:()=>mallGo(0),btn:'MASUK',ctx:()=>`<div class="ctx-head"><h3>🏬 Grand Plaza Mall</h3><small>4 lantai: ${MCAT.join(', ')}. Unit merchant bisa dibeli dan membayar sewa.</small></div><div class="ctx-row"><button class="go" id="ctxGo">Masuk mall (E)</button></div>`});
+  // signpost from the parking lot
+  const sg=neon('DISTRIK BISNIS ➜',53,4.2,ROOM+4,-Math.PI/2,'#8ef0a8','#2fbf6a',7,1);G.add(sg);
+  // city walkers
+  const wp1=[[66,62],[156,62],[156,73],[66,73]],wp2=[[64,8],[170,8],[170,10],[64,10]],wp3=[[99,40],[99,14],[150,12],[99,14]];
+  [[wp1,0],[wp1,2],[wp2,0],[wp2,1],[wp3,0]].forEach(([wp,s])=>{const p=wp[s];mkNpc(p[0],p[1],'patrol',{ai:{goal:null,cool:1+Math.random()*3,role:'patrol',wp,wi:s}});});
+  buildMall();
+  bizOffline();syncTenants();
+}
+function buildMall(){
+  const tile=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#e8e2d8';g.fillRect(0,0,w,h);g.fillStyle='#d6cec2';g.fillRect(0,0,w/2,h/2);g.fillRect(w/2,h/2,w/2,h/2);});tile.wrapS=tile.wrapT=THREE.RepeatWrapping;tile.repeat.set(16,11);
+  const floorM=new THREE.MeshLambertMaterial({map:tile}),wallM=mat(0xf4efe8),ceilM=new THREE.MeshBasicMaterial({color:0xfaf6ee}),lightM=new THREE.MeshBasicMaterial({color:0xffffff});
+  for(let k=0;k<4;k++){const zc=mallZ(k),g=new THREE.Group();g.visible=false;scene.add(g);mallGrps.push(g);const pal=[0xff5ab4,0x4dd6ff,0xffb347,0xb46bff][k];
+    gplane(g,MALL.hw*2,MALL.hd*2,floorM,0,zc,0);const ce=new THREE.Mesh(new THREE.PlaneGeometry(MALL.hw*2,MALL.hd*2),ceilM);ce.rotation.x=Math.PI/2;ce.position.set(0,9,zc);g.add(ce);
+    for(let x=-24;x<=24;x+=12)for(const dz of [-6,6]){const l=new THREE.Mesh(new THREE.PlaneGeometry(4,1),lightM);l.rotation.x=Math.PI/2;l.position.set(x,8.95,zc+dz);g.add(l);}
+    cBox(g,MALL.hw*2,9,.5,0xf4efe8,0,4.5,zc-MALL.hd-.25);cBox(g,MALL.hw*2,9,.5,0xf4efe8,0,4.5,zc+MALL.hd+.25);cBox(g,.5,9,MALL.hd*2,0xf4efe8,-MALL.hw-.25,4.5,zc);cBox(g,.5,9,MALL.hd*2,0xf4efe8,MALL.hw+.25,4.5,zc);
+    gplane(g,MALL.hw*2-4,6,new THREE.MeshLambertMaterial({color:pal}),0,zc,.01).material.opacity=1;
+    const lt=neon(`LANTAI ${k+1} · ${MCAT[k].toUpperCase()}`,MALL.hw-.3,6.2,zc,-Math.PI/2,'#ffffff','#'+pal.toString(16).padStart(6,'0'),12,1.3);g.add(lt);
+    // central glass lift
+    const lift=new THREE.Mesh(new THREE.CylinderGeometry(2,2,9,20,1,true),new THREE.MeshBasicMaterial({color:0x9ad0ff,transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false}));lift.position.set(0,4.5,zc);g.add(lift);
+    const cab=new THREE.Mesh(new THREE.CylinderGeometry(1.9,1.9,.3,20),mat(0xd8a648));cab.position.set(0,.15,zc);g.add(cab);const cap=cab.clone();cap.position.y=8.8;g.add(cap);colliders.push({x0:-2,x1:2,z0:zc-2,z1:zc+2,top:9});
+    // escalators (decor)
+    [-13,13].forEach(x=>{cBox(g,2.2,.5,9,0x8a5a30,x,.25,zc,true);for(const dz of [-3,0,3]){const t=new THREE.Mesh(new THREE.IcosahedronGeometry(.7,0),mat(0x2f9e4a));t.position.set(x,1,zc+dz);g.add(t);}});
+    // planters & benches
+    [[-22,zc],[22,zc]].forEach(([x,z])=>{cBox(g,3,.8,3,0x8a5a30,x,.4,z,true);const t=new THREE.Mesh(new THREE.IcosahedronGeometry(1.3,0),mat(0x2f9e4a));t.position.set(x,1.9,z);g.add(t);});
+    // merchant units: 4 north (facing +z) and 4 south (facing -z)
+    MUNITS.filter(U=>U.k===k).forEach(U=>{const north=U.j<4,col=U.j%4,ux=-24+col*16,uz=north?zc-MALL.hd+4.5:zc+MALL.hd-4.5,f=north?1:-1;
+      cBox(g,14,7,.3,[0xffe8f2,0xe8f6ff,0xfff2e0,0xf2e8ff][k],ux,3.5,uz-f*4.3);
+      [-7,7].forEach(sx=>cBox(g,.3,7,9,0xd8d0c8,ux+sx,3.5,uz));
+      gplane(g,13.6,8.6,new THREE.MeshLambertMaterial({color:KCOL[(U.j+k)%6]}),ux,uz,.012);
+      cBox(g,14.4,1.6,.4,0x120e1c,ux,7.4,uz+f*4.4);
+      const st=signTex(512,128,mSignDraw(U,!!bizS().m[U.id]));bizSigns[U.id]=st;plane(g,13,3.25,new THREE.MeshBasicMaterial({map:st}),ux,7.4,uz+f*4.62,north?0:Math.PI);
+      [-4.6,4.6].forEach(sx=>{const gl=new THREE.Mesh(new THREE.BoxGeometry(4.4,6.6,.08),new THREE.MeshBasicMaterial({color:0xbfe6ff,transparent:true,opacity:.22,depthWrite:false}));gl.position.set(ux+sx,3.3,uz+f*4.4);g.add(gl);});
+      cBox(g,5,1.1,1.2,0xffffff,ux,.55,uz-f*1.2);for(let i=0;i<3;i++)cBox(g,1.8,2.2,.6,KCOL[(i+U.j)%6],ux-4+i*4,1.1,uz-f*3.6);
+      miniPerson(g,ux,uz-f*2.4,north?0:Math.PI);
+      colliders.push({x0:ux-7,x1:ux+7,z0:uz-4.5,z1:uz+4.5,top:9});
+      stationAdd('mallunit',ux,uz+f*4.9,north?0:Math.PI,U.n,{useDist:2.6,verb:'Unit',uid:U.id,act:unitAct,ctx:unitCtx,btn:'UNIT'});});
+    stationAdd('lift',0,zc+2.2,0,`Lift lantai ${k+1}`,{useDist:2.4,verb:'Naik',floor:k,act:st=>mallGo((st.floor+1)%4),ctx:liftCtx,btn:'LIFT'});
+    stationAdd('mallexit',-MALL.hw+.6,zc,Math.PI/2,'Pintu keluar mall',{useDist:2.6,verb:'Keluar',act:()=>tpTo(156.5,68,-Math.PI/2),btn:'KELUAR',ctx:()=>`<div class="ctx-head"><h3>🚪 Pintu keluar</h3><small>Kembali ke depan Grand Plaza Mall</small></div><div class="ctx-row"><button class="go" id="ctxGo">Keluar (E)</button></div>`});
+    const ex=neon('EXIT',-MALL.hw+.3,5.5,zc,Math.PI/2,'#8ef0a8','#2fbf6a',3,1);g.add(ex);cBox(g,.2,4,3,0x2a2a33,-MALL.hw+.1,2,zc);
+    // a few shoppers walking the floor
+    const wp=[[-26,zc-6],[26,zc-6],[26,zc+6],[-26,zc+6]];for(let i=0;i<2;i++)mkNpc(wp[i*2][0],wp[i*2][1],'patrol',{ai:{goal:null,cool:Math.random()*2,role:'patrol',wp,wi:i*2}});
+  }
+}
+/* ---------- moving around ---------- */
+function tpTo(x,z,yaw){if(busy||(modal&&modal.busy))return;if(modal)closeGame();closePhone();you.pos.set(x,0,z);you.vy=0;you.yaw=yaw;camYaw=yaw+Math.PI;camGoal=null;camTarget.set(x,2.4,z);cine=null;
+  flashFx('#fff');SFX.whoosh();ctxKey=null;cityVis();}
+function mallGo(k){tpTo(-MALL.hw+7,mallZ(k),Math.PI/2);banner(`🏬 LANTAI ${k+1}<small>${MCAT[k]}</small>`,'',1600);}
+const PLACES={kasino:['🎰 Kasino',0,ROOM-6,Math.PI],kios:['🏪 Pasar Kios',62,67.5,Math.PI/2],rumah:['🏡 Perumahan Elite',99,40,Math.PI],agen:['🏢 Agen Properti',54,36,Math.PI],mall:['🏬 Mall',null]};
+function goPlace(id){if(id==='mall'){mallGo(0);return;}const p=PLACES[id];if(p)tpTo(p[1],p[2],p[3]);}
+let cityVisK='';
+function cityVis(){if(!you||!cityGrp)return;const k=mallFloorAt(you.pos.z),inRoom=Math.abs(you.pos.x)<ROOM&&Math.abs(you.pos.z)<ROOM;const key=k+'|'+inRoom;if(key===cityVisK)return;cityVisK=key;
+  cityGrp.visible=k<0&&!inRoom;mallGrps.forEach((g,i)=>g.visible=i===k);}
+function cityTick(){cityVis();}
+/* ---------- tenants ---------- */
+function syncTenants(){const b=bizS();HOUSES.forEach(H=>{const s=b.h[H.id],want=s&&s.ten,e=tenantEnts[H.id];
+  if(want&&(!e||e.name!==s.ten.n)){if(e)dropEnt(e);const [x,z]=H.yard;const n=mkEnt(s.ten.n,x,z,randPal(),{label:'Penyewa '+s.ten.n,color:'#7df3ff'});n.yaw=H.ry;ents.push(n);tenantEnts[H.id]=n;}
+  else if(!want&&e){dropEnt(e);delete tenantEnts[H.id];}});}
+function dropEnt(e){scene.remove(e.av.root);e.tagEl.remove();e.bubEl.remove();const i=ents.indexOf(e);if(i>=0)ents.splice(i,1);}
+/* ---------- actions ---------- */
+function bizPay(p){if(S.bal<p){SFX.error();showResult(`Koin kurang. Butuh 🪙 <b>${fmt(p)}</b>`);return false;}S.bal-=p;return true;}
+function bizDone(msg,cls){if(msg)logLine('sys',null,msg,cls);SFX.coin();save();savePF();render();refreshBizSigns();syncTenants();ctxKey=null;phoneRender();}
+function bizDo(a,id){const b=bizS();
+  if(a==='go'){goPlace(id);return;}
+  if(a==='floor'){mallGo(+id);return;}
+  if(a==='buyK'){const K=KIOSKS.find(k=>k.id===id);if(!K||b.k[id]||!bizPay(K.p))return;b.k[id]=1;bizDone(`🏪 Kamu membeli kios ${K.n}. Penghasilan ${fmt(K.p*.05)} koin per hari bursa.`,'win');showResult(`🏪 <b>${K.n}</b> jadi milikmu!`);return;}
+  if(a==='sellK'){const K=KIOSKS.find(k=>k.id===id);if(!K||!b.k[id])return;delete b.k[id];S.bal+=Math.round(K.p*.7);bizDone(`Kios ${K.n} dijual. +${fmt(Math.round(K.p*.7))} koin.`);return;}
+  if(a==='buyM'){const U=MUNITS.find(u=>u.id===id);if(!U||b.m[id]||!bizPay(U.p))return;b.m[id]=1;bizDone(`🏬 Kamu membeli unit ${U.n} di lantai ${U.k+1}. Merchant bayar sewa ${fmt(U.p*.04)} koin per hari.`,'win');showResult(`🏬 Unit <b>${U.n}</b> milikmu!`);return;}
+  if(a==='sellM'){const U=MUNITS.find(u=>u.id===id);if(!U||!b.m[id])return;delete b.m[id];S.bal+=Math.round(U.p*.7);bizDone(`Unit ${U.n} dijual. +${fmt(Math.round(U.p*.7))} koin.`);return;}
+  if(a==='buyA'){if(b.ag||!bizPay(AGENCY.p))return;b.ag=1;bizDone(`🏢 Agen Properti Permata sekarang milikmu! Diskon 10% beli rumah, sewa & tawaran +10%, plus komisi harian.`,'win');showResult('🏢 Agen properti milikmu!');return;}
+  if(a==='sellA'){if(!b.ag)return;b.ag=0;S.bal+=Math.round(AGENCY.p*.7);bizDone(`Agen properti dijual. +${fmt(Math.round(AGENCY.p*.7))} koin.`);return;}
+  const H=HOUSES.find(h=>h.id===id);if(!H)return;const s=b.h[id];
+  if(a==='buyH'){if(s)return;const p=housePrice(H);if(!bizPay(p))return;b.h[id]={v:H.p,ten:null,cand:null,off:null};bizDone(`🏡 Kamu membeli ${H.n} seharga ${fmt(p)} koin.`,'win');showResult(`🏡 <b>${H.n}</b> milikmu!`);return;}
+  if(!s)return;
+  if(a==='rentH'){if(!s.cand)return;s.ten=s.cand;s.cand=null;bizDone(`🏡 ${s.ten.n} mulai menyewa ${H.n}. Sewa ${fmt(s.ten.rent)} koin per hari.`,'win');return;}
+  if(a==='noH'){s.cand=null;bizDone(null);return;}
+  if(a==='evictH'){if(!s.ten)return;logLine('sys',null,`${s.ten.n} selesai menyewa ${H.n}.`);s.ten=null;bizDone(null);return;}
+  if(a==='sellH'){if(!s.off)return;const p=s.off.p,n=s.off.n;delete b.h[id];S.bal+=p;bizDone(`🏡 ${H.n} terjual ke ${n} seharga ${fmt(p)} koin!`,'win');showResult(`🏡 Terjual! +🪙 <b>${fmt(p)}</b>`);return;}
+  if(a==='quickH'){const p=Math.round(s.v*.9);delete b.h[id];S.bal+=p;bizDone(`${H.n} dijual cepat ke agen. +${fmt(p)} koin.`);return;}
+}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-bz]');if(!t)return;e.preventDefault();e.stopPropagation();SFX.pop();bizDo(t.dataset.bz,t.dataset.id);});
+const bzB=(a,id,txt,alt)=>`<button class="go${alt?' alt':''}" data-bz="${a}" data-id="${id}">${txt}</button>`;
+const bizInv=()=>1+(buffs().inv||0)/100;
+function kioskAct(st){const K=KIOSKS.find(k=>k.id===st.kid);if(!bizS().k[K.id])bizDo('buyK',K.id);else showResult(`🏪 ${K.n}: +🪙 ${fmt(Math.round(K.p*.05*bizInv()))} / hari`);}
+function kioskCtx(st){const K=KIOSKS.find(k=>k.id===st.kid),own=bizS().k[K.id];
+  return `<div class="ctx-head"><h3>${K.ic} Kios ${esc(K.n)}</h3><small>${own?'Milikmu':'Dijual 🪙 '+fmt(K.p)} · untung 5%/hari = 🪙 ${fmt(Math.round(K.p*.05*bizInv()))} per hari bursa (5 menit)</small></div><div class="ctx-row">${own?bzB('sellK',K.id,'Jual 70%',1):`<button class="go" id="ctxGo">Beli kios (E)</button>`}</div>`;}
+function unitAct(st){const U=MUNITS.find(u=>u.id===st.uid);if(!bizS().m[U.id])bizDo('buyM',U.id);else showResult(`🏬 ${U.n}: sewa 🪙 ${fmt(Math.round(U.p*.04*bizInv()))} / hari`);}
+function unitCtx(st){const U=MUNITS.find(u=>u.id===st.uid),own=bizS().m[U.id];
+  return `<div class="ctx-head"><h3>${U.ic} ${esc(U.n)}</h3><small>Lantai ${U.k+1} · ${MCAT[U.k]} · ${own?'unit milikmu':'dijual 🪙 '+fmt(U.p)} · sewa 4%/hari = 🪙 ${fmt(Math.round(U.p*.04*bizInv()))}</small></div><div class="ctx-row">${own?bzB('sellM',U.id,'Jual 70%',1):`<button class="go" id="ctxGo">Beli unit (E)</button>`}</div>`;}
+function liftCtx(st){return `<div class="ctx-head"><h3>🛗 Lift</h3><small>Kamu di lantai ${st.floor+1} (${MCAT[st.floor]})</small></div><div class="ctx-row">${[0,1,2,3].map(k=>bzB('floor',k,`${k+1}`,k!==st.floor)).join('')}</div>`;}
+function agencyAct(){if(!agOn())bizDo('buyA');else{phView='biz';togglePhone(true);phView='biz';phoneRender();}}
+function agencyCtx(){const own=agOn();return `<div class="ctx-head"><h3>🏢 ${AGENCY.n}</h3><small>${own?'Milikmu · komisi 🪙 '+fmt(Math.round(AGENCY.p*.02*bizInv()))+'/hari, diskon rumah 10%, sewa & tawaran +10%':'Beli agennya 🪙 '+fmt(AGENCY.p)+': komisi 2%/hari, diskon rumah 10%, sewa & tawaran pembeli +10%'}</small></div>
+  <div class="ctx-row">${own?`<button class="go" id="ctxGo">Buka app Bisnis (E)</button>${bzB('sellA','ag','Jual 70%',1)}`:`<button class="go" id="ctxGo">Beli agen (E)</button>`}</div>`;}
+function houseAct(st){const H=HOUSES.find(h=>h.id===st.hid),s=bizS().h[H.id];if(!s){bizDo('buyH',H.id);return;}if(s.cand){bizDo('rentH',H.id);return;}showResult(`🏡 ${H.n}: nilai 🪙 ${fmt(Math.round(s.v))}`);}
+function houseCtx(st){const H=HOUSES.find(h=>h.id===st.hid),s=bizS().h[H.id];
+  if(!s)return `<div class="ctx-head"><h3>🏡 ${H.n}</h3><small>Dijual 🪙 ${fmt(housePrice(H))}${agOn()?' (diskon agen 10%)':''} · bisa disewakan ±3%/hari atau dijual ke pembeli 110-140%</small></div><div class="ctx-row"><button class="go" id="ctxGo">Beli rumah (E)</button></div>`;
+  const rows=[];if(s.ten)rows.push(bzB('evictH',H.id,'Akhiri sewa',1));else if(s.cand)rows.push(`<button class="go" id="ctxGo">Sewakan ke ${esc(s.cand.n)} 🪙${fmt(s.cand.rent)}/hari (E)</button>`,bzB('noH',H.id,'Tolak',1));
+  if(s.off)rows.push(bzB('sellH',H.id,`Jual ke ${esc(s.off.n)} 🪙${fmt(s.off.p)}`));rows.push(bzB('quickH',H.id,`Jual cepat 90%`,1));
+  return `<div class="ctx-head"><h3>🏡 ${H.n}</h3><small>Milikmu · nilai 🪙 ${fmt(Math.round(s.v))} (naik ±1%/hari) · ${s.ten?`disewa ${esc(s.ten.n)} 🪙${fmt(Math.round(s.ten.rent*(agOn()?1.1:1)))}/hari`:s.cand?'ada calon penyewa!':'kosong, menunggu calon penyewa...'}</small></div><div class="ctx-row">${rows.join('')}</div>`;}
+/* ---------- income ---------- */
+function bizOffline(){const b=bizS(),now=Date.now(),el=now-(b.t||now);b.t=now;if(el<120000)return;const d=bizDaily();if(d<=0)return;
+  const pay=Math.round(d*Math.min(el,7200000)/300000*.5);if(pay>0){S.bal+=pay;b.earn+=pay;setTimeout(()=>{logLine('sys',null,`🏢 Selama kamu offline, bisnismu menghasilkan ${fmt(pay)} koin (50%, maks 2 jam).`,'win');showResult(`🏢 Hasil bisnis offline<br>+🪙 <b>${fmt(pay)}</b>`);},2500);save();savePF();}}
+function bizTick(){if(!started||!cityGrp)return;const b=bizS(),now=Date.now(),el=now-(b.t||now);if(el<60000)return;b.t=now;const mins=Math.min(el,600000)/60000;
+  const pay=Math.round(bizDaily()/5*mins);if(pay>0){S.bal+=pay;b.earn+=pay;logLine('sys',null,`🏢 Bisnis: +${fmt(pay)} koin dari kios, sewa, dan merchant.`,'win');}
+  let note=false;
+  HOUSES.forEach(H=>{const s=b.h[H.id];if(!s)return;s.v*=Math.pow(1.002,mins);
+    if(s.off&&now>s.off.until){s.off=null;note=true;}
+    if(!s.ten&&!s.cand&&Math.random()<.45){s.cand={n:NAMES[pick(NAMES.length)],rent:Math.round(s.v*(.025+Math.random()*.012)/100)*100};logLine('sys',null,`🏡 ${s.cand.n} ingin menyewa ${H.n} (🪙 ${fmt(s.cand.rent)}/hari). Cek di rumahnya atau app Bisnis.`);note=true;}
+    if(!s.off&&Math.random()<.25){s.off={n:NAMES[pick(NAMES.length)],p:Math.round(s.v*(1.1+Math.random()*.3)*(b.ag?1.1:1)/1000)*1000,until:now+240000};logLine('sys',null,`💰 ${s.off.n} menawar ${H.n} seharga ${fmt(s.off.p)} koin (4 menit).`);note=true;}});
+  if(pay>0||note){save();savePF();render();ctxKey=null;phoneRender();}}
+setInterval(bizTick,5000);
+/* ---------- phone app ---------- */
+function bizPhone(){const b=bizS(),d=bizDaily();const own=[];
+  KIOSKS.forEach(K=>{if(b.k[K.id])own.push(`<div class="bzr"><span>${K.ic} Kios ${esc(K.n)}</span><em>+${fmt(Math.round(K.p*.05*bizInv()))}/hari</em></div>`);});
+  MUNITS.forEach(U=>{if(b.m[U.id])own.push(`<div class="bzr"><span>${U.ic} ${esc(U.n)} · Lt ${U.k+1}</span><em>+${fmt(Math.round(U.p*.04*bizInv()))}/hari</em></div>`);});
+  HOUSES.forEach(H=>{const s=b.h[H.id];if(!s)return;own.push(`<div class="bzr"><span>🏡 ${H.n}<small>Nilai ${fmt(Math.round(s.v))} · ${s.ten?'disewa '+esc(s.ten.n):'kosong'}</small></span><em>${s.ten?'+'+fmt(Math.round(s.ten.rent*(b.ag?1.1:1)*bizInv()))+'/hari':''}</em></div>
+    ${s.cand?`<div class="bzr sub"><span>👤 ${esc(s.cand.n)} mau sewa 🪙${fmt(s.cand.rent)}/hari</span><button class="small" data-bz="rentH" data-id="${H.id}">Terima</button></div>`:''}
+    ${s.off?`<div class="bzr sub"><span>💰 ${esc(s.off.n)} menawar 🪙${fmt(s.off.p)}</span><button class="small" data-bz="sellH" data-id="${H.id}">Jual</button></div>`:''}`);});
+  if(b.ag)own.push(`<div class="bzr"><span>🏢 ${AGENCY.n}</span><em>+${fmt(Math.round(AGENCY.p*.02*bizInv()))}/hari</em></div>`);
+  return `<div class="wallet"><small>Penghasilan bisnis per hari bursa (5 menit)</small><b>🪙 ${fmt(Math.round(d))}</b><div class="row"><span>Nilai aset bisnis</span><span>${fmt(Math.round(bizVal()))}</span></div><div class="row"><span>Total sudah didapat</span><span class="up">${fmt(Math.round(b.earn))}</span></div></div>
+    <div class="bzgo">${Object.keys(PLACES).map(k=>`<button class="small" data-bz="go" data-id="${k}">${PLACES[k][0]}</button>`).join('')}</div>
+    ${own.length?own.join(''):'<p class="news">Belum punya bisnis. Pergi ke Pasar Kios (20 kios), Perumahan Elite (12 rumah), atau Grand Plaza Mall (32 unit). Penghasilan dibayar tiap menit.</p>'}
+    <p class="news">Kios untung 5%/hari, unit mall 4%/hari, rumah disewa ±3%/hari dan nilainya naik ±1%/hari. Buff 📊 Investasi menambah semua penghasilan bisnis.</p>`;}
+
+function boot(){buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
 })();
