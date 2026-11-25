@@ -333,6 +333,7 @@ const $=id=>document.getElementById(id);
 const stage=$('stage'),ov=$('ov');
 if(!window.THREE){stage.insertAdjacentHTML('beforeend','<div class="err">Mesin 3D gagal dimuat. Muat ulang halaman.</div>');return;}
 const fmt=n=>n.toLocaleString('id-ID');
+const fmtBig=n=>{n=Math.floor(n);const A=Math.abs(n);if(A<1e9)return fmt(n);if(A<1e12)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A<1e15)return (n/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';return n.toExponential(2).replace('.',',');};
 const HOST="Bang Rio";
 
 /* ---------- state ---------- */
@@ -1112,7 +1113,7 @@ function crowdCheer(pos){npcs.forEach(n=>{if(n.pos.distanceTo(pos)<12&&Math.rand
 
 /* ---------- UI ---------- */
 function render(){
-  $('bal').textContent=fmt(Math.floor(S.bal));$('wins').textContent=S.wins;$('losses').textContent=S.losses;
+  $('bal').textContent=fmtBig(S.bal);$('wins').textContent=S.wins;$('losses').textContent=S.losses;
   if(render.last!==undefined&&render.last!==S.bal){const m=$('money');m.classList.remove('flash');void m.offsetWidth;m.classList.add('flash');}
   render.last=S.bal;
   if(typeof modal!=='undefined'&&modal)modal.refresh();
@@ -1186,7 +1187,7 @@ function applySnap(d){
   S.bal=d.S.bal;S.bet=0;betTable=null;S.wins=d.S.wins|0;S.losses=d.S.losses|0;S.hist=Array.isArray(d.S.hist)?d.S.hist:[];
   const P=d.PF;PF.hold=P.hold||{};PF.cost=P.cost||{};PF.bank=Object.assign({save:0,loan:0,score:650,paid:0},P.bank||{});PF.items=P.items||{};PF.tx=P.tx||[];
   if(Array.isArray(P.rivals)&&P.rivals.length===RIVAL_BASE.length)PF.rivals=P.rivals;PF.aidT=P.aidT||0;PF.rankBest=P.rankBest||99;if(P.pass)PF.pass=P.pass;if(P.promo)PF.promo=P.promo;PF.dia=P.dia||0;PF.qd=P.qd||null;PF.tix=P.tix||0;PF.bonds=Array.isArray(P.bonds)?P.bonds:[];PF.pass=P.pass||{};PF.promo=P.promo||{};
-  if(P.px)MK.forEach(a=>{if(P.px[a.id]){a.p=P.px[a.id];a.h[a.h.length-1]=a.p;}});
+  if(P.px)MK.forEach(a=>{if(P.px[a.id]){a.p=Math.min(a.p0*20,Math.max(a.p0/20,P.px[a.id]));a.h[a.h.length-1]=a.p;}});
   save();savePF();rebuildYou();render();phoneRender();
 }
 const slotKey=i=>'lounge-vegas-slot-'+i;
@@ -1262,7 +1263,7 @@ function openShop(cat,tab){
   el.querySelector('.sx').onclick=closeGame;el.addEventListener('pointerdown',e=>{if(e.target===el)closeGame();});
   drawShop();SFX.pop();
 }
-function drawShopHead(){const b=$('shBal');if(b)b.textContent=fmt(Math.floor(S.bal));const l=$('shLuck');if(l)l.textContent=buffs().luck+'%';const dd=$('shDia');if(dd)dd.textContent=fmt(PF.dia||0);}
+function drawShopHead(){const b=$('shBal');if(b)b.textContent=fmtBig(S.bal);const l=$('shLuck');if(l)l.textContent=buffs().luck+'%';const dd=$('shDia');if(dd)dd.textContent=fmt(PF.dia||0);}
 function card(x){const o=PF.items[x.id],[rn,rc]=rarity(x);
   let btn;if(!o&&x.dp)btn=`<button class="buy2 dia" data-dbuy="${x.id}" ${(PF.dia||0)<x.dp?'disabled':''}>💎 ${fmt(x.dp)}</button>`;else if(!o)btn=`<button class="buy2" data-sbuy="${x.id}" ${S.bal<x.p?'disabled':''}>🪙 ${fmt(x.p)}</button>`;
   else if(!isWear(x))btn=`<button class="buy2 on" disabled>✓ Dimiliki</button>`;
@@ -1391,12 +1392,14 @@ const MK=[
 MK.forEach(a=>{a.b0=a.p;});
 const SEC={BTX:'major',ETR:'major',SOLR:'major',TONK:'major',ADAN:'defi',RPLX:'defi',MATX:'defi',NUSC:'defi',AVLN:'defi',LINX:'defi',AIKN:'defi',GAMX:'defi',DOGI:'meme',PEPI:'meme',LUNR:'meme',SHBU:'meme',FLOK:'meme',EMAS:'gold',
   NUSA:'consumer',BMDK:'bank',TLNU:'telco',KOPI:'consumer',TKNO:'tech',MOBJ:'auto',EMRY:'mining',SWIT:'agri',ANGK:'airline',PROP:'property',ENRG:'energy',MINY:'energy',SEHT:'health',RSMD:'health',RTLX:'retail',OJEK:'tech',CHIP:'tech',BATU:'mining',GAME:'tech',BRAS:'agri',KAPL:'shipping'};
-const LIQ={major:40e6,defi:8e6,meme:3e6,gold:20e6,bank:30e6,telco:25e6};
+MK.forEach(a=>{a.p0=a.p;});const LIQ={major:40e6,defi:8e6,meme:3e6,gold:20e6,bank:30e6,telco:25e6};
 MK.forEach(a=>{a.sec=SEC[a.id]||'other';a.liq=LIQ[a.sec]||12e6;});
 let mDay=1,mDayT=Date.now();
 // trade impact: big buys push the price up, big sells push it down (partly reverts later)
-function impactPct(a,amt){const s=Math.sign(amt),k=Math.min(.3,.5*Math.abs(amt)/a.liq);return s*k;}
-function applyImpact(a,imp){a.p=Math.max(a.t==='crypto'?.0001:1,a.p*(1+imp));a.f=(a.f||a.p)*(1+imp*.35);a.h[a.h.length-1]=a.p;a.tr+=imp*.15;}
+const minP=a=>a.t==='crypto'?.0001:1;
+function ammBuy(a,amt){const L=a.liq,X=L/a.p,X2=L*X/(L+amt);return {q:X-X2,p2:(L+amt)/X2};}
+function ammSell(a,q){const L=a.liq,X=L/a.p,R2=L*X/(X+q);return {got:L-R2,p2:Math.max(minP(a),R2/(X+q))};}
+function setImpact(a,p2){const imp=p2/a.p-1;a.p=Math.max(minP(a),p2);a.f=(a.f||a.p)*(1+Math.max(-.05,Math.min(.05,imp*.05)));a.h[a.h.length-1]=a.p;return imp;}
 const EVENTS=[
   ['Krisis di Timur Tengah, harga minyak dunia melonjak',{energy:.18,airline:-.15,auto:-.06,shipping:-.05}],
   ['Bank sentral menaikkan suku bunga',{bank:.08,property:-.12,tech:-.08,crypto:-.1}],
@@ -1429,7 +1432,7 @@ function fireEvent(){const [t,eff]=EVENTS[pick(EVENTS.length)];const ups=[],dns=
   MK.forEach(a=>{let pc=0;for(const k in eff){if(k===a.sec||k===a.t)pc+=eff[k];}if(!pc)return;pc*=.6+Math.random()*.8;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*(1+pc));a.f=(a.f||a.p)*(1+pc*.7);a.tr+=pc*.2;a.h[a.h.length-1]=a.p;(pc>0?ups:dns).push(a.id);});
   const msg=`${t}. ${ups.length?'Naik: '+ups.slice(0,5).join(', ')+'.':''} ${dns.length?'Turun: '+dns.slice(0,5).join(', ')+'.':''}`.trim();news.unshift(msg);news=news.slice(0,8);logLine('sys',null,'📰 '+msg);}
 let PF={hold:{},cost:{}};
-try{const s=JSON.parse(localStorage.getItem('lounge-vegas-hp')||'null');if(s&&s.hold){PF=s;if(s.px)MK.forEach(a=>{if(s.px[a.id])a.p=s.px[a.id];});}}catch(e){}
+try{const s=JSON.parse(localStorage.getItem('lounge-vegas-hp')||'null');if(s&&s.hold){PF=s;if(s.px)MK.forEach(a=>{if(s.px[a.id])a.p=Math.min(a.p*20,Math.max(a.p/20,s.px[a.id]));});}}catch(e){}
 function savePF(){try{localStorage.setItem('lounge-vegas-hp',JSON.stringify({hold:PF.hold,cost:PF.cost,bank:PF.bank,items:PF.items,tx:PF.tx,rivals:PF.rivals,aidT:PF.aidT||0,rankBest:PF.rankBest||99,pass:PF.pass,promo:PF.promo,dia:PF.dia||0,qd:PF.qd,tix:PF.tix||0,bonds:PF.bonds||[],px:Object.fromEntries(MK.map(a=>[a.id,a.p]))}));}catch(e){}}
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
 MK.forEach(a=>{a.tr=0;a.h=[];let p=a.p;const tmp=[p];for(let i=0;i<59;i++){p=p/Math.exp(a.v*.6*gauss());tmp.push(p);}a.h=tmp.reverse();a.h[a.h.length-1]=a.p;a.open=a.p;a.f=a.p;});
@@ -1437,7 +1440,7 @@ let news=['Pasar buka. Harga bergerak tiap 2 detik.'];
 const fmtP=p=>p<10?p.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}):p.toLocaleString('id-ID',{maximumFractionDigits:1});
 const portVal=()=>MK.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);
 function marketTick(){
-  MK.forEach(a=>{a.tr=a.tr*.92+(Math.random()-.5)*a.v*.25;a.f=(a.f||a.p)*Math.exp(a.t==='crypto'?.00025:.0004);const dr=Math.log(a.f/a.p)*.03;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*Math.exp(a.tr*.35+a.v*.5*gauss()+dr));a.h.push(a.p);if(a.h.length>80)a.h.shift();});
+  MK.forEach(a=>{a.tr=a.tr*.92+(Math.random()-.5)*a.v*.25;a.f=(a.f||a.p)*Math.exp(a.t==='crypto'?.00006:.0001);const dr=Math.log(a.f/a.p)*.04;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*Math.exp(a.tr*.35+a.v*.5*gauss()+dr));a.h.push(a.p);if(a.h.length>80)a.h.shift();});
   if(Date.now()-mDayT>=300000){mDay++;mDayT=Date.now();MK.forEach(a=>{a.open=a.p;});logLine('sys',null,`📅 Hari bursa ke-${mDay} dimulai. Persentase saham & crypto direset.`);}
   if(Math.random()<.045)fireEvent();
   if(Math.random()<.03){const a=MK[pick(MK.length)],up=Math.random()<.6,k=(.08+Math.random()*.2);a.p*=up?1+k:1-k;a.h[a.h.length-1]=a.p;a.tr+=up?a.v:-a.v;
@@ -1447,7 +1450,7 @@ function marketTick(){
   savePF();phoneSoft(true);
 }
 setInterval(marketTick,2000);
-setInterval(()=>{if(!started)return;let d=0;MK.forEach(a=>{if(a.t==='saham'&&PF.hold[a.id])d+=PF.hold[a.id]*a.p*.01;});if(d<1)return;d=Math.round(d*(PF.pass.investor?2:1)*(1+buffs().inv/100));S.bal+=d;SFX.coin();logLine('sys',null,`📈 Dividen saham: +${fmt(d)} koin.`,'win');render();},60000);
+setInterval(()=>{if(!started)return;let d=0;MK.forEach(a=>{if(a.t==='saham'&&PF.hold[a.id])d+=PF.hold[a.id]*Math.min(a.p,a.f||a.p)*.002;});if(d<1)return;d=Math.round(d*(PF.pass.investor?2:1)*(1+buffs().inv/100));S.bal+=d;SFX.coin();logLine('sys',null,`📈 Dividen saham: +${fmt(d)} koin.`,'win');render();},60000);
 const JOBS=[
   {id:'antar',n:'Antar pesanan',d:5,min:150,max:300,desc:'Antar makanan ke kamar tamu hotel.'},
   {id:'kurir',n:'Kurir chip',d:8,min:300,max:550,desc:'Bantu kasir antar chip ke meja.'},
@@ -1470,7 +1473,7 @@ function detailTick(){const a=phAsset;if(!a||!$('dPx'))return;const c=chg(a),q=P
   $('dVal').textContent=fmt(Math.round(val));const pl=$('dPL');pl.className=val-co>=0?'up':'dn';pl.textContent=q?`${val-co>=0?'+':''}${fmt(Math.round(val-co))} (${co?((val/co-1)*100).toFixed(1):'0'}%)`:'-';
   $('dAvail').textContent=fmt(Math.round(phSide==='buy'?S.bal:val));
   const unit=a.t==='saham'?'lembar':a.id;let est='-';
-  if(phSide==='buy'){let qq=Math.min(phAmt,S.bal)/a.p;if(a.t==='saham')qq=Math.floor(qq);if(qq>0)est=`≈ ${fmtQ(a,qq)} ${unit}${a.t==='saham'?' · '+fmt(Math.round(qq*a.p))+' koin':''}`;}
+  if(phSide==='buy'){let qq=ammBuy(a,Math.min(phAmt,S.bal)).q;if(a.t==='saham')qq=Math.floor(qq);if(qq>0)est=`≈ ${fmtQ(a,qq)} ${unit}${a.t==='saham'?' · '+fmt(Math.round(qq*a.p))+' koin':''}`;}
   else if(q>0&&(phAmt>0||phAll)){let qq=phAll||phAmt>=val?q:phAmt/a.p;if(a.t==='saham')qq=Math.min(q,Math.max(1,Math.round(qq)));est=`${fmtQ(a,qq)} ${unit} → ${fmt(Math.round(qq*a.p))} koin`;}
   $('dEst').textContent=est;
   const cv=document.querySelector('#phone canvas[data-s]');if(cv)spark(cv,a.h,a.c);}
@@ -1530,7 +1533,7 @@ function phoneRender(){
       <button class="small" id="qShop">💎 Tukar diamond di Toko</button><p class="news">Quest reset tiap hari. Diamond bisa ditukar jadi koin, tiket gacha, atau item eksklusif.</p>`;
   }else if(phView==='crypto'||phView==='saham'){
     body=MK.filter(a=>a.t===phView).map(a=>{const c=chg(a);return `<button class="asset" data-a="${a.id}"><div class="nm"><b>${a.id}</b><small>${a.n}${PF.hold[a.id]?' · punya '+(+PF.hold[a.id].toFixed(a.t==='crypto'?3:0)):''}</small></div><canvas width="128" height="56" data-s="${a.id}"></canvas><div class="px">${fmtP(a.p)}<br><span class="${c>=0?'up':'dn'}">${c>=0?'+':''}${c.toFixed(1)}%</span></div></button>`;}).join('')+
-      `<p class="news">${phView==='crypto'?'Crypto naik-turun cepat. Bisa untung besar, bisa rugi besar.':'Saham lebih tenang dan cenderung naik. Pemegang saham dapat dividen 1% tiap menit.'}</p><p class="news">📅 Hari bursa ke-${mDay} · persen dihitung sejak buka (1 hari = 5 menit, sisa ${Math.max(0,Math.ceil((300000-(Date.now()-mDayT))/60000))} menit). Beli/jual besar menggerakkan harga.${''}</p>`;
+      `<p class="news">${phView==='crypto'?'Crypto naik-turun cepat. Bisa untung besar, bisa rugi besar.':'Saham lebih tenang dan cenderung naik. Pemegang saham dapat dividen 0,2% tiap menit.'}</p><p class="news">📅 Hari bursa ke-${mDay} · persen dihitung sejak buka (1 hari = 5 menit, sisa ${Math.max(0,Math.ceil((300000-(Date.now()-mDayT))/60000))} menit). Beli/jual besar menggerakkan harga.${''}</p>`;
   }else if(phView==='detail'){
     const a=phAsset,q=PF.hold[a.id]||0,co=PF.cost[a.id]||0,avg=q>0?co/q:0,unit=a.t==='saham'?'lembar':a.id;
     body=`<div class="wallet"><small>${esc(a.n)} · ${a.t==='crypto'?'Crypto':'Saham'}</small><b style="color:${a.c}" id="dPx">${fmtP(a.p)}</b><div class="row"><span>Sejak buka</span><span id="dChg"></span></div><div class="row"><span>Tertinggi / terendah</span><span id="dHL"></span></div></div>
@@ -1626,7 +1629,7 @@ function phoneRender(){
     q.c[id]=1;PF.dia=(PF.dia||0)+g;SFX.big();logLine('sys',null,`Klaim quest: +💎 ${g}.`,'win');qBadge();savePF();phoneRender();});
   {const am=$('appMusic');if(am)am.onclick=()=>{closePhone();openMusic();};}
   {const qs=$('qShop');if(qs)qs.onclick=()=>{closePhone();openShop('dia');};}
-  ph.querySelectorAll('[data-bond]').forEach(b=>b.onclick=()=>{const bd=BONDS.find(x=>x.id===b.dataset.bond),v=+b.dataset.amt;if(S.bal<v){SFX.error();bkm('Koin tunai kurang.');return;}S.bal-=v;PF.bonds.push({id:bd.id,amt:v,next:Date.now()+bd.per*1000});SFX.chip();qAdd('trade');logLine('sys',null,`Beli ${bd.n} ${fmt(v)} koin. Kupon ${(bondRate(bd)*100).toFixed(1)}% tiap ${bd.per/60} menit.`);save();savePF();render();phoneRender();});
+  ph.querySelectorAll('[data-bond]').forEach(b=>b.onclick=()=>{const bd=BONDS.find(x=>x.id===b.dataset.bond),v=+b.dataset.amt;if(S.bal<v){SFX.error();bkm('Koin tunai kurang.');return;}if(PF.bonds.reduce((t,x)=>t+x.amt,0)+v>BOND_MAX){SFX.error();bkm('Batas obligasi 50 juta koin per orang.');return;}S.bal-=v;PF.bonds.push({id:bd.id,amt:v,next:Date.now()+bd.per*1000});SFX.chip();qAdd('trade');logLine('sys',null,`Beli ${bd.n} ${fmt(v)} koin. Kupon ${(bondRate(bd)*100).toFixed(1)}% tiap ${bd.per/60} menit.`);save();savePF();render();phoneRender();});
   ph.querySelectorAll('[data-bsell]').forEach(b=>b.onclick=()=>{const id=b.dataset.bsell,own=PF.bonds.filter(h=>h.id===id),tot=own.reduce((s,h)=>s+h.amt,0);if(!tot)return;PF.bonds=PF.bonds.filter(h=>h.id!==id);S.bal+=tot;SFX.coin();logLine('sys',null,`Obligasi dicairkan: +${fmt(tot)} koin (pokok kembali utuh).`);save();savePF();render();phoneRender();});
   ph.querySelectorAll('[data-dep]').forEach(b=>b.onclick=()=>{const v=+b.dataset.dep;if(S.bal<v){SFX.error();bkm('Koin tunai kurang.');return;}S.bal-=v;PF.bank.save+=v;SFX.chip();save();savePF();render();phoneRender();});
   ph.querySelectorAll('[data-wd]').forEach(b=>b.onclick=()=>{const B=PF.bank;const v=b.dataset.wd==='all'?Math.floor(B.save):Math.min(+b.dataset.wd,Math.floor(B.save));if(v<=0){SFX.error();bkm('Tabungan kosong.');return;}B.save-=v;S.bal+=v;SFX.coin();save();savePF();render();phoneRender();});
@@ -1649,14 +1652,14 @@ function phoneRender(){
     ph.querySelectorAll('[data-side]').forEach(b=>b.onclick=()=>{phSide=b.dataset.side;phAmt=0;phAll=false;SFX.pop();phoneRender();});
     ph.querySelectorAll('[data-pct]').forEach(b=>b.onclick=()=>{const pc=+b.dataset.pct,base=phSide==='buy'?S.bal:(PF.hold[a.id]||0)*a.p;phAmt=Math.floor(base*pc/100);phAll=pc===100;dAmt.value=phAmt||'';SFX.chip();detailTick();});
     $('dGo').onclick=()=>{const have=PF.hold[a.id]||0;
-      if(phSide==='buy'){let amt=Math.floor(Math.min(phAmt,S.bal));const imp=impactPct(a,amt),ap=a.p*(1+imp/2);let q=amt/ap;if(a.t==='saham'){q=Math.floor(amt/ap);amt=Math.ceil(q*ap);if(amt>S.bal){q--;amt=Math.ceil(q*ap);}}
+      if(phSide==='buy'){let amt=Math.floor(Math.min(phAmt,S.bal));let tr=ammBuy(a,amt),q=tr.q;if(a.t==='saham'){q=Math.floor(q);if(q>0&&q<tr.q){let lo=0,hi=amt;for(let k=0;k<40;k++){const m=(lo+hi)/2;if(ammBuy(a,m).q>=q)hi=m;else lo=m;}amt=Math.ceil(hi);tr=ammBuy(a,amt);}}const ap=q>0?amt/q:a.p;
         if(q<=0||amt<=0){SFX.error();msg(phAmt<=0?'Isi nominal dulu atau pilih persen.':a.t==='saham'?`Koin belum cukup untuk 1 lembar (${fmtP(a.p)}).`:'Koin tidak cukup.');return;}
-        S.bal=Math.round(S.bal-amt);PF.hold[a.id]=have+q;PF.cost[a.id]=(PF.cost[a.id]||0)+amt;addTx({id:a.id,side:'buy',q,px:ap,amt});const p0=a.p;applyImpact(a,imp);if(imp>.01)logLine('sys',null,`Order besar! Harga ${a.id} naik ${(imp*100).toFixed(1)}% karena pembelianmu.`);
+        S.bal=Math.round(S.bal-amt);PF.hold[a.id]=have+q;PF.cost[a.id]=(PF.cost[a.id]||0)+amt;addTx({id:a.id,side:'buy',q,px:ap,amt});const imp=setImpact(a,tr.p2);if(imp>.01)logLine('sys',null,`Order besar! Harga ${a.id} naik ${(imp*100).toFixed(1)}% karena pembelianmu.`);
         SFX.coin();logLine('sys',null,`Beli ${fmtQ(a,q)} ${a.id} seharga ${fmt(Math.round(amt))} koin.`);}
       else{if(have<=0){SFX.error();msg('Kamu belum punya aset ini.');return;}if(phAmt<=0&&!phAll){SFX.error();msg('Isi nominal dulu atau pilih persen.');return;}
         let q=phAll||phAmt>=have*a.p?have:phAmt/a.p;if(a.t==='saham')q=Math.min(have,Math.max(1,Math.round(q)));
-        const imp=impactPct(a,-q*a.p),got=Math.round(q*a.p*(1+imp/2)),frac=q/have,cb=(PF.cost[a.id]||0)*frac;PF.cost[a.id]=(PF.cost[a.id]||0)-cb;PF.hold[a.id]=have-q;if(PF.hold[a.id]<1e-6){PF.hold[a.id]=0;PF.cost[a.id]=0;}
-        S.bal+=got;addTx({id:a.id,side:'sell',q,px:got/q,amt:got,pl:got-cb});applyImpact(a,imp);if(imp<-.01)logLine('sys',null,`Jual besar! Harga ${a.id} turun ${(-imp*100).toFixed(1)}%.`);SFX.coin();logLine('sys',null,`Jual ${fmtQ(a,q)} ${a.id}, dapat ${fmt(got)} koin (${got-cb>=0?'untung':'rugi'} ${fmt(Math.abs(Math.round(got-cb)))}).`,got>=cb?'win':'lose');}
+        const st=ammSell(a,q),got=Math.round(st.got),frac=q/have,cb=(PF.cost[a.id]||0)*frac;PF.cost[a.id]=(PF.cost[a.id]||0)-cb;PF.hold[a.id]=have-q;if(PF.hold[a.id]<1e-6){PF.hold[a.id]=0;PF.cost[a.id]=0;}
+        S.bal+=got;addTx({id:a.id,side:'sell',q,px:got/q,amt:got,pl:got-cb});const imp=setImpact(a,st.p2);if(imp<-.01)logLine('sys',null,`Jual besar! Harga ${a.id} turun ${(-imp*100).toFixed(1)}%.`);SFX.coin();logLine('sys',null,`Jual ${fmtQ(a,q)} ${a.id}, dapat ${fmt(got)} koin (${got-cb>=0?'untung':'rugi'} ${fmt(Math.abs(Math.round(got-cb)))}).`,got>=cb?'win':'lose');}
       phAmt=0;phAll=false;save();savePF();render();phoneRender();};
     detailTick();}
 
@@ -1875,7 +1878,7 @@ const netWorth=()=>S.bal+S.bet+portVal()+PF.bank.save+ownVal()+(typeof bizVal===
 const loanLimit=()=>{const b=PF.bank;return Math.max(2000,Math.min(500000,Math.round((2000+(b.score-500)*80+Math.max(0,netWorth())*.5+(b.paid||0)*.3)/100)*100));};
 const scoreLabel=s=>s>=760?'Sangat baik':s>=680?'Baik':s>=600?'Cukup':s>=520?'Kurang':'Buruk';
 const LOAN_R=.001,SAVE_R=.0005;
-const BONDS=[{id:'ori',n:'ORI Lounge',r:.02,min:1000,per:120},{id:'sbr',n:'SBR Merdeka',r:.035,min:5000,per:180},{id:'sultan',n:'Obligasi Sultan',r:.06,min:50000,per:180}];
+const BONDS=[{id:'ori',n:'ORI Lounge',r:.006,min:1000,per:120},{id:'sbr',n:'SBR Merdeka',r:.01,min:5000,per:180},{id:'sultan',n:'Obligasi Sultan',r:.016,min:50000,per:180}];const BOND_MAX=50000000;
 if(!Array.isArray(PF.bonds))PF.bonds=[];
 const bondRate=b=>b.r*(PF.pass.investor?1.5:1)*(1+buffs().inv/100);
 setInterval(()=>{const now=Date.now();let paid=0;PF.bonds.forEach(h=>{const b=BONDS.find(x=>x.id===h.id);if(!b)return;let k=0;while(now>=h.next&&k<20){const c=Math.round(h.amt*bondRate(b));S.bal+=c;paid+=c;h.next+=b.per*1000;k++;}});
@@ -2512,7 +2515,7 @@ function loop(){
     if(p.life<=0){scene.remove(p.m);p.m.geometry.dispose();confetti.splice(i,1);}}
   if(fountainJet){fountainJet.scale.y=1+Math.sin(now/180)*.15;}
   if(podium)podium.rotation.y+=dt*.35;
-  cityTick();
+  cityTick(dt);
   if(garage&&isOutside())garage.children.forEach(o=>{if(o.userData.bill)o.lookAt(camera.position.x,o.position.y,camera.position.z);});
   bulbs.forEach(b=>{const on=(Math.floor(now/400)+b.i)%3!==0;b.m.color.setHex(on?b.col:0x2a2040);});
   updateCamera(dt);
@@ -2950,7 +2953,7 @@ function buildCity(){
   // city walkers
   const wp1=[[66,62],[156,62],[156,73],[66,73]],wp2=[[64,8],[170,8],[170,10],[64,10]],wp3=[[99,40],[99,14],[150,12],[99,14]];
   [[wp1,0],[wp1,2],[wp2,0],[wp2,1],[wp3,0]].forEach(([wp,s])=>{const p=wp[s];mkNpc(p[0],p[1],'patrol',{ai:{goal:null,cool:1+Math.random()*3,role:'patrol',wp,wi:s}});});
-  buildMall();
+  buildMall();cityLife();
   bizOffline();syncTenants();
 }
 function buildMall(){
@@ -2997,7 +3000,7 @@ function goPlace(id){if(id==='mall'){mallGo(0);return;}const p=PLACES[id];if(p)t
 let cityVisK='';
 function cityVis(){if(!you||!cityGrp)return;const k=mallFloorAt(you.pos.z),inRoom=Math.abs(you.pos.x)<ROOM&&Math.abs(you.pos.z)<ROOM;const key=k+'|'+inRoom;if(key===cityVisK)return;cityVisK=key;
   cityGrp.visible=k<0&&!inRoom;mallGrps.forEach((g,i)=>g.visible=i===k);}
-function cityTick(){cityVis();}
+function cityTick(dt){cityVis();if(cityWalkers.length)walkersTick(dt||.016);}
 /* ---------- tenants ---------- */
 function syncTenants(){const b=bizS();HOUSES.forEach(H=>{const s=b.h[H.id],want=s&&s.ten,e=tenantEnts[H.id];
   if(want&&(!e||e.name!==s.ten.n)){if(e)dropEnt(e);const [x,z]=H.yard;const n=mkEnt(s.ten.n,x,z,randPal(),{label:'Penyewa '+s.ten.n,color:'#7df3ff'});n.yaw=H.ry;ents.push(n);tenantEnts[H.id]=n;}
@@ -3005,7 +3008,7 @@ function syncTenants(){const b=bizS();HOUSES.forEach(H=>{const s=b.h[H.id],want=
 function dropEnt(e){scene.remove(e.av.root);e.tagEl.remove();e.bubEl.remove();const i=ents.indexOf(e);if(i>=0)ents.splice(i,1);}
 /* ---------- actions ---------- */
 function bizPay(p){if(S.bal<p){SFX.error();showResult(`Koin kurang. Butuh 🪙 <b>${fmt(p)}</b>`);return false;}S.bal-=p;return true;}
-function bizDone(msg,cls){if(msg)logLine('sys',null,msg,cls);SFX.coin();save();savePF();render();refreshBizSigns();syncTenants();ctxKey=null;phoneRender();}
+function bizDone(msg,cls){if(msg)logLine('sys',null,msg,cls);SFX.coin();save();savePF();render();refreshBizSigns();syncTenants();syncResidents();ctxKey=null;phoneRender();}
 function bizDo(a,id){const b=bizS();
   if(a==='go'){goPlace(id);return;}
   if(a==='floor'){mallGo(+id);return;}
@@ -3068,6 +3071,46 @@ function bizPhone(){const b=bizS(),d=bizDaily();const own=[];
     ${own.length?own.join(''):'<p class="news">Belum punya bisnis. Pergi ke Pasar Kios (20 kios), Perumahan Elite (12 rumah), atau Grand Plaza Mall (32 unit). Penghasilan dibayar tiap menit.</p>'}
     <p class="news">Kios untung 5%/hari, unit mall 4%/hari, rumah disewa ±3%/hari dan nilainya naik ±1%/hari. Buff 📊 Investasi menambah semua penghasilan bisnis.</p>`;}
 
+/* ---------- city life: shoppers, residents, scenery ---------- */
+const cityWalkers=[],cityResidents={};
+const _trunkG=new THREE.CylinderGeometry(.18,.24,1.6,6),_leafG=new THREE.IcosahedronGeometry(1.2,0),_trunkM=mat(0x6b4a2a),_leafMs=[mat(0x2f8e4a),mat(0x3a9e3a),mat(0x267a3e)];
+function tree(g,x,z,s){s=s||1;const t=new THREE.Mesh(_trunkG,_trunkM);t.position.set(x,.8*s,z);t.scale.setScalar(s);g.add(t);const l=new THREE.Mesh(_leafG,_leafMs[(Math.abs(x*7+z*3)|0)%3]);l.position.set(x,2.2*s,z);l.scale.setScalar(s);g.add(l);}
+function bagSprite(){const tex=canvasTex(64,64,(g,w,h)=>{g.font='44px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(['🛍️','🪙','💵','🧾'][pick(4)],w/2,h/2+2);});const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthWrite:false}));sp.scale.set(.8,.8,.8);sp.position.y=3.2;sp.visible=false;return sp;}
+function addWalker(g,stops,off){const p=miniPerson(g,0,0,0);const b=bagSprite();p.add(b);const s=stops[pick(stops.length)];p.position.set(s[0]+(Math.random()-.5)*4,0,s[1]+(off||0));
+  const w={p,b,stops,goal:null,wait:Math.random()*3,sp:2.2+Math.random()*1.2,ph:Math.random()*6,g};cityWalkers.push(w);return w;}
+function cityLife(){const G=cityGrp;
+  // shoppers buying at kiosks
+  const ks=stations.filter(s=>s.type==='kiosk').map(s=>[s.use.x,s.use.z]);for(let i=0;i<22;i++)addWalker(G,ks);
+  // people walking the housing street and visiting the agency
+  const hs=HOUSES.map(H=>H.front).concat([[54,34],[99,30],[70,8],[160,8]]);for(let i=0;i<7;i++)addWalker(G,hs);
+  // shoppers in each mall floor
+  mallGrps.forEach((mg,k)=>{const us=stations.filter(s=>s.type==='mallunit'&&MUNITS.find(u=>u.id===s.uid).k===k).map(s=>[s.use.x,s.use.z]);for(let i=0;i<9;i++)addWalker(mg,us);});
+  // residents of houses that are not yours yet
+  HOUSES.forEach(H=>{const [x,z]=H.yard;const g=new THREE.Group();G.add(g);miniPerson(g,x,z,H.ry);if(H.st%2)miniPerson(g,x+(H.ry?-1.2:1.2),z,H.ry+.6);cityResidents[H.id]=g;});
+  syncResidents();
+  // trees along the street and parks behind the houses
+  for(const x of [81,117,135,153,171])for(const z of [16.6,-.6])tree(G,x,z,1);
+  tree(G,64,16.6,1);tree(G,64,-.6,1);
+  for(let i=0;i<26;i++)tree(G,64+Math.random()*108,31+Math.random()*11,.8+Math.random()*.6);
+  for(let i=0;i<30;i++)tree(G,64+Math.random()*108,-37+Math.random()*21,.8+Math.random()*.7);
+  [[118,-26,7,4],[150,36,5,3]].forEach(([x,z,w,d])=>{const pd=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.1,24),new THREE.MeshBasicMaterial({color:0x3aa8d8}));pd.scale.set(w,1,d);pd.position.set(x,.06,z);G.add(pd);colliders.push({x0:x-w*.8,x1:x+w*.8,z0:z-d*.8,z1:z+d*.8,top:.3});});
+  [[100,-22],[106,-30],[136,38],[164,38]].forEach(([x,z])=>cBox(G,2.4,.45,.7,0x8a5a30,x,.45,z,true));
+  // trees between the kiosk plaza and the sea wall, and along the agency lane
+  for(let x=70;x<156;x+=12)tree(G,x,84.5,.9);for(let z=-36;z<44;z+=10)tree(G,50,z,1);
+  // distant skyline so the edges are not empty
+  const keys=['apt','glass','pent','studio','glass','apt'];let n=0;
+  const tower=(x,z)=>{const h=14+((n*37)%34),w=8+(n*13)%6,k=keys[n%keys.length];n++;tBox(G,w,h,w,k,0x1b1d26,x,h/2,z,false);if(n%3===0){const a=new THREE.Mesh(new THREE.BoxGeometry(.2,4,.2),new THREE.MeshBasicMaterial({color:0xff2f4a}));a.position.set(x,h+2,z);G.add(a);}};
+  for(let z=-70;z<=95;z+=13)tower(190+(n%3)*9,z);
+  for(let x=40;x<=200;x+=13)tower(x,-56-(n%3)*9);
+  for(let x=-40;x<=30;x+=14)tower(x,-62-(n%2)*8);
+}
+function syncResidents(){const b=bizS();HOUSES.forEach(H=>{const g=cityResidents[H.id];if(g)g.visible=!b.h[H.id];});}
+function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible)continue;const p=w.p;
+  if(w.wait>0){w.wait-=dt;w.b.visible=w.wait>.4&&w.goal===null&&w.shop;p.position.y=0;if(w.wait<=0){w.shop=false;w.b.visible=false;}continue;}
+  if(!w.goal){const s=w.stops[pick(w.stops.length)];w.goal=[s[0]+(Math.random()-.5)*1.6,s[1]+(Math.random()-.5)*.8];}
+  const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
+  if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
+  const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
 function boot(){buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
