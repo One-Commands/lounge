@@ -3106,16 +3106,16 @@ function ndTick(){
 }
 setInterval(ndTick,5000);
 function ndShow(rv,g,stake){
-  ndOffer={rv,g,stake};SFX.riser();
+  const o={rv,g,stake};ndOffer=o;SFX.riser();const cl=()=>{if(typeof NTF!=='undefined'&&NTF.m&&modal===NTF.m)closeGame();el.remove();if(ndOffer===o)ndOffer=null;};
   const el=document.createElement('div');el.className='mpinv';el.setAttribute('role','alertdialog');
-  const draw=()=>{el.innerHTML=`<b>${g.ic} ${esc(rv.n)} nantang kamu duel ${g.n}!</b><small>${g.rule}</small><small>Taruhan 🪙 <b>${fmt(ndOffer.stake)}</b> · ${titleOf(rv.w)}</small>
-    <div><button class="pbtn" data-n="ok">Terima</button><button class="pbtn ghost" data-n="up" ${ndOffer.stake*2>S.bal||ndOffer.stake*2>rv.w?'disabled':''}>Naikkan 2x</button><button class="pbtn ghost" data-n="no">Tolak</button></div>`;
-    el.querySelector('[data-n="no"]').onclick=()=>{ndClose();speak(you,'Lain kali aja ya.',false);logLine('sys',null,`Kamu menolak tantangan ${rv.n}.`);};
-    el.querySelector('[data-n="up"]').onclick=()=>{ndOffer.stake*=2;SFX.chip();draw();};
-    el.querySelector('[data-n="ok"]').onclick=()=>{const st=ndOffer.stake;ndClose();if(S.bal<st){SFX.error();logLine('sys',null,'Koinmu kurang untuk taruhan itu.');return;}
+  const draw=()=>{el.innerHTML=`<b>${g.ic} ${esc(rv.n)} nantang kamu duel ${g.n}!</b><small>${g.rule}</small><small>Taruhan 🪙 <b>${fmt(o.stake)}</b> · ${titleOf(rv.w)}</small>
+    <div><button class="pbtn" data-n="ok">Terima</button><button class="pbtn ghost" data-n="up" ${o.stake*2>S.bal||o.stake*2>rv.w?'disabled':''}>Naikkan 2x</button><button class="pbtn ghost" data-n="no">Tolak</button></div>`;
+    el.querySelector('[data-n="no"]').onclick=()=>{cl();speak(you,'Lain kali aja ya.',false);logLine('sys',null,`Kamu menolak tantangan ${rv.n}.`);};
+    el.querySelector('[data-n="up"]').onclick=()=>{o.stake*=2;SFX.chip();draw();};
+    el.querySelector('[data-n="ok"]').onclick=()=>{const st=o.stake;cl();if(S.bal<st){SFX.error();logLine('sys',null,'Koinmu kurang untuk taruhan itu.');return;}
       if(g.id==='reme'){duel={n:rv.n,stage:'pick'};inviteDuel(st);return;}ndPlay(rv,g,st);};};
-  draw();stage.appendChild(el);ndOffer.el=el;logLine('sys',null,`${g.ic} ${rv.n} menantang kamu duel ${g.n} (${fmt(stake)} koin).`);
-  setTimeout(()=>{if(ndOffer&&ndOffer.el===el){ndClose();logLine('sys',null,`Tantangan ${rv.n} kedaluwarsa.`);}},300000);
+  draw();stage.appendChild(el);o.el=el;logLine('sys',null,`${g.ic} ${rv.n} menantang kamu duel ${g.n} (${fmt(stake)} koin).`);
+  setTimeout(()=>{if(el.isConnected){el.remove();if(ndOffer===o)ndOffer=null;logLine('sys',null,`Tantangan ${rv.n} kedaluwarsa.`);}},300000);
 }
 function ndClose(){if(ndOffer&&ndOffer.el)ndOffer.el.remove();ndOffer=null;}
 async function ndPlay(rv,g,stake,my,op){my=my||{k:'coin',q:stake};op=op||{k:'coin',q:stake};let myCost=0;
@@ -3474,7 +3474,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v36.3';
+const GAME_VER='v36.4';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -3966,14 +3966,14 @@ function ndAssetChallenge(){const mine=MK.filter(a=>(PF.hold[a.id]||0)*unitV(a.i
   const rv=cands[pick(cands.length)],os=npcOpts(rv.n).slice(1),ok=os[pick(os.length)][0],mk=mine.length&&Math.random()<.75?mine[pick(mine.length)].id:'coin';
   const myV=(mk==='coin'?S.bal:(PF.hold[mk]||0)*unitV(mk))*(.1+Math.random()*.3),opV=npcAvail(rv.n,ok)*unitV(ok)*.6,v=Math.min(myV,opV);if(v<5e4)return false;
   const op={k:ok,q:stQ(ok,v/unitV(ok))},my={k:mk,q:stQ(mk,v*(.97+Math.random()*.06)/unitV(mk))};if(mk==='coin')my.q=Math.floor(my.q);if(!(op.q>0&&my.q>0))return false;
-  const g=NDG.filter(x=>x.id!=='reme')[pick(NDG.length-1)];ndOffer={rv,g,stake:0};SFX.riser();const el=document.createElement('div');el.className='mpinv';el.setAttribute('role','alertdialog');
+  const g=NDG.filter(x=>x.id!=='reme')[pick(NDG.length-1)];const o={rv,g,stake:0};ndOffer=o;SFX.riser();const cl=()=>{if(typeof NTF!=='undefined'&&NTF.m&&modal===NTF.m)closeGame();el.remove();if(ndOffer===o)ndOffer=null;};const el=document.createElement('div');el.className='mpinv';el.setAttribute('role','alertdialog');
   el.innerHTML=`<b>⚔️ ${esc(rv.n)} nantang duel aset (${g.n})!</b><small>Dia bertaruh <b>${stTxt(op)}</b> · kamu bertaruh <b>${stTxt(my)}</b></small><small>Nilai setara ±🪙 ${fmt(Math.round(v))}</small>
     <div><button class="pbtn" data-n="ok">Terima</button><button class="pbtn ghost" data-n="set">Atur sendiri</button><button class="pbtn ghost" data-n="no">Tolak</button></div>`;
-  el.querySelector('[data-n="no"]').onclick=()=>{ndClose();logLine('sys',null,`Kamu menolak tantangan aset ${rv.n}.`);};
-  el.querySelector('[data-n="set"]').onclick=()=>{ndClose();openAssetDuel(rv.n);};
-  el.querySelector('[data-n="ok"]').onclick=()=>{ndClose();if(!stHave(my)){SFX.error();logLine('sys',null,'Asetmu sudah tidak cukup untuk taruhan itu.');return;}ndPlay({n:rv.n,w:rv.w},g,0,my,op);};
-  stage.appendChild(el);ndOffer.el=el;logLine('sys',null,`⚔️ ${rv.n} menantang duel aset: ${stTxt(op)} lawan ${stTxt(my)}.`);
-  setTimeout(()=>{if(ndOffer&&ndOffer.el===el){ndClose();}},300000);return true;}
+  el.querySelector('[data-n="no"]').onclick=()=>{cl();logLine('sys',null,`Kamu menolak tantangan aset ${rv.n}.`);};
+  el.querySelector('[data-n="set"]').onclick=()=>{cl();openAssetDuel(rv.n);};
+  el.querySelector('[data-n="ok"]').onclick=()=>{cl();if(!stHave(my)){SFX.error();logLine('sys',null,'Asetmu sudah tidak cukup untuk taruhan itu.');return;}ndPlay({n:rv.n,w:rv.w},g,0,my,op);};
+  stage.appendChild(el);o.el=el;logLine('sys',null,`⚔️ ${rv.n} menantang duel aset: ${stTxt(op)} lawan ${stTxt(my)}.`);
+  setTimeout(()=>{if(el.isConnected){el.remove();if(ndOffer===o)ndOffer=null;}},300000);return true;}
 /* ---------- v18: casino at the heart of the city: ring roads, west & north districts, civic buildings, NPC megamalls, traffic ---------- */
 const CW={x0:-176,z0:-175};
 function inCityW(x,z){return (x<-47.2&&x>CW.x0+.5&&z>CW.z0+.5&&z<OUT_Z-.5)||(z<-47.2&&z>CW.z0+.5&&x>CW.x0+.5&&x<CITY.x1-.5);}
@@ -7312,6 +7312,14 @@ corpBox=(f=>function(a){let h=f.apply(this,arguments);if(!a||a.t!=='saham')retur
 /* v36.3: taps inside the phone re-render immediately (no 1.3s scroll deferral); station panel hidden while the phone is open */
 document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#phone')){window.__phF=1;setTimeout(()=>{window.__phF=0;},0);}},true);
 setTimeout(()=>{try{const ph=$('phone');const sync=()=>document.body.classList.toggle('phOpen',!ph.classList.contains('hidden'));new MutationObserver(sync).observe(ph,{attributes:true,attributeFilter:['class']});sync();}catch(e){}},500);
+
+/* v36.4: (1) one-time fix: stocks clamped by the v36 rescale showed fake losses -> rebase cost to current price. (2) NPC tycoons grow faster. */
+setTimeout(function fx364(){if(!started||!PF.eco36){setTimeout(fx364,3000);return;}if(PF.eco364)return;PF.eco364=1;let n=0;
+  MK.forEach(a=>{if(a.t!=='saham')return;const h=PF.hold[a.id]||0;if(h<=0)return;const c=PF.cost[a.id]||0;if(c>h*a.p*1.05){PF.cost[a.id]=h*a.p;n++;}});
+  if(n){logLine('sys',null,`📈 Harga beli ${n} sahammu disesuaikan ke harga sekarang, karena minus kemarin terjadi akibat penyesuaian ekonomi, bukan pasar.`,'win');}savePF();},4000);
+setInterval(()=>{try{if(!started)return;PF.tyW=PF.tyW||{};TYCOONS.forEach(n=>{const base=tyBase(n)+(PF.tyW[n]||0);PF.tyW[n]=(PF.tyW[n]||0)+Math.max(0,base)*.006;});
+  const H=npcH();for(const n in H){let v=0;for(const id in H[n]){const a=assetOf(id);if(a)v+=H[n][id]*a.p;}if(v>0)oppW({n},v*.002);}
+  (PF.rivals||[]).forEach(r=>{if(!TYCOONS.includes(r.n))r.w=Math.round(r.w*1.004);});}catch(e){}},60000);
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
