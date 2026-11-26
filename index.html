@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v56';
+const GAME_VER='v57';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9336,6 +9336,91 @@ function ml56Inject(){try{if(!MLW.m)return;const box=MLW.m.el.querySelector('.mo
   h+='</div>';if(h.length>30){const ref=box.querySelector('.gpatk')||box.querySelector('.prhero');if(MLW.tab==='pasukan')box.insertAdjacentHTML('afterbegin',h);else if(ref)ref.insertAdjacentHTML('afterend',h);else box.insertAdjacentHTML('afterbegin',h);}}catch(e){console.error('ml56i',e);}}
 {const o=openMilWin;openMilWin=function(){o.apply(this,arguments);try{const m=MLW.m;if(!m)return;const r0=m.refresh;m.refresh=function(){r0.apply(this,arguments);ml56Inject();};ml56Inject();}catch(e){}};}
 setInterval(()=>{try{if(MLW.m&&modal===MLW.m&&ml56().trq.length&&(MLW.tab==='pasukan'||MLW.tab==='kuat'))MLW.redraw();}catch(e){}},2000);
+
+/* ================= v57: politik konglomerat — NPC baik & jahat mempengaruhi kerajaan ================= */
+const PL57={GOOD:['Dermawan','Hati-hati','Oportunis'],
+  GACT:[['dana','💰','mendanai'],['amal','🍞','membagi sembako di'],['sekolah','🏫','membangun sekolah di'],['bongkar','📰','membongkar skandal'],['bantu','🤝','mengirim bantuan ke kerajaanmu']],
+  EACT:[['perang','⚔️','menyuap'],['sabot','🧨','menyabotase'],['untung','🪙','mencari untung dari perang'],['suap','🐍','menyuap pejabat di'],['makar','🗡️','merencanakan makar di kerajaanmu']]};
+function plGood(n){return PL57.GOOD.includes(traitOf(n)[0]);}
+function plS(){const s=PF.pl57=PF.pl57||{};s.t=s.t||{};s.h=s.h||[];s.last=s.last||0;const ids=KDS.map(k=>k[0]);
+  TYCOONS.forEach((n,i)=>{if(!s.t[n]){let h=3;for(const ch of n)h=(h*17+ch.charCodeAt(0))>>>0;s.t[n]={kd:ids[h%ids.length],pw:40+h%40,rel:0,ally:0,jail:0,calm:0};}});return s;}
+function plLog(ic,t,c){const s=plS();s.h.unshift({ic,t,c:c||'',at:Date.now()});s.h=s.h.slice(0,50);}
+function plWorth(n){try{return tyBase(n)+((PF.tyW&&PF.tyW[n])||0);}catch(e){return 0;}}
+function plFree(n){const t=plS().t[n];return t&&Date.now()>(t.jail||0);}
+function plCost(m){return Math.round(Math.max(m*1e9,netWorth()*m*.0012));}
+function plGuard(){/* chance a scheme against you is blocked by allied good tycoons and your guard captain */
+  const s=plS();let g=0;TYCOONS.forEach(n=>{if(s.t[n].ally&&plGood(n)&&plFree(n))g+=.18;});try{g+=offStat('pgw')*.003+offStat('mat')*.002;}catch(e){}return Math.min(.85,g);}
+function plAct(n){const s=plS(),t=s.t[n],w=WS(),ids=KDS.map(k=>k[0]),k=tkKing(),good=plGood(n);let msg='',c='';
+  const other=ids.filter(x=>x!==t.kd);const tg=other[pick(other.length)];const K=w.k[t.kd],T=w.k[tg];if(!K||!T)return;const cap=K.pow>5000?.2:1;
+  if(good){const r=Math.random();
+    if(r<.3){const v=20+Math.round(t.pw*.8);K.pow+=Math.round(v*cap);msg=`${n} mendanai ${kdN(t.kd)}: kekuatan +${v}.`;}
+    else if(r<.5){K.wil=Math.min(12,K.wil+(Math.random()<.35?1:0));msg=`${n} membagi sembako dan membangun sekolah di ${kdN(t.kd)}. Rakyat senang.`;}
+    else if(r<.72){const ev=TYCOONS.filter(x=>!plGood(x)&&plFree(x));if(ev.length){const e=ev[pick(ev.length)],te=s.t[e];te.pw=Math.max(5,te.pw-12);msg=`${n} membongkar skandal ${e} di koran. Pengaruh ${e} turun.`;c='up';}}
+    else if(k&&(t.ally||t.rel>=30)){const kg=(()=>{try{return kgS();}catch(e){return null;}})();if(kg){const a=Math.round(5000+t.pw*400);kg.r.food+=a;kg.r.gold+=Math.round(a/4);}try{const KK=tkK();KK.rak=Math.min(100,KK.rak+3);KK.stab=Math.min(100,KK.stab+2);}catch(e){}
+      msg=`${n} mengirim bantuan ke ${kdN(k.kd)}: pangan dan emas, rakyat dan kestabilan naik.`;c='up';}
+    else{K.pow+=Math.round(15*cap);msg=`${n} membiayai jalan dan pasar di ${kdN(t.kd)}.`;}
+    t.pw=Math.min(100,t.pw+2);}
+  else{const r=Math.random(),mineT=k&&!(Date.now()<(t.calm||0));
+    if(r<.16&&w.wars.length<2&&!atWar(t.kd)&&!atWar(tg)&&!(k&&(t.kd===k.kd||tg===k.kd))){warStart(t.kd,tg);const war=w.wars.find(x=>x.a===t.kd&&x.b===tg);if(war){war.ty=n;war.fund.a+=Math.round(plWorth(n)*.002);msg=`${n} menyuap ${kdN(t.kd)} untuk menyerang ${kdN(tg)}. Perang pecah demi bisnis senjatanya.`;c='dn';try{logLine('sys',null,`🐍 Konglomerat ${n} memicu perang: ${kdN(t.kd)} menyerang ${kdN(tg)}.`,'lose');}catch(e){}}}
+    else if(r<.4){const v=Math.min(Math.round(T.pow*.06),25+Math.round(t.pw*1.2));if(k&&tg===k.kd&&Math.random()<plGuard()){msg=`Sabotase ${n} di ${kdN(tg)} digagalkan sekutu dan pengawalmu.`;c='up';t.pw=Math.max(5,t.pw-6);}
+      else{T.pow=Math.max(300,T.pow-v);msg=`${n} menyabotase gudang senjata ${kdN(tg)}: kekuatan −${v}.`;c=k&&tg===k.kd?'dn':'';}}
+    else if(r<.55&&w.wars.length){const war=w.wars[pick(w.wars.length)],sd=Math.random()<.5?'a':'b';war.merc[sd]+=Math.round(5+t.pw/5);msg=`${n} menjual senjata ke ${kdN(war[sd])} di tengah perang dan untung besar.`;}
+    else if(r<.78){const inf=tkS().inf,ks=Object.keys(inf).filter(x=>inf[x]>5&&(!k||x!==k.kd));if(ks.length){const x=ks[pick(ks.length)];if(Math.random()<plGuard()*.7){msg=`${n} mencoba menyuap pejabat ${kdN(x)}, tapi ketahuan.`;c='up';}else{inf[x]=Math.max(0,inf[x]-(3+Math.round(t.pw/20)));msg=`${n} menyuap pejabat ${kdN(x)}. Pengaruhmu di sana turun.`;c='dn';}}else{K.pow+=Math.round(20*cap);msg=`${n} membeli pejabat ${kdN(t.kd)} agar menurut padanya.`;}}
+    else if(mineT){if(Math.random()<plGuard()){msg=`Makar ${n} di ${kdN(k.kd)} terbongkar sebelum terjadi! Sekutu dan pengawalmu menangkap kaki tangannya.`;c='up';t.pw=Math.max(5,t.pw-15);t.rel=Math.max(-100,t.rel-10);}
+      else{try{const KK=tkK();KK.stab=Math.max(30,KK.stab-(4+Math.round(t.pw/15)));KK.rak=Math.max(20,KK.rak-3);}catch(e){}msg=`${n} menghasut rakyat ${kdN(k.kd)}. Kestabilan turun, cari sekutu atau bongkar skandalnya.`;c='dn';try{banner(`🗡️ HASUTAN<small>${n} mengguncang ${kdN(k.kd)}</small>`,'',2200);}catch(e){}}}
+    else{K.pow+=Math.round(25*cap);msg=`${n} memperkuat kerajaan dukungannya, ${kdN(t.kd)}, dengan uang gelap.`;}
+    t.pw=Math.min(100,t.pw+2);}
+  if(msg)plLog(good?'😇':'😈',msg,c);}
+function plTick(){const s=plS();if(Date.now()-s.last<45000)return;s.last=Date.now();const free=TYCOONS.filter(plFree);if(!free.length)return;
+  plAct(free[pick(free.length)]);if(Math.random()<.35){const n=free[pick(free.length)];plAct(n);}
+  TYCOONS.forEach(n=>{const t=s.t[n];if(t.jail&&Date.now()>t.jail){t.jail=0;t.pw=Math.max(t.pw,20);plLog('🔓',`${n} keluar dari penjara dan kembali berpolitik.`);}if(t.ally&&!plGood(n)&&Math.random()<.02){t.ally=0;plLog('🐍',`${n} mengkhianati kerjasama denganmu.`,'dn');}});
+  savePF();PLW.redraw();}
+setInterval(()=>{try{if(started)plTick();}catch(e){console.error('pl57',e);}},5000);
+/* player actions */
+XA.xPlAlly=n=>{const t=plS().t[n];if(!t||t.ally)return;const c=plCost(30)*(1+t.pw/100);if(!xPay(Math.round(c)))return;t.ally=1;t.rel=Math.min(100,t.rel+40);
+  plLog('🤝',`Kamu menjalin kerjasama dengan ${n} (🪙 ${fmtBig(Math.round(c))}). ${plGood(n)?'Mereka akan membantu kerajaanmu dan menjaga dari makar.':'Hati-hati, konglomerat licik bisa berkhianat.'}`,'up');try{SFX.big();}catch(e){}savePF();PLW.redraw();};
+XA.xPlGift=n=>{const t=plS().t[n];if(!t)return;const c=plCost(5);if(!xPay(c))return;t.rel=Math.min(100,t.rel+12);plLog('🎁',`Hadiah untuk ${n} (🪙 ${fmtBig(c)}). Hubungan ${t.rel}.`);try{SFX.coin();}catch(e){}savePF();PLW.redraw();};
+XA.xPlExpose=n=>{const t=plS().t[n];if(!t||!plFree(n))return;const c=plCost(20);if(!xPay(c))return;let ch=.5;try{ch+=offStat('mat')*.004;}catch(e){}ch=Math.min(.9,ch+TYCOONS.filter(x=>plS().t[x].ally&&plGood(x)).length*.05);
+  if(Math.random()<ch){t.pw=Math.max(0,t.pw-35);t.rel=Math.max(-100,t.rel-20);if(t.pw<15){t.jail=Date.now()+20*60000;t.ally=0;plLog('⛓️',`Skandal ${n} terbongkar dan ia dipenjara 20 menit!`,'up');try{banner(`⛓️ ${n.toUpperCase()} DIPENJARA<small>Skandalnya terbongkar</small>`,'',2600);}catch(e){}}
+    else plLog('📰',`Skandal ${n} terbongkar (🪙 ${fmtBig(c)}). Pengaruhnya turun ke ${t.pw}.`,'up');try{SFX.big();}catch(e){}}
+  else{t.rel=Math.max(-100,t.rel-25);plLog('🙊',`Upaya membongkar ${n} gagal (🪙 ${fmtBig(c)} hangus). Ia marah padamu.`,'dn');try{SFX.error();}catch(e){}if(tkKing())plAct(n);}
+  savePF();PLW.redraw();};
+XA.xPlCalm=n=>{const t=plS().t[n];if(!t)return;const c=plCost(10);if(!xPay(c))return;t.calm=Date.now()+30*60000;t.rel=Math.min(100,t.rel+8);plLog('🤫',`${n} dibayar diam (🪙 ${fmtBig(c)}). Ia tidak mengganggu kerajaanmu 30 menit.`);try{SFX.coin();}catch(e){}savePF();PLW.redraw();};
+XA.xPlHire=n=>{const t=plS().t[n];if(!t||!plFree(n))return;const W=WS().wars.filter(v=>mlMySide(v));if(!W.length){showResult('Kamu belum ikut perang. Sabotase sewaan hanya untuk musuh di perang.');return;}const war=W[0],en=mlMySide(war)==='a'?'b':'a',E=WS().k[war[en]];
+  const c=plCost(15);if(!xPay(c))return;const v=Math.min(Math.round(E.pow*.12),60+t.pw*2);E.pow=Math.max(300,E.pow-v);t.rel=Math.min(100,t.rel+5);
+  if(Math.random()<.2){const k=tkKing();try{if(k){const KK=tkK();KK.stab=Math.max(25,KK.stab-5);}tkAddInf(war[en],-10);}catch(e){}plLog('🕵️',`Sabotase sewaan ${n} ke ${kdN(war[en])} berhasil (−${v}), tapi namamu ikut disebut. Reputasi turun.`,'dn');}
+  else plLog('🧨',`Kamu menyewa ${n} untuk menyabotase ${kdN(war[en])}: kekuatan −${v} (🪙 ${fmtBig(c)}).`,'up');try{SFX.boom();}catch(e){}savePF();PLW.redraw();try{MLW.redraw();}catch(e){}};
+/* window */
+const PLW={tab:'kong',redraw(){if(PLW.m&&modal===PLW.m&&!GA.busy)PLW.m.refresh();}};
+function openPlWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)PLW.tab=tab;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Politik'},busy:false,refresh(){draw();}};modal=m;PLW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns,cls)=>`<div class="mocard ${cls||''}"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const s=plS(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0,k=tkKing();let body='';
+    const row=n=>{const t=s.t[n],g=plGood(n),tr=traitOf(n),jail=!plFree(n),bar=`<div style="height:6px;background:#eadfc4;border-radius:6px;overflow:hidden;margin:4px 0;max-width:220px"><i style="display:block;height:100%;width:${t.pw}%;background:${g?'linear-gradient(90deg,#3ddc84,#2f9d5a)':'linear-gradient(90deg,#ff7a8a,#c0283c)'}"></i></div>`;
+      const btn=jail?'<small>⛓️ Dipenjara '+Math.ceil((t.jail-Date.now())/60000)+' mnt</small>':g?(t.ally?B('xPlGift',n,'🎁 Hadiah'):B('xPlAlly',n,'🤝 Kerjasama','mogo')+B('xPlGift',n,'🎁 Hadiah')):
+        B('xPlExpose',n,'📰 Bongkar','mogo')+B('xPlCalm',n,Date.now()<(t.calm||0)?'🤫 Diam':'🤫 Bayar diam','mog',Date.now()<(t.calm||0))+B('xPlHire',n,'🧨 Sewa sabotase');
+      return card(g?'😇':'😈',`${esc(n)} · ${g?'<span class="up">Baik</span>':'<span class="dn">Jahat</span>'}${t.ally?' · 🤝 sekutumu':''}`,`${tr[1]} ${tr[0]} · harta 🪙 ${fmtBig(plWorth(n))} · mendukung ${esc(kdN(t.kd))} · hubungan ${t.rel>0?'+':''}${t.rel}${bar}Pengaruh politik ${t.pw}/100`,btn,t.ally?'prme':'');};
+    if(PLW.tab==='kong'){const gs=TYCOONS.filter(plGood),es=TYCOONS.filter(n=>!plGood(n));
+      body=`<div class="prhero"><div class="prlv" style="font-size:24px">🎩</div><div><small>Konglomerat ikut bermain politik kerajaan</small><b>${gs.length} baik · ${es.length} jahat</b><small>Perlindungan dari makar ${Math.round(plGuard()*100)}% · ${k?'kamu raja '+esc(kdN(k.kd)):'kamu belum jadi raja'}</small></div></div>`+
+        `<div class="thd">😇 Konglomerat baik</div>`+gs.map(row).join('')+`<div class="thd">😈 Konglomerat jahat</div>`+es.map(row).join('')+
+        `<p class="muted">Yang baik mendanai kerajaan, membagi sembako, membongkar skandal, dan membantu kerajaanmu kalau jadi sekutu. Yang jahat menyuap kerajaan supaya perang, menyabotase, menyuap pejabat, dan menghasut rakyatmu. Semua ini hanya mengubah kekuatan dan kestabilan. Perang tetap murni peluang, duel tetap 50:50.</p>`;}
+    else if(PLW.tab==='peta'){const w=WS();body=KDS.map(([id,ic,nm])=>{const ps=TYCOONS.filter(n=>s.t[n].kd===id),K=w.k[id]||{pow:0,wil:0};
+        return card(ic,`${esc(nm)} · ⚔️ ${Math.round(K.pow)}`,`Wilayah ${K.wil}${atWar(id)?' · <span class="dn">sedang perang</span>':''}<br>${ps.length?ps.map(n=>`${plGood(n)?'😇':'😈'} ${esc(n)}`).join(' · '):'Tidak ada konglomerat di belakangnya'}`,'',k&&k.kd===id?'prme':'');}).join('');}
+    else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada kabar politik. Konglomerat bergerak kira-kira tiap 45 detik.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Politik Konglomerat"><div class="mohead"><b>🎩 Politik Konglomerat</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['kong','🎩','Konglomerat'],['peta','🗺️','Kerajaan'],['log','📰','Kabar']].map(([kk,ic,n])=>`<button class="${kk===PLW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){PLW.tab=t.dataset.tab;try{SFX.pop();}catch(e){}draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+xView('politik',{t:'Politik',s:'Politik',ic:'🎩',bg:'linear-gradient(135deg,#3a2a5a,#c9a24a)',r:()=>{setTimeout(()=>{if(phView==='politik'){phView='home';closePhone();openPlWin();}},20);return '<p class="muted">Membuka Politik Konglomerat...</p>';}});
+XA.xPlOpen=()=>{closePhone();setTimeout(()=>openPlWin(),30);};
+/* a station in the palace grounds: the royal court of nobles */
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{stationAdd('gkpol',GK.X+24,GK.Z-12,0,'Balai Bangsawan',{useDist:4,verb:'Politik',btn:'POLITIK',act:()=>openPlWin('kong'),ctx:()=>`<div class="ctx-head"><h3>🎩 Balai Bangsawan</h3><small>Konglomerat baik dan jahat bermain politik</small></div>`});}catch(e){}return g;})(gkBuild);
+/* war cards mention a tycoon who started the war */
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
