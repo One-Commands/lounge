@@ -3396,7 +3396,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v33';
+const GAME_VER='v33.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6651,7 +6651,7 @@ function twFloorSignDraw(g,w,h){const f=TWC.f,s=twF(f);g.fillStyle='#14110d';g.f
 function twBuild(){if(twBuilt)return;twBuilt=true;
   const M=c=>new THREE.MeshLambertMaterial({color:c}),light=new THREE.MeshBasicMaterial({color:0xfff6e6}),glass=new THREE.MeshBasicMaterial({color:0xbfe0f0,transparent:true,opacity:.18,depthWrite:false});
   const WALNUT=0x4a3324,CREAM=0xf1ebe0,GOLD=0xb89a5e,LEATHER=0x2b2522,STONE=0xb9b0a3;
-  const shell=(g,zc,h,floorC,wallC)=>{gplane(g,TW.hw*2,TW.hd*2,M(floorC),0,zc,.01);const ce=new THREE.Mesh(new THREE.PlaneGeometry(TW.hw*2,TW.hd*2),new THREE.MeshBasicMaterial({color:0xf7f3ec}));ce.rotation.x=Math.PI/2;ce.position.set(0,h,zc);g.add(ce);
+  const CEIL={6.6:[0xb9ae9e,0x8f826f],4.2:[0x8e8a84,0x6c6862],7.2:[0x3e322b,0x8a6d3e],6:[0x2f241c,0x7a6038]};const shell=(g,zc,h,floorC,wallC)=>{gplane(g,TW.hw*2,TW.hd*2,M(floorC),0,zc,.01);const cc=CEIL[h]||[0x9a9086,0x7a7066];const ce=new THREE.Mesh(new THREE.PlaneGeometry(TW.hw*2,TW.hd*2),new THREE.MeshBasicMaterial({color:cc[0]}));ce.rotation.x=Math.PI/2;ce.position.set(0,h,zc);g.add(ce);for(let x=-TW.hw+6;x<TW.hw;x+=6)cBox(g,.35,.3,TW.hd*2,cc[1],x,h-.15,zc,false,true);for(let z=-TW.hd+5;z<TW.hd;z+=5)cBox(g,TW.hw*2,.3,.35,cc[1],0,h-.15,zc+z,false,true);
     cBox(g,TW.hw*2,h,.5,wallC,0,h/2,zc+TW.hd+.25,true);cBox(g,.5,h,TW.hd*2,wallC,-TW.hw-.25,h/2,zc,true);cBox(g,.5,h,TW.hd*2,wallC,TW.hw+.25,h/2,zc,true);};
   const windowWall=(g,zc,h)=>{cBox(g,TW.hw*2,.4,.5,0x2a2a30,0,.2,zc-TW.hd-.25,true);colliders.push({x0:-TW.hw,x1:TW.hw,z0:zc-TW.hd-.5,z1:zc-TW.hd,top:h});
     const wv=new THREE.Mesh(new THREE.PlaneGeometry(TW.hw*2,h-.4),new THREE.MeshBasicMaterial({map:fTex('glass').em,color:0xa9cfe6}));wv.position.set(0,h/2+.2,zc-TW.hd-.3);g.add(wv);
