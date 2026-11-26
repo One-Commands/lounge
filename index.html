@@ -421,6 +421,10 @@ body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.
 .moside button,.phside button{transition:background .18s ease,color .18s ease,transform .12s ease}
 .moside button:active,.phside button:active{transform:scale(.97)}
 
+.phone.shopPh .bk,.modal>.panel:not(.moff) .bk{margin:10px 0!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px!important}
+.phone.shopPh .bk button{min-height:48px}
+.phone [data-unit]{display:none!important}
+
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3461,7 +3465,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v35.2';
+const GAME_VER='v36';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7069,6 +7073,54 @@ setInterval(()=>{try{const tl=document.querySelector('.hud-tl'),s=stage.getBound
 openMgrOffice=(f=>function(){const r=f.apply(this,arguments);try{const el=modal&&modal.el;if(el){setTimeout(()=>el.classList.add('noanim'),420);
   const mo=new MutationObserver(()=>{const m=el.querySelector('.momain');if(m&&el._sc!=null&&el._keep){m.scrollTop=el._sc;}});mo.observe(el,{childList:true});
   el.addEventListener('click',e=>{const m=el.querySelector('.momain');const t=e.target.closest('[data-tab],[data-mo]');if(!t||!m)return;el._keep=!!t.dataset.mo;el._sc=m.scrollTop;if(t.dataset.tab){el.classList.add('tabsw');clearTimeout(el._tt);el._tt=setTimeout(()=>el.classList.remove('tabsw'),260);}},true);}}catch(e){}return r;})(openMgrOffice);
+
+/* ================= v36-eco: realistic scale (properties in miliar, stocks normalised, lots), assets halved once, tax ================= */
+const cp36=p=>p<=1e9?p:Math.round(1e9*Math.pow(p/1e9,.6)/1e6)*1e6;
+/* runtime price constants */
+HOUSES.forEach(h=>h.p=cp36(h.p));MUNITS.forEach(u=>u.p=cp36(u.p));
+aptType=(f=>function(x){const t=f(x);return {n:t.n,p:cp36(t.p)};})(aptType);
+try{APT_TOTAL=0;for(let f=1;f<=APT.F;f++)for(let i=0;i<APT.R;i++)APT_TOTAL+=aptBase(f,i);}catch(e){}
+try{GX_TYPES.forEach(T=>{T[5]=T[5].map(cp36);});}catch(e){}
+for(const k in TYMEGA)TYMEGA[k]=Math.round(TYMEGA[k]*.5);
+tyBase=(f=>function(n){const v=f.apply(this,arguments);return TYMEGA[n]?v:Math.round(v*.5);})(tyBase);
+megaS=(f=>function(M){if(M&&!M._c36){M.p=cp36(M.p);M._c36=1;}const had=!!(PF.mega&&M&&PF.mega[M.id]);const s=f.apply(this,arguments);if(s&&!s.c36){if(had)s.v=cp36(s.v||M.p);s.c36=1;}return s;})(megaS);
+setTimeout(()=>{try{MEGA.forEach(M=>megaS(M));}catch(e){}},6000);
+/* stocks: no more endless splits, soft ceiling */
+stockSplit=function(){};
+function eco36Stocks(){const H=npcH();MK.forEach(a=>{if(a.t!=='saham')return;const f=(PF.split||{})[a.id]||1;if(f>1){a.sh/=f;a.p0*=f;a.b0=(a.b0||a.p0)*f;a.p*=f;
+    if(PF.hold[a.id])PF.hold[a.id]=Math.floor(PF.hold[a.id]/f);if(PF.blkQ&&PF.blkQ[a.id])PF.blkQ[a.id]=Math.floor(PF.blkQ[a.id]/f);for(const n in H)if(H[n]&&H[n][a.id])H[n][a.id]=Math.floor(H[n][a.id]/f);
+    const c=PF.corp&&PF.corp[a.id];if(c&&c.blk)c.blk.forEach(b=>b.q=Math.floor(b.q/f));delete PF.split[a.id];}
+  a.p=Math.max(a.p0*.6,Math.min(a.p,a.p0*2.5));a.f=a.p;a.open=a.p;a.h=[a.p];if(PF.ohlc)PF.ohlc[a.id]=[];});}
+setInterval(()=>{if(!started)return;MK.forEach(a=>{if(a.t==='saham'&&a.p>a.p0*5)a.p*=.997;});},5000);
+/* one-time migration: halve player and NPC assets, compress saved property values */
+function eco36Mig(){if(PF.eco36)return;PF.eco36=1;try{eco36Stocks();
+  S.bal=Math.floor(S.bal*.5);PF.bank.save=Math.floor((PF.bank.save||0)*.5);PF.bank.loan=Math.floor((PF.bank.loan||0)*.5);
+  for(const id in PF.hold){PF.hold[id]=Math.floor(PF.hold[id]*.5);if(PF.cost&&PF.cost[id])PF.cost[id]*=.5;}
+  if(PF.fx&&PF.fx.h)for(const c in PF.fx.h)PF.fx.h[c]*=.5;
+  const b=bizS();for(const id in b.h){if(b.h[id].v)b.h[id].v=Math.round(cp36(b.h[id].v)*.5);}const ap=aptS();for(const k in ap.r){ap.r[k].v=Math.round(cp36(ap.r[k].v)*.5);}
+  for(const id in (PF.mega||{})){const s=PF.mega[id];s.v=Math.round((s.c36?s.v:cp36(s.v))*.5);s.c36=1;}
+  try{gxS().list.forEach(d=>d.p=cp36(d.p));}catch(e){}
+  (PF.rivals||[]).forEach(r=>r.w=Math.round(r.w*.5));if(PF.tyW)for(const k in PF.tyW)PF.tyW[k]=Math.round(PF.tyW[k]*.5);
+  save();savePF();setTimeout(()=>{try{banner('⚖️ EKONOMI BARU<small>Harga properti jadi miliaran, saham dinormalkan (lot), semua aset dipotong 50%</small>','',4200);logLine('sys',null,'⚖️ Penyesuaian ekonomi: semua aset pemain dan NPC dipotong 50%, harga properti sekarang di kisaran miliar, jumlah saham dinormalkan dan ditampilkan dalam lot (1 lot = 100 lembar).');}catch(e){}},4000);}catch(e){console.error('eco36',e);}}
+setTimeout(function em(){if(!started){setTimeout(em,1500);return;}eco36Mig();},2500);
+/* lots: show "lembar" counts as lot (1 lot = 100 lembar); trading uses the coin amount */
+phUnit='koin';
+const LOT_RX=/(\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)? lembar/g;
+function lotFix(root){if(!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){if(n.nodeValue.indexOf('lembar')<0)continue;n.nodeValue=n.nodeValue.replace(LOT_RX,(m,num)=>{const v=+num.replace(/\./g,'');const l=v/100;return (l>=1?Math.floor(l).toLocaleString('id-ID'):l.toLocaleString('id-ID',{maximumFractionDigits:2}))+' lot';}).replace(/Per lembar/g,'Per lot');}}
+new MutationObserver(ms=>{for(const m of ms){if(m.target&&m.target.nodeType===1&&(m.target.closest('#phone')||m.target.closest('.modal')||m.target.closest('.mpinv')||m.target.closest('#chat')))lotFix(m.target);}}).observe(document.body,{childList:true,subtree:true});
+phoneRender=(f=>function(){phUnit='koin';return f.apply(this,arguments);})(phoneRender);
+/* ---------- tax every 3 minutes, 5–30% of income by wealth class ---------- */
+const TAXC=[[0,'Kelas Rakyat',.05],[1e9,'Kelas Menengah',.1],[1e10,'Kelas Atas',.15],[1e11,'Kelas Elit',.2],[1e12,'Kelas Konglomerat',.25],[1e13,'Kelas Sultan',.3]];
+function taxS(){PF.tax=PF.tax||{acc:0,t:Date.now(),paid:0,h:[]};return PF.tax;}
+function taxClass(){const nw=netWorth();let c=TAXC[0];TAXC.forEach(x=>{if(nw>=x[0])c=x;});return c;}
+bizTick=(f=>function(){const b=S.bal;const r=f.apply(this,arguments);const d=S.bal-b;if(d>0&&!S.usdS)taxS().acc+=d;return r;})(bizTick);
+setInterval(()=>{if(!started)return;const T=taxS();if(Date.now()-T.t<180000)return;T.t=Date.now();if(T.acc<=0)return;const c=taxClass(),tax=Math.floor(T.acc*c[2]);
+  S.bal=Math.max(0,S.bal-tax);T.paid+=tax;T.h.unshift({t:Date.now(),inc:T.acc,tax,c:c[1],r:c[2]});T.h=T.h.slice(0,10);T.acc=0;
+  logLine('sys',null,`🧾 Pajak penghasilan 3 menit (${c[1]}, ${Math.round(c[2]*100)}%): 🪙 ${fmtBig(tax)}.`,'lose');save();savePF();},10000);
+xView('pajak',{t:'Pajak',s:'Pajak',ic:'🧾',bg:'linear-gradient(135deg,#e8a62a,#8a5a12)',live:true,r:()=>{const T=taxS(),c=taxClass(),left=Math.max(0,Math.ceil((180000-(Date.now()-T.t))/1000));
+  return `<div class="wallet"><small>Kelas pajakmu</small><b>${c[1]} · ${Math.round(c[2]*100)}%</b><div class="row"><span>Penghasilan bisnis terkumpul</span><span>🪙 ${fmtBig(Math.round(T.acc))}</span></div><div class="row"><span>Perkiraan pajak</span><span>🪙 ${fmtBig(Math.floor(T.acc*c[2]))}</span></div><div class="row"><span>Ditagih dalam</span><span>${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}</span></div><div class="row"><span>Total pajak dibayar</span><span>🪙 ${fmtBig(T.paid)}</span></div></div>
+  <div class="thd">Tarif per kelas (dari kekayaan bersih)</div>${TAXC.map((x,i)=>`<div class="chap"><span style="font-size:20px">${['🧑‍🌾','🧑‍💼','🎩','💼','🏦','👑'][i]}</span><div><b>${x[1]} · ${Math.round(x[2]*100)}%</b><small>Kekayaan mulai 🪙 ${fmtBig(x[0])}</small></div></div>`).join('')}
+  <div class="thd">Riwayat tagihan</div>${T.h.map(h=>`<div class="chap"><span style="font-size:20px">🧾</span><div><b>🪙 ${fmtBig(h.tax)}</b><small>${h.c} ${Math.round(h.r*100)}% dari penghasilan 🪙 ${fmtBig(Math.round(h.inc))}</small></div></div>`).join('')||'<p class="muted">Belum ada tagihan.</p>'}<p class="muted">Pajak dihitung dari penghasilan bisnis (sewa, toko, properti) tiap 3 menit, bukan dari total kekayaan.</p>`;}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
