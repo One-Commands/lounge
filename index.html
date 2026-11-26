@@ -446,6 +446,7 @@ body.phOpen #ctx{display:none!important}
 .rkpod{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:6px 0 12px}.rkpod>div{flex:1;max-width:180px;text-align:center;border-radius:14px 14px 4px 4px;padding:8px 6px;color:#3a2a1a}
 .rkpod b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkpod small{display:block;font-size:11px;color:#6a5236}.rkpod span{font-size:22px}.rkpod i{display:block;font-style:normal;font-weight:900;font-size:22px}
 .rkpod .p1{background:linear-gradient(#ffe08a,#f2b630);min-height:120px}.rkpod .p2{background:linear-gradient(#eef1f6,#c3cad6);min-height:95px}.rkpod .p3{background:linear-gradient(#f3d2b0,#d79b67);min-height:80px}
+.prhero{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#fff6d8,#ffe7a8);border:2px solid #e2c070;border-radius:14px;padding:12px}.prhero>div:last-child{flex:1;min-width:0}.prhero b{display:block;font-size:20px;color:#5a3a10}.prhero small{color:#7a5a2a}.prlv{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#e0a020 70%,#a86a10);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;text-shadow:0 2px 0 #8a5a10;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2)}.prbar{height:10px;background:#f0e2c0;border-radius:6px;overflow:hidden;margin:6px 0 4px}.prbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcc4a,#ff9a2a)}.mocard.prme{border-color:#e0a020;background:#fff8e0}.mocard.prdone{background:#f4fbef;border-color:#b8dca0}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3489,7 +3490,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v45';
+const GAME_VER='v46';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8089,6 +8090,88 @@ function openSocWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k
   el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
 XA.xSocOpen=()=>{closePhone();setTimeout(()=>openSocWin(),30);};
 xView('sosial',{t:'Sosial',s:'Sosial',ic:'🤝',bg:'linear-gradient(135deg,#ff9fd8,#7f5fff)',r:()=>{setTimeout(()=>{if(phView==='sosial'){phView='home';closePhone();openSocWin();}},20);return '<p class="muted">Membuka jendela Sosial...</p>';}});
+
+/* ================= v46: Prestise (level kehormatan, pencapaian, perk, aura) ================= */
+const PR46={T:['Warga','Terpandang','Tokoh Kota','Bangsawan Muda','Elite','Magnat','Taipan','Raja Bisnis','Legenda','Abadi'],
+  PERK:[['biz','💼','Naluri Bisnis','Pendapatan bisnis +1% per poin',10],['soc','🤝','Karisma','Pertemanan naik +10% lebih cepat per poin',5],
+    ['home','🛋️','Selera Tinggi','Kenyamanan rumah +5% per poin',5],['hemat','🧾','Negosiator','Biaya hadiah, makan malam, iuran klub −4% per poin',5]],
+  AURA:[['none','⚪','Tanpa aura',1,0],['bronze','🥉','Cincin Perunggu',5,0xcd7f32],['silver','🥈','Cincin Perak',10,0xdfe6ef],['gold','🥇','Cincin Emas + Bintang',20,0xffd25f],['rainbow','🌈','Pelangi Berdenyut',30,0xff7ad9],['crown','👑','Mahkota Cahaya',40,0xfff2a8]]};
+function prS(){const p=PF.pr46=PF.pr46||{};p.xp=p.xp||0;p.got=p.got||{};p.perk=p.perk||{};p.aura=p.aura||'none';p.h=p.h||[];return p;}
+function prLv(xp){return Math.min(50,Math.floor(Math.sqrt((xp==null?prS().xp:xp)/40))+1);}
+function prNeed(lv){return lv>=50?0:lv*lv*40;}
+function prTitle(lv){return PR46.T[Math.min(9,Math.floor(((lv||prLv())-1)/5))];}
+function prPts(){const p=prS();return prLv()-1-Object.values(p.perk).reduce((a,b)=>a+b,0);}
+function prPk(k){return prS().perk[k]||0;}
+function prLog(ic,t){const p=prS();p.h.unshift({ic,t,at:Date.now()});p.h=p.h.slice(0,30);}
+/* milestones: [id, icon, name, xp, check] - each check wrapped in try/catch */
+const PRM=(()=>{const L=[];const nw=[[1e9,'Miliarder pertama',40],[1e10,'Kekayaan 10 miliar',60],[1e11,'Kekayaan 100 miliar',80],[1e12,'Triliuner',120],[1e13,'Kekayaan 10 triliun',160],[1e14,'Kekayaan 100 triliun',220],[1e15,'Kuadriliuner',300]];
+  nw.forEach(([v,n,x],i)=>L.push(['nw'+i,'💰',n,x,()=>netWorth()>=v]));
+  [[10,'Masuk 10 besar',60],[3,'Masuk 3 besar',120],[1,'Orang terkaya negeri',250]].forEach(([r,n,x])=>L.push(['rk'+r,'🏆',n,x,()=>{const R=ranking(),i=R.findIndex(a=>a.me);return i>=0&&i<r;}]));
+  [[10,40],[50,70],[200,120],[1000,250]].forEach(([w,x])=>L.push(['w'+w,'🎲',`Menang ${w} ronde`,x,()=>(S.wins||0)>=w]));
+  L.push(['sp','💍','Menikah',50,()=>!!dyS().sp],['kid','👶','Punya anak',50,()=>dyS().kids.length>0],['g2','🏰','Generasi kedua',120,()=>dyS().gen>=2],['g3','🏯','Generasi ketiga',200,()=>dyS().gen>=3]);
+  L.push(['hm20','🛋️','Rumah nyaman (20)',40,()=>homeComfort()>=20],['hm60','🏡','Rumah mewah (60)',80,()=>homeComfort()>=60],['hmall','🏛️','Semua perabot rumah',150,()=>FURN.every(f=>homeS().f[f[0]])]);
+  L.push(['club','🥂','Anggota klub elit',50,()=>!!socS().club],['ketua','👑','Ketua klub',120,()=>!!(socS().club&&socS().club.ketua)],
+    ['fr1','💛','Punya sahabat',60,()=>Object.values(socS().fr).some(f=>f.pt>=80)],['fr5','💞','5 sahabat',150,()=>Object.values(socS().fr).filter(f=>f.pt>=80).length>=5]);
+  L.push(['bank','🏦','Pemilik bank',100,()=>!!(PF.bk41&&PF.bk41.on)],['rep1','🕊️','Dermawan (reputasi 100)',60,()=>repS().pts>=100],['rep5','🌟','Filantropis (reputasi 500)',150,()=>repS().pts>=500]);
+  return L;})();
+function prCheck(quiet){const p=prS();let gain=0;const lv0=prLv();for(const m of PRM){if(p.got[m[0]])continue;let ok=false;try{ok=!!m[4]();}catch(e){}
+  if(ok){p.got[m[0]]=Date.now();p.xp+=m[3];gain+=m[3];prLog(m[1],`Pencapaian: ${m[2]} (+${m[3]} XP)`);if(!quiet)logLine('sys',null,`${m[1]} Pencapaian prestise: ${m[2]} (+${m[3]} XP).`,'win');}}
+  const lv=prLv();if(lv>lv0){prLog('⭐',`Naik ke Prestise ${lv} · ${prTitle(lv)}`);if(!quiet){try{banner(`⭐ PRESTISE ${lv}<small>${prTitle(lv)} · +1 poin perk</small>`,'',3200);SFX.big();firework(you.pos.x,4,you.pos.z);}catch(e){}}}
+  if(gain){savePF();PRW.redraw();}return gain;}
+/* perks */
+dyBonus=(f=>function(){return f.apply(this,arguments)+prPk('biz')*.01;})(dyBonus);
+frGain=(f=>function(n,v){return f.call(this,n,v>0?v*(1+prPk('soc')*.1):v);})(frGain);
+homeComfort=(f=>function(){return Math.round(f.apply(this,arguments)*(1+prPk('home')*.05));})(homeComfort);
+socCost=(f=>function(m){return Math.round(f.call(this,m)*(1-prPk('hemat')*.04));})(socCost);
+XA.xPrPerk=k=>{const P=PR46.PERK.find(x=>x[0]===k);if(!P)return;if(prPts()<=0){showResult('Poin perk habis. Naik level prestise untuk dapat poin baru.');return;}if(prPk(k)>=P[4]){showResult('Perk ini sudah maksimal');return;}
+  prS().perk[k]=prPk(k)+1;prLog(P[1],`${P[2]} naik ke ${prPk(k)}`);SFX.chip();savePF();PRW.redraw();};
+XA.xPrReset=()=>{const p=prS();if(!Object.keys(p.perk).length)return;const c=Math.round(Math.max(1e7,netWorth()*.0005));if(S.bal<c){showResult('Koin kurang');return;}S.bal-=c;p.perk={};prLog('🔄',`Atur ulang perk (🪙 ${fmtBig(c)})`);SFX.pop();savePF();PRW.redraw();};
+/* daily public speech: small steady XP */
+XA.xPrDaily=()=>{const p=prS();if(p.day===xToday()){showResult('Pidato hari ini sudah. Kembali besok.');return;}p.day=xToday();const x=10+prLv();p.xp+=x;prLog('🎤',`Pidato publik di Plaza (+${x} XP)`);logLine('sys',null,`🎤 Pidatomu di Plaza Permata disambut tepuk tangan (+${x} XP prestise).`,'win');SFX.big();prCheck();savePF();PRW.redraw();};
+/* aura around the avatar */
+const PRA={g:null,id:null,t:0};
+function prAuraBuild(){if(PRA.g){scene.remove(PRA.g);PRA.g=null;}const id=prS().aura,A=PR46.AURA.find(a=>a[0]===id);PRA.id=id;if(!A||id==='none'||prLv()<A[3])return;
+  const g=new THREE.Group();const mk=c=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.75,depthWrite:false});
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,.09,8,40),mk(A[4]));ring.rotation.x=Math.PI/2;ring.position.y=.08;g.add(ring);g.userData.ring=ring;
+  if(id==='gold'||id==='rainbow'||id==='crown'){const st=new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),mk(A[4]));st.position.y=3.3;g.add(st);g.userData.star=st;}
+  if(id==='crown'){const h=new THREE.Mesh(new THREE.TorusGeometry(.45,.05,6,24),mk(0xffffff));h.rotation.x=Math.PI/2;h.position.y=3.15;g.add(h);g.userData.halo=h;}
+  scene.add(g);PRA.g=g;}
+function prAuraTick(dt){if(!you||!you.pos)return;if(PRA.id!==prS().aura)prAuraBuild();const g=PRA.g;if(!g)return;PRA.t+=dt;g.position.set(you.pos.x,you.pos.y||0,you.pos.z);
+  const u=g.userData;u.ring.rotation.z+=dt*1.2;if(u.star){u.star.rotation.y+=dt*2;u.star.position.y=3.3+Math.sin(PRA.t*2)*.12;}
+  if(prS().aura==='rainbow'){u.ring.material.color.setHSL((PRA.t*.15)%1,.9,.65);u.star.material.color.copy(u.ring.material.color);u.ring.scale.setScalar(1+Math.sin(PRA.t*3)*.08);}}
+xTick=(f=>function(dt){const r=f.apply(this,arguments);try{prAuraTick(Math.min(dt||.016,.1));}catch(e){}return r;})(xTick);
+XA.xPrAura=id=>{const A=PR46.AURA.find(a=>a[0]===id);if(!A)return;if(prLv()<A[3]){showResult(`Aura ini terbuka di Prestise ${A[3]}`);return;}prS().aura=id;PRA.id=null;SFX.pop();savePF();PRW.redraw();};
+setInterval(()=>{try{if(started)prCheck();}catch(e){}},10000);
+/* Prestise window */
+const PRW={tab:'level',redraw(){if(PRW.m&&modal===PRW.m)PRW.m.refresh();}};
+function openPrWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)PRW.tab=tab;try{prCheck(true);}catch(e){}
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Prestise'},busy:false,refresh(){draw();}};modal=m;PRW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns,cls)=>`<div class="mocard ${cls||''}"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const p=prS(),lv=prLv(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
+    if(PRW.tab==='level'){const a=prNeed(lv-1),b=prNeed(lv),pc=lv>=50?100:Math.min(100,(p.xp-a)/(b-a)*100),done=Object.keys(p.got).length;
+      body=`<div class="prhero"><div class="prlv">${lv}</div><div><small>Prestise</small><b>${prTitle(lv)}</b><div class="prbar"><i style="width:${pc.toFixed(1)}%"></i></div><small>${lv>=50?'Level maksimal':`${Math.round(p.xp-a)} / ${b-a} XP ke level ${lv+1}`}</small></div></div>`+
+        card('🏅','Pencapaian',`${done} dari ${PRM.length} selesai. Tiap pencapaian memberi XP sekali.`,B('xPrTab','ach','Lihat','mogo'))+
+        card('✨','Poin perk',`${prPts()} poin belum dipakai. Dapat 1 poin tiap naik level.`,B('xPrTab','perk','Atur','mogo'))+
+        card('🎤','Pidato publik harian',p.day===xToday()?'Sudah pidato hari ini. Kembali besok.':`Sekali sehari, +${10+lv} XP.`,B('xPrDaily','','Pidato','mogo',p.day===xToday()))+
+        `<p class="muted">Prestise tidak mengatur ulang hartamu. Perk hanya memengaruhi bisnis, rumah dan pertemanan. Duel tetap murni 50:50.</p>`+
+        `<div class="thd">Gelar prestise</div>`+PR46.T.map((t,i)=>card(i*5+1<=lv?'⭐':'🔒',t,`Prestise ${i*5+1}–${i*5+5}`,'',i===Math.floor((lv-1)/5)?'prme':'')).join('');}
+    else if(PRW.tab==='ach'){body=PRM.map(m=>{const g=p.got[m[0]];return card(g?m[1]:'🔒',m[2],g?`Selesai · +${m[3]} XP`:`+${m[3]} XP`,'',g?'prdone':'');}).join('');}
+    else if(PRW.tab==='perk'){body=`<p class="muted">Poin tersisa: <b>${prPts()}</b>. Atur ulang kapan saja dengan biaya kecil.</p>`+PR46.PERK.map(P=>{const v=prPk(P[0]);return card(P[1],`${P[2]} · ${v}/${P[4]}`,P[3],B('xPrPerk',P[0],'+1','mogo',prPts()<=0||v>=P[4]));}).join('')+
+      card('🔄','Atur ulang perk',`Semua poin kembali. Biaya 🪙 ${fmtBig(Math.round(Math.max(1e7,netWorth()*.0005)))}`,B('xPrReset','','Atur ulang','mog',!Object.keys(p.perk).length));}
+    else if(PRW.tab==='aura'){body=`<p class="muted">Aura tampil di sekitar avatarmu di kota.</p>`+PR46.AURA.map(A=>{const on=p.aura===A[0],lock=lv<A[3];return card(lock?'🔒':A[1],A[2],lock?`Terbuka di Prestise ${A[3]}`:on?'Sedang dipakai':'Siap dipakai',lock||on?'':B('xPrAura',A[0],'Pakai','mogo'),on?'prme':'');}).join('');}
+    else body=p.h.length?p.h.map(x=>card(x.ic,'',x.t)).join(''):'<p class="muted">Belum ada catatan.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Prestise"><div class="mohead"><b>⭐ Prestise ${lv}</b><span class="mobal">${prTitle(lv)}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['level','⭐','Level'],['ach','🏅','Pencapaian'],['perk','✨','Perk'],['aura','💫','Aura'],['log','📜','Catatan']].map(([k,ic,n])=>`<button class="${k===PRW.tab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){PRW.tab=t.dataset.tab;SFX.pop();draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+XA.xPrTab=t=>{PRW.tab=t;PRW.redraw();};
+XA.xPrOpen=()=>{closePhone();setTimeout(()=>openPrWin(),30);};
+xView('prestise',{t:'Prestise',s:'Prestise',ic:'⭐',bg:'linear-gradient(135deg,#ffe08a,#c9862a)',r:()=>{setTimeout(()=>{if(phView==='prestise'){phView='home';closePhone();openPrWin();}},20);return '<p class="muted">Membuka jendela Prestise...</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
