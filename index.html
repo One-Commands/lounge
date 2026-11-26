@@ -3481,7 +3481,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v42';
+const GAME_VER='v42.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7773,7 +7773,7 @@ setInterval(()=>{try{if(phView==='pendapatan'&&!$('phone').classList.contains('h
 setInterval(()=>{try{if(started)savePF();}catch(e){}},30000);
 
 /* ================= v42: Akun (username + password) via Firebase; full-state save code ================= */
-const FB_CFG=null; /* paste firebaseConfig here */
+const FB_CFG={apiKey:"AIzaSyAyw3i2mYE5OPv0RDlR3WZENA0aYhR3myE",authDomain:"one-command-a26bc.firebaseapp.com",projectId:"one-command-a26bc",storageBucket:"one-command-a26bc.firebasestorage.app",messagingSenderId:"77718727248",appId:"1:77718727248:web:9df284b82a9639e7367f55"};
 const ACC_KEYS=['lounge-reme-3d','lounge-vegas-hp','lounge-vegas-set'];
 const ACC={st:'off',user:null,last:0,busy:0};
 function accBlob(){try{save();savePF();}catch(e){}const o={};ACC_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)o[k]=v;});return o;}
