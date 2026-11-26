@@ -3489,7 +3489,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v43.1';
+const GAME_VER='v44';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7835,7 +7835,7 @@ const DY={first:{L:['Arya','Bima','Dimas','Raka','Satria','Gilang','Bagas','Reno
   tr:{biz:['💼','Pebisnis','Pendapatan bisnis +10%'],nob:['👑','Bangsawan','Bisnis +5%, reputasi naik tiap jam'],kind:['💗','Dermawan','Harmoni turun 2x lebih lambat, reputasi naik'],smart:['🎓','Cerdas','Biaya sekolah anak −50%, bonus anak dewasa +50%']},
   edu:{bis:['💼','Sekolah Bisnis','+5% pendapatan bisnis'],keu:['📈','Sekolah Keuangan','+4% pendapatan bisnis, bonus dividen'],dip:['🕊️','Sekolah Diplomasi','+2% bisnis, reputasi naik']},
   party:[['Sederhana',1,10],['Mewah',3,25],['Kerajaan',10,45]],YR:60000,ADULT:18};
-function dyS(){const D=PF.dyn=PF.dyn||{sp:null,kids:[],gen:1,anc:[],h:[],cand:null,ct:0,follow:1};D.kids=D.kids||[];D.anc=D.anc||[];D.h=D.h||[];if(!D.fam)D.fam='Keluarga '+DY.last[pick(DY.last.length)];return D;}
+function dyS(){const D=PF.dyn=PF.dyn||{sp:null,kids:[],gen:1,anc:[],h:[],cand:null,ct:0,follow:1};D.kids=D.kids||[];D.anc=D.anc||[];D.h=D.h||[];try{D.fam=dyn().fam;}catch(e){if(!D.fam)D.fam='Keluarga Permata';}return D;}
 function dyLog(ic,t,c){const D=dyS();D.h.unshift({ic,t,c:c||'',at:Date.now()});D.h=D.h.slice(0,30);}
 function dyPal(){const p=randPal();p.shirt=SHIRTS[pick(SHIRTS.length)];return p;}
 function dyName(g){return DY.first[g][pick(DY.first[g].length)];}
@@ -7870,7 +7870,7 @@ XA.xDyPass=()=>{const D=dyS();const k=D.kids[D.heir];if(!k||dyAge(k)<DY.ADULT){s
   dyLog('🏰',`${heirN} meneruskan ${D.fam} sebagai Generasi ${D.gen}. Pajak warisan 🪙 ${fmtBig(tax)}. Bonus dinasti sekarang +${Math.round(Math.min(.4,(D.gen-1)*.04)*100)}%.`,'up');
   logLine('sys',null,`🏰 ${heirN} kini memimpin ${D.fam} (Generasi ${D.gen}). Semua harta diwariskan, pajak warisan 🪙 ${fmtBig(tax)}.`,'win');try{banner(`🏰 GENERASI ${D.gen}<small>${esc(heirN)} meneruskan ${esc(D.fam)}</small>`,'',3500);SFX.big();}catch(e){}
   savePF();dyFollowSync();phoneRender();};
-XA.xDyFam=()=>{const D=dyS();const n=DY.last[(DY.last.indexOf(D.fam.replace('Keluarga ',''))+1)%DY.last.length];D.fam='Keluarga '+n;savePF();phoneRender();};
+XA.xDyFam=()=>{const D=dyS();const n=DY.last[(DY.last.indexOf(D.fam.replace('Keluarga ',''))+1)%DY.last.length];dyn().fam='Keluarga '+n;try{xSave();}catch(e){}savePF();phoneRender();};
 /* ticks: harmony, babies, NPC dynasties */
 setInterval(()=>{try{if(!started)return;const D=dyS();if(D.sp){D.sp.har=Math.max(0,D.sp.har-(D.sp.tr==='kind'?.5:1));
   if((D.sp.tr==='nob'||D.sp.tr==='kind')&&PF.rep)PF.rep.pts=(PF.rep.pts||0)+2;
@@ -7895,7 +7895,7 @@ setTimeout(function dy43(){if(!started||!you){setTimeout(dy43,2000);return;}dyFo
 /* app */
 xView('dinasti',{t:'Dinasti',s:'Dinasti',ic:'🏰',bg:'linear-gradient(135deg,#8a3fd1,#ffd25f)',r:()=>{const D=dyS(),b=dyBonus(),sp=D.sp;let h=`<div class="wallet"><small>Generasi ${D.gen} · ${D.kids.length} anak</small><b>🏰 ${esc(D.fam)}</b>
   <div class="row"><span>Bonus pendapatan bisnis</span><span class="up">+${Math.round(b*100)}%</span></div><div class="row"><span>Bonus generasi (permanen)</span><span>+${Math.round(Math.min(.4,(D.gen-1)*.04)*100)}%</span></div></div>
-  <div class="srow">${xB('xDyFollow','',D.follow?'👨‍👩‍👧 Keluarga ikut jalan: Nyala':'👨‍👩‍👧 Keluarga ikut jalan: Mati','small')}${xB('xDyFam','','🔁 Ganti nama keluarga','small')}</div>`;
+  ${(()=>{const d=dyn(),nw=netWorth(),nx=d.g<7?GENS[d.g+1]:0;return `<div class="ei-box"><div class="row"><span>👑 Gelar kekayaan</span><span>Generasi ke-${d.g} · ${GEN_T[d.g]}</span></div><div class="row"><span>Bonus gelar</span><span class="up">+${(d.g-1)*8}%</span></div>${nx?`<div class="row"><span>Gelar berikutnya</span><span>kekayaan ${fmtBig(nx)} (${Math.min(100,nw/nx*100).toFixed(1).replace('.',',')}%)</span></div>`:''}<div class="bk"><input id="famIn" maxlength="24" placeholder="Nama keluarga: ${esc(d.fam)}" style="flex:1;min-width:0;padding:8px;border-radius:10px;border:1px solid #d8c8a8;background:#fff;color:#3a2a1a">${xB('xFam','','Simpan nama','small p')}</div></div>`;})()}<div class="srow">${xB('xDyFollow','',D.follow?'👨‍👩‍👧 Keluarga ikut jalan: Nyala':'👨‍👩‍👧 Keluarga ikut jalan: Mati','small')}${xB('xDyFam','','🔁 Ganti nama keluarga','small')}</div>`;
   if(sp){const T=DY.tr[sp.tr];h+=`<div class="thd">Pasangan</div><div class="chap"><span style="font-size:24px">${sp.g==='P'?'👰':'🤵'}</span><div><b>${esc(sp.n)}</b><small>${T[0]} ${T[1]}: ${T[2]} · menikah ${new Date(sp.t).toLocaleDateString('id-ID')}</small></div></div>
     <div class="ei-box"><div class="row"><span>Harmoni</span><span class="${sp.har<30?'dn':'up'}">${Math.round(sp.har)}/100${sp.har<30?' ⚠️':''}</span></div><p class="muted">Harmoni turun pelan tiap menit. Di atas 60, anak bisa lahir sendiri. Kalau sampai 0, pasangan bisa pergi.</p>
     <div class="srow">${[['🌹 Bunga',.2],['💎 Perhiasan',1],['🏝️ Liburan',4]].map((x,i)=>xB('xDyGift',i,`${x[0]} · 🪙 ${fmtBig(Math.round(dyCost()*x[1]))}`,'small',S.bal<dyCost()*x[1])).join('')}</div>
@@ -7943,6 +7943,72 @@ function openRankWin(){if(modal)return;closePhone();for(const k in keys)keys[k]=
   draw();m.iv=setInterval(()=>{if(!el.isConnected){clearInterval(m.iv);return;}if(touch||performance.now()-tT<4000)return;draw();},10000);}
 /* every way into Ranking opens the window; the phone ranking is only used for the reme duel stake picker */
 phoneRender=(f=>function(){try{if(phView==='rank'&&!duel&&!$('phone').classList.contains('hidden')){phView='home';closePhone();setTimeout(openRankWin,30);return;}}catch(e){}return f.apply(this,arguments);})(phoneRender);
+
+/* ================= v44: Bangunan bisa dimasuki (Rumah Keluarga dengan perabot, lobi Bank Milikmu) ================= */
+const INT={ret:null,built:{},X:{rumah:3000,bank:3120},Z:0,fur:null};
+const FURN=[['sofa','🛋️','Sofa kulit',1,6],['tv','📺','TV layar lebar',1.5,6],['karpet','🟥','Karpet Persia',.8,4],['meja','🍽️','Meja makan keluarga',2,8],['rak','📚','Rak buku',1,5],
+  ['lukisan','🖼️','Lukisan karya pelukis lokal',2.5,7],['akuarium','🐠','Akuarium besar',3,9],['piano','🎹','Piano',4,10],['lampu','💡','Lampu kristal',5,10],['kasur','🛏️','Kamar tidur mewah',3,8],['taman','🌳','Taman dalam',6,12],['kolam','🏊','Kolam renang mini',10,15]];
+function homeS(){PF.home=PF.home||{f:{}};PF.home.f=PF.home.f||{};return PF.home;}
+function homeCost(m){return Math.round(Math.max(5e7,netWorth()*.002)*m);}
+function homeComfort(){const H=homeS();return FURN.reduce((s,f)=>s+(H.f[f[0]]?f[4]:0),0);}
+function homeBonus(){return Math.min(.1,homeComfort()/1000);}
+dyBonus=(f=>function(){return f.apply(this,arguments)+homeBonus();})(dyBonus);
+setInterval(()=>{try{if(!started)return;const D=dyS();if(D.sp)D.sp.har=Math.min(100,D.sp.har+homeComfort()/40);}catch(e){}},60000);
+/* builders */
+function iB(g,w,h,d,c,x,y,z,col,basic){return cBox(g,w,h,d,c,x,y,z,col,basic);}
+function v44Shell(X,Z,W,D,floorC,wallC,label){const g=new THREE.Group();scene.add(g);const H=3.4;
+  iB(g,W+2,.3,D+2,0x6a5a48,X,-.15,Z);iB(g,W,.06,D,floorC,X,.03,Z);
+  iB(g,W,H,.4,wallC,X,H/2,Z-D/2,true);iB(g,.4,H,D,wallC,X-W/2,H/2,Z,true);iB(g,.4,H,D,wallC,X+W/2,H/2,Z,true);
+  iB(g,W/2-2.2,H,.4,wallC,X-W/4-1.1,H/2,Z+D/2,true);iB(g,W/2-2.2,H,.4,wallC,X+W/4+1.1,H/2,Z+D/2,true);
+  [-1,1].forEach(s=>{for(let i=-1;i<=1;i++)iB(g,2.6,1.4,.45,0x9fd8ff,X+i*W/4,2,Z-D/2+.05*s*0,false,true);});
+  iB(g,4.4,.25,.5,0x3a2a1a,X,H,Z+D/2);const sg=neon(label,0,0,0,0,'#ffffff','#ffd25f',6,.9);sg.position.set(X,4.2,Z+D/2+.3);g.add(sg);
+  const lt=new THREE.PointLight(0xfff1d0,.9,40);lt.position.set(X,6,Z);g.add(lt);return g;}
+function v44Exit(kind,X,Z,D){stationAdd('v44exit',X,Z+D/2-1.2,0,'Pintu keluar',{useDist:2.6,verb:'Keluar',btn:'KELUAR',act:()=>v44Leave(),ctx:()=>`<div class="ctx-head"><h3>🚪 Pintu keluar</h3><small>Kembali ke tempat kamu masuk tadi</small></div>`});}
+function v44BuildHouse(){const X=INT.X.rumah,Z=INT.Z,W=26,D=20;const g=v44Shell(X,Z,W,D,0xc89a64,0xf2e6d0,'RUMAH '+dyS().fam.replace('Keluarga ','').toUpperCase());
+  iB(g,.3,3.4,8,0xe8dcc4,X-3,1.7,Z-6,true);iB(g,8,3.4,.3,0xe8dcc4,X+8,1.7,Z-2,true);
+  INT.fur=new THREE.Group();g.add(INT.fur);v44Exit('rumah',X,Z,D);
+  stationAdd('v44home',X+9,Z+6,Math.PI,'Katalog perabot',{useDist:2.6,verb:'Lihat',btn:'PERABOT',act:()=>xOpen('rumah'),ctx:()=>`<div class="ctx-head"><h3>🛋️ Katalog perabot</h3><small>Kenyamanan ${homeComfort()} · bonus bisnis +${(homeBonus()*100).toFixed(1)}%</small></div>`});
+  iB(g,1.2,1,.8,0x8a6a44,X+9,.5,Z+7);v44Furnish();return g;}
+function v44Furnish(){const G=INT.fur;if(!G)return;while(G.children.length)G.remove(G.children[0]);const H=homeS().f,X=INT.X.rumah,Z=INT.Z;const B=(w,h,d,c,x,y,z,b)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),b?new THREE.MeshBasicMaterial({color:c}):mat(c));m.position.set(X+x,y,Z+z);G.add(m);return m;};
+  if(H.karpet)B(8,.04,5,0x9b2d30,-6,.07,2);
+  if(H.sofa){B(5,.8,1.6,0x6b3e26,-6,.5,4.6);B(5,1,.4,0x6b3e26,-6,1.2,5.3);B(.5,.9,1.6,0x6b3e26,-8.6,.7,4.6);B(.5,.9,1.6,0x6b3e26,-3.4,.7,4.6);}
+  if(H.tv){B(4,2.2,.15,0x111111,-6,1.9,-.6,true);B(3.8,2,.05,0x2f6fe0,-6,1.9,-.5,true);B(4.4,.6,1,0x3a2a1a,-6,.3,-.6);}
+  if(H.meja){B(5,.15,2.4,0x8a5a32,7,1.1,4);[[-2.2,-1],[2.2,-1],[-2.2,1],[2.2,1]].forEach(([a,b])=>B(.15,1.1,.15,0x5a3a20,7+a,.55,4+b));for(let i=-1;i<=1;i++){B(.7,.9,.7,0x6b4a2a,7+i*1.6,.45,2.3);B(.7,.9,.7,0x6b4a2a,7+i*1.6,.45,5.7);}}
+  if(H.rak){B(3,3,.6,0x6b4a2a,-11.5,1.5,-3);for(let i=0;i<4;i++)B(2.8,.5,.4,[0xd8435b,0x2f6fe0,0x2f9e5a,0xffd25f][i],-11.5,.5+i*.7,-2.85);}
+  if(H.lukisan){B(2.6,1.8,.1,0xffd25f,0,2.2,-9.7);B(2.3,1.5,.05,0x6cc0ff,0,2.2,-9.6,true);B(2.3,.5,.05,0x3ddc84,0,1.7,-9.58,true);}
+  if(H.akuarium){B(3.6,1.8,1,0x7fe0ff,10,1.6,-8.4,true);B(3.8,.6,1.1,0x2a2a30,10,.3,-8.4);for(let i=0;i<4;i++)B(.3,.18,.08,[0xff9f43,0xffd25f,0xff5f6d,0xffffff][i],8.8+i*.8,1.3+(i%2)*.6,-7.85,true);}
+  if(H.piano){B(2.4,1.1,1.4,0x111111,-9,.75,-7.5);B(2.4,.1,.5,0xffffff,-9,1.35,-6.8,true);B(.6,.5,.6,0x111111,-9,.25,-6.2);}
+  if(H.lampu){B(.1,1.2,.1,0xd8c080,0,4.4,0);const c=B(1.8,.6,1.8,0xfff3c0,0,3.6,0,true);c.rotation.y=.78;}
+  if(H.kasur){B(4,.7,5,0xf2f2f2,8,.45,-7);B(4,.4,1.4,0x8a6a44,8,1,-9.3);B(3.6,.2,3,0x6cc0ff,8,.85,-6.2);}
+  if(H.taman){for(let i=0;i<5;i++){B(.25,1.6,.25,0x6b4a2a,-11+i*1.2,.8,8.6);const s=new THREE.Mesh(new THREE.SphereGeometry(.8,8,6),mat(0x2f9e5a));s.position.set(X-11+i*1.2,2,Z+8.6);G.add(s);}}
+  if(H.kolam){B(6,.1,3.4,0xd8d0c0,3,.08,-6.6);B(5.4,.04,2.8,0x3fa9f5,3,.13,-6.6,true);}}
+function v44BuildBank(){const X=INT.X.bank,Z=INT.Z,W=28,D=20,B=bk41();const g=v44Shell(X,Z,W,D,0xe8e4dc,0xd8d4cc,(B.on?B.name:'BANK MILIKMU').toUpperCase());
+  for(let i=-2;i<=2;i++){iB(g,4,1.2,1,0x2f4f8a,X+i*4.6,.6,Z-5,true);iB(g,4,.1,1.2,0xffd25f,X+i*4.6,1.25,Z-5);iB(g,3.6,1,.08,0x9fd8ff,X+i*4.6,1.9,Z-5.5,false,true);miniPerson(g,X+i*4.6,Z-6.6,0);}
+  const vd=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,.5,24),mat(0x9a9aa8));vd.rotation.x=Math.PI/2;vd.position.set(X,2.6,Z-9.6);g.add(vd);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.6,12),mat(0xffd25f));hub.rotation.x=Math.PI/2;hub.position.set(X,2.6,Z-9.3);g.add(hub);
+  [-9,-5,5,9].forEach(x=>iB(g,.9,3.4,.9,0xf2efe8,X+x,1.7,Z+2,true));for(let i=0;i<6;i++)miniPerson(g,X-8+i*3.2,Z+1+Math.sin(i)*2,Math.PI);
+  iB(g,6,.6,1.2,0x8a6a44,X+9,.3,Z+6);v44Exit('bank',X,Z,D);
+  stationAdd('v44bank',X,Z-3.6,Math.PI,'Meja direktur',{useDist:3,verb:'Kelola',btn:'BANK',act:()=>xOpen('bankku'),ctx:()=>`<div class="ctx-head"><h3>🏦 ${esc(B.on?B.name:'Bank Milikmu')}</h3><small>${B.on?'Modal 🪙 '+fmtBig(Math.round(B.cap))+' · reputasi '+Math.round(B.rep):'Belum punya izin bank'}</small></div>`});return g;}
+function v44Enter(kind){if(busy||(modal&&modal.busy))return;try{if(!INT.built[kind])INT.built[kind]=kind==='rumah'?v44BuildHouse():v44BuildBank();}catch(e){console.error('v44',e);return;}
+  if(!INT.ret||Math.abs(you.pos.x-INT.X.rumah)>200)INT.ret={x:you.pos.x,z:you.pos.z,yaw:you.yaw};const X=INT.X[kind];travelFxSafe(kind==='rumah'?'🏠':'🏦',kind==='rumah'?'Rumah Keluarga':'Lobi Bank',kind==='rumah'?'Masuk ke rumah':'Masuk ke bank',()=>{tpTo(X,INT.Z+7,Math.PI);try{DYF.list.forEach(f=>f.av.root.position.set(X,0,INT.Z+8));}catch(e){}});
+  logLine('sys',null,kind==='rumah'?`🏠 Selamat datang di rumah ${dyS().fam}.`:`🏦 Kamu masuk ke lobi bank.`);}
+function v44Leave(){const r=INT.ret||{x:-64,z:-67,yaw:Math.PI};INT.ret=null;travelFxSafe('🚪','Keluar','Kembali ke kota',()=>{tpTo(r.x,r.z,r.yaw);try{DYF.list.forEach(f=>f.av.root.position.set(r.x,0,r.z));}catch(e){}});}
+function travelFxSafe(ic,t,s,cb){try{if(typeof travelFx==='function'){travelFx(ic,t,s,cb);return;}}catch(e){}cb();}
+XA.xHomeIn=()=>v44Enter('rumah');XA.xBankIn=()=>v44Enter('bank');
+XA.xFurBuy=id=>{const f=FURN.find(x=>x[0]===id),H=homeS();if(!f||H.f[id])return;const c=homeCost(f[3]);if(S.bal<c){showResult('Koin kurang (🪙 '+fmtBig(c)+')');return;}S.bal-=c;H.f[id]=1;
+  logLine('sys',null,`${f[1]} ${f[2]} dipasang di rumah. Kenyamanan sekarang ${homeComfort()}.`,'win');SFX.coin();v44Furnish();savePF();phoneRender();};
+/* city entrance: front door next to Perumahan Elite */
+setTimeout(function v44Boot(){if(typeof cityGrp==='undefined'||!cityGrp||!started){setTimeout(v44Boot,2000);return;}try{const [px,pz]=AREAS.rumah.pad,x=px+7,z=pz+4;
+  const g=new THREE.Group();g.position.set(x,0,z);cityGrp.add(g);const B=(w,h,d,c,X,Y,Z,b)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),b?new THREE.MeshBasicMaterial({color:c}):mat(c));m.position.set(X,Y,Z);g.add(m);};
+  B(3.2,4.2,.4,0x8a5a32,0,2.1,0);B(2.4,3.4,.45,0x5a3a20,0,1.7,.05);B(.2,.2,.1,0xffd25f,.8,1.7,.3,true);B(4,.3,1.6,0xbfb6a8,0,.15,.9);
+  const s=neon('RUMAH KELUARGA',0,0,0,0,'#ffffff','#ffd25f',4.6,.7);s.position.set(0,4.7,.3);g.add(s);
+  stationAdd('v44door',x,z+1.4,0,'Rumah Keluarga',{useDist:3,verb:'Masuk',btn:'MASUK',act:()=>v44Enter('rumah'),ctx:()=>`<div class="ctx-head"><h3>🏠 Rumah ${esc(dyS().fam)}</h3><small>Masuk, atur perabot, kenyamanan ${homeComfort()}</small></div>`});}catch(e){console.error('v44 door',e);}},3000);
+/* apps */
+xView('rumah',{t:'Rumah Keluarga',s:'Rumah',ic:'🏠',bg:'linear-gradient(135deg,#c89a64,#ffd25f)',r:()=>{const H=homeS(),c=homeComfort();
+  return `<div class="wallet"><small>${esc(dyS().fam)} · ${Object.keys(H.f).length}/${FURN.length} perabot</small><b>🏠 Kenyamanan ${c}</b><div class="row"><span>Bonus pendapatan bisnis</span><span class="up">+${(homeBonus()*100).toFixed(1)}%</span></div><div class="row"><span>Harmoni pasangan</span><span class="up">+${(c/40).toFixed(1)}/menit</span></div></div>
+  <div class="srow">${xB('xHomeIn','','🚪 Masuk ke rumah','small p')}</div><div class="thd">Katalog perabot</div>${FURN.map(f=>{const own=H.f[f[0]],cost=homeCost(f[3]);return `<div class="chap"><span style="font-size:24px">${f[1]}</span><div><b>${f[2]}</b><small>Kenyamanan +${f[4]}${own?' · ✅ terpasang':''}</small></div>${own?'':xB('xFurBuy',f[0],'🪙 '+fmtBig(cost),'small p',S.bal<cost)}</div>`;}).join('')}
+  <p class="muted">Pintu Rumah Keluarga ada di Perumahan Elite. Perabot langsung muncul di dalam rumah.</p>`;}});
+if(XV.dinasti){const r0=XV.dinasti.r;XV.dinasti.r=()=>r0()+`<div class="srow">${xB('xHomeIn','','🏠 Masuk Rumah Keluarga','small')}</div>`;}
+if(XV.bankku){const r1=XV.bankku.r;XV.bankku.r=()=>{const h=r1();return bk41().on?`<div class="srow">${xB('xBankIn','','🚪 Masuk ke lobi bank','small p')}</div>`+h:h;};}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
