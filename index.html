@@ -208,6 +208,33 @@ body.hasmodal #xPill,body.hasmodal #xMini{display:none!important}
 .corp .hold{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line)}.corp .hold>span{flex:1;min-width:0}.corp .hold b{display:block;font-size:13px}.corp .hold small{color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0;display:block;margin:0}.wallet.corp .hold>span{flex:1 1 auto;min-width:0;display:block;text-align:left}.wallet.corp .hold button{flex:none;width:auto;margin:0;padding:6px 14px}.corp .hold.me b{color:var(--gold)}.corp .hold.pub b{color:#7df3ff}
 .noff{border:1px solid var(--gold)}.bidf{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:8px;margin:4px 0 6px;display:flex;flex-direction:column;gap:6px}.seg.mini button{font-size:12px;padding:5px}
 .nw .nwr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:13px}.nw .nwr span small{display:block;color:var(--muted);font-size:10.5px;text-transform:none;letter-spacing:0;margin:0}.nw .nwr b{font-size:13px;font-family:inherit;color:inherit}.nw .nwr b.dn{color:#ff6b6b}
+.ph-body>*{flex-shrink:0}.frow{display:flex;justify-content:space-between;font-size:13px;margin:4px 2px}
+.fishui{position:absolute;inset:0;pointer-events:none;z-index:4}.fishui.off{display:none}.hasmodal .fishui{display:none}
+.fbar{position:absolute;left:50%;transform:translateX(-50%);top:calc(96px + env(safe-area-inset-top,0px));display:flex;gap:6px;pointer-events:auto}
+.fbar button{background:rgba(10,14,28,.72);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:5px 10px;font:inherit;font-size:12px;cursor:pointer}.fbar b{font-weight:800}
+.finfo{position:absolute;left:50%;transform:translateX(-50%);top:calc(128px + env(safe-area-inset-top,0px));background:rgba(10,14,28,.6);color:#fff;font-size:11.5px;padding:4px 10px;border-radius:999px;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+.fbtn{position:absolute;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px));width:92px;height:92px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:radial-gradient(circle at 35% 30%,#4fc3ff,#1d6fb8);color:#fff;font-size:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;box-shadow:0 6px 18px rgba(0,0,0,.45);cursor:pointer;user-select:none;-webkit-user-select:none}
+.fbtn b{font-size:12px;font-family:var(--display)}.fbtn.st-charge{background:radial-gradient(circle at 35% 30%,#ffb35a,#e0661c)}.fbtn.st-wait{background:radial-gradient(circle at 35% 30%,#9aa0a8,#5a6068)}.fbtn.st-bite{background:radial-gradient(circle at 35% 30%,#ff6b6b,#c81e3a);animation:fpulse .4s infinite alternate}.fbtn.st-reel{background:radial-gradient(circle at 35% 30%,#5fe08a,#1f9e4a)}
+@keyframes fpulse{to{transform:scale(1.08)}}
+.fpow{position:absolute;left:calc(50% + 60px);top:30%;width:16px;height:150px;border-radius:9px;background:rgba(0,0,0,.55);border:2px solid #fff;overflow:hidden}.fpow i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#5fe08a,#ffd25f,#ff5a3a)}.fpow.off,.fbub.off,.freel.off{display:none}
+.fbub{position:absolute;left:50%;top:26%;transform:translateX(-50%);background:#fff;color:#1a1a22;font-weight:700;font-size:13px;padding:8px 14px;border-radius:14px;max-width:80vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.freel{position:absolute;right:calc(130px + env(safe-area-inset-right,0px));top:18%;bottom:22%;display:flex;flex-direction:column;align-items:center;gap:6px}
+.frl-top{background:rgba(10,14,28,.8);color:#fff;font-weight:800;font-size:13px;padding:4px 10px;border-radius:999px}.frl-wrap{display:flex;gap:6px;flex:1;min-height:0}
+.frl-track{position:relative;width:46px;height:100%;border-radius:12px;background:linear-gradient(#1d5a8a,#0c2a44);border:2px solid #fff;overflow:hidden}
+.frl-zone{position:absolute;left:3px;right:3px;border-radius:8px;background:rgba(95,224,138,.45);border:2px solid #5fe08a}.frl-zone.on{background:rgba(95,224,138,.75)}
+.frl-fish{position:absolute;left:0;right:0;text-align:center;font-size:24px;line-height:1;transform:translateY(50%)}
+.frl-prog{position:relative;width:12px;height:100%;border-radius:7px;background:rgba(0,0,0,.55);overflow:hidden;border:1px solid #fff}.frl-prog i{position:absolute;left:0;right:0;bottom:0;background:#ffd25f}
+.fcardm .panel{max-width:360px}.fcard{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}.fpill{background:var(--rc);color:#111;font-weight:800;font-size:12px;padding:3px 12px;border-radius:999px}
+.fbig{width:150px;height:120px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 35%,transparent),transparent 70%)}
+.fmut{color:#ffd25f;font-weight:800;font-size:13px}.fcard h3{margin:0;font-family:var(--display);color:var(--rc);font-size:22px}.fkg{color:var(--muted);font-size:13px}
+.fchips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.fchips span{background:rgba(255,255,255,.08);border-radius:999px;padding:3px 9px;font-size:12px}.fchips .new{background:#ffd25f;color:#111;font-weight:800}
+.fxp{width:100%}.fxp small{color:var(--muted);font-size:11px}.fxp div{height:8px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden}.fxp i{display:block;height:100%;background:linear-gradient(90deg,#5fe08a,#ffd25f)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin:6px 0}.fcell{border:1px solid var(--rc,var(--line));border-radius:10px;padding:5px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:1px;background:rgba(255,255,255,.04)}
+.fcell b{font-size:11px;line-height:1.2}.fcell small{font-size:10px;color:var(--muted)}.fcell em{color:#ffd25f;font-style:normal}.fcell.lock{opacity:.6}.fca{display:flex;gap:3px;margin-top:3px}.fca button{padding:2px 6px;font-size:10px}
+.aqtank{position:relative;height:150px;border-radius:14px;background:linear-gradient(#3ab0e0,#0d3a66);overflow:hidden;border:2px solid #9ad0ff;margin:6px 0}
+.aqf{position:absolute;left:-15%;animation:aqswim linear infinite}@keyframes aqswim{0%{left:-15%;transform:scaleX(-1)}49%{transform:scaleX(-1)}50%{left:100%;transform:scaleX(1)}100%{left:-15%;transform:scaleX(1)}}
+.aqb{position:absolute;left:0;right:0;bottom:0;height:18px;background:#d8c088}
+@media (hover:none),(pointer:coarse){.fbtn{bottom:calc(110px + env(safe-area-inset-bottom,0px));right:calc(16px + env(safe-area-inset-right,0px))}}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -1858,6 +1885,41 @@ const SHOP=[
   {id:'tickerv',s:'eyes',ic:'📈',n:'Kacamata ticker',p:16000,r:'E',b:{inv:15,luck:2},d:'Grafik saham di depan mata.',v:{visor:0x3ddc84}},
   {id:'bullpet',s:'pet',ic:'🐂',n:'Banteng emas',p:90000,r:'L',b:{inv:30,luck:5},d:'Simbol pasar naik.',v:{pet:[0xd8a648,0x3a2216],horn:1}},
   {id:'tycoonhat',s:'hat',ic:'🎩',n:'Topi taipan',p:40000,r:'L',b:{inv:20,bonus:4},d:'Topi para konglomerat.',v:{hat:'top',c:0x2a1a10,c2:0xffd24a}},
+  {id:'orenp',s:'pet',ic:'🐈',n:'Kucing Oren',p:2200,r:'C',b:{luck:2,fish:3},d:'Sifat: suka ikan, kadang ikut nyolong umpan.',v:{pet:[0xff9a2a,0xffe0b0]}},
+  {id:'kepiting',s:'pet',ic:'🦀',n:'Kepiting Kepo',p:3500,r:'R',b:{fish:6,job:4},d:'Sifat: jalan miring, jago cari spot mancing.',v:{pet:[0xe23b2b,0xffd0b0]}},
+  {id:'penguin',s:'pet',ic:'🐧',n:'Pinguin Kutub',p:6000,r:'R',b:{fish:8},d:'Sifat: pemancing es, tahan dingin.',v:{pet:[0x15131c,0xffffff]}},
+  {id:'otter',s:'pet',ic:'🦦',n:'Berang-berang',p:9000,r:'E',b:{fish:12,luck:3},d:'Sifat: tangan cepat, ikan sulit kabur.',v:{pet:[0x7a4a2a,0xd8b48a]}},
+  {id:'ayamjago',s:'pet',ic:'🐓',n:'Ayam Jago',p:4500,r:'R',b:{job:12},d:'Sifat: bangun subuh, kerja lebih rajin.',v:{pet:[0xffffff,0xd8321f]}},
+  {id:'monyet',s:'pet',ic:'🐒',n:'Monyet Usil',p:7000,r:'E',b:{luck:6,bonus:2},d:'Sifat: suka ambil koin yang jatuh.',v:{pet:[0x8a5a30,0xf0c890]}},
+  {id:'burunghantu',s:'pet',ic:'🦉',n:'Burung Hantu Bijak',p:16000,r:'E',b:{inv:15,luck:3},d:'Sifat: melek malam, baca grafik saham.',v:{pet:[0x8a6a4a,0xffd24a]}},
+  {id:'koi',s:'pet',ic:'🎏',n:'Ikan Koi Terbang',p:26000,r:'L',b:{fish:15,luck:6},d:'Sifat: membawa rezeki air.',v:{pet:[0xffffff,0xff5a1c]}},
+  {id:'pauslangit',s:'pet',ic:'🐳',n:'Paus Langit',p:75000,r:'L',b:{fish:20,luck:10,bonus:4},d:'Sifat: berenang di awan, panggil ikan besar.',v:{pet:[0x4db8ff,0xffffff]}},
+  {id:'garuda',s:'pet',ic:'🦅',n:'Garuda Kecil',p:95000,r:'L',b:{luck:14,bonus:6},d:'Sifat: gagah, wibawa naik di meja duel.',v:{pet:[0xd8a648,0x7a1530]}},
+  {id:'nagalaut',s:'pet',ic:'🐉',n:'Naga Laut',p:180000,r:'M',b:{fish:30,luck:15,bonus:6},d:'Sifat: penguasa samudra, ikan Kolosal lebih sering.',v:{pet:[0x19a0c0,0x9ff3ff],horn:1}},
+  {id:'nelayanhat',s:'hat',ic:'🎣',n:'Topi Nelayan',p:600,r:'C',b:{fish:4},d:'Sifat: teduh di dermaga.',v:{hat:'cap',c:0x6a7a4a}},
+  {id:'caping',s:'hat',ic:'👒',n:'Caping Tani',p:500,r:'C',b:{job:8},d:'Sifat: kerja di bawah terik tetap kuat.',v:{hat:'top',c:0xd8b46a,c2:0xa8843a}},
+  {id:'blangkon',s:'hat',ic:'🧕',n:'Blangkon Jawa',p:2800,r:'R',b:{luck:4,bonus:1},d:'Sifat: tenang, ndak gampang tilt.',v:{hat:'band',c:0x5a3519,c2:0xd8a648}},
+  {id:'pecisultan',s:'hat',ic:'🎩',n:'Peci Sultan',p:12000,r:'E',b:{bonus:5,inv:10},d:'Sifat: aura juragan.',v:{hat:'cap',c:0x111118}},
+  {id:'helmproyek',s:'hat',ic:'⛑',n:'Helm Proyek',p:1800,r:'R',b:{job:12},d:'Sifat: siap lembur.',v:{hat:'helm',c:0xffd21c,c2:0xffffff}},
+  {id:'topikapten',s:'hat',ic:'⚓',n:'Topi Kapten Kapal',p:9000,r:'E',b:{fish:10,luck:3},d:'Sifat: tahu arah angin dan ikan.',v:{hat:'cap',c:0xf4f4f4}},
+  {id:'mahkotalaut',s:'hat',ic:'🔱',n:'Mahkota Raja Laut',p:85000,r:'M',b:{fish:22,luck:12,bonus:5},d:'Sifat: ikan tunduk padamu.',v:{hat:'crownx',c:0x19c0d0,c2:0xffd24a,glow:1}},
+  {id:'mahkotapadi',s:'hat',ic:'🌾',n:'Mahkota Padi Emas',p:38000,r:'L',b:{job:20,save:30},d:'Sifat: panen tiap hari.',v:{hat:'crownx',c:0xd8a648,c2:0xfff0a0}},
+  {id:'monokelsultan',s:'eyes',ic:'🧐',n:'Monokel Sultan',p:15000,r:'E',b:{inv:18,bonus:3},d:'Sifat: teliti baca laporan keuangan.',v:{visor:0xd8a648,mono:1}},
+  {id:'kacamatanelayan',s:'eyes',ic:'🕶',n:'Kacamata Polarized',p:2600,r:'R',b:{fish:6},d:'Sifat: lihat ikan di bawah air.',v:{visor:0x2a5a6a}},
+  {id:'kacamatapilot',s:'eyes',ic:'🥽',n:'Kacamata Pilot',p:5000,r:'R',b:{luck:4,job:4},d:'Sifat: fokus jarak jauh.',v:{visor:0x8a6a2a}},
+  {id:'kacamatapelangi',s:'eyes',ic:'🌈',n:'Kacamata Pelangi',p:20000,r:'L',b:{luck:9,fish:6},d:'Sifat: semua terlihat cerah.',v:{visor:0xff7ad0}},
+  {id:'mataelang',s:'eyes',ic:'🦅',n:'Visor Mata Elang',p:48000,r:'L',b:{luck:11,fish:10,bonus:3},d:'Sifat: tak ada yang luput.',v:{visor:0xffb21c}},
+  {id:'ranselmerah',s:'wings',ic:'🎒',n:'Ransel Merah',p:700,r:'C',b:{job:6},d:'Sifat: muat bekal kerja.',v:{wing:[0xd8321f,.55,.55,0x661010]}},
+  {id:'tabungikan',s:'wings',ic:'🧺',n:'Keranjang Ikan',p:1600,r:'C',b:{fish:5},d:'Sifat: tas mancing tambah luas.',v:{wing:[0xa8843a,.6,.6,0x5a3519]}},
+  {id:'jetpack',s:'wings',ic:'🚀',n:'Jetpack Roket',p:32000,r:'L',b:{job:20,luck:6},d:'Sifat: ngebut antar kiriman.',v:{wing:[0x9aa3b5,.7,.9,0xff5a1c]}},
+  {id:'jubahpahlawan',s:'wings',ic:'🦸',n:'Jubah Pahlawan',p:14000,r:'E',b:{luck:8,bonus:2},d:'Sifat: berani all-in.',v:{wing:[0xd8321f,1.0,1.3,0x2a1a6a]}},
+  {id:'sayapnagaemas',s:'wings',ic:'🐲',n:'Sayap Naga Emas',p:140000,r:'M',b:{luck:26,bonus:9},d:'Sifat: wibawa naga, lawan gentar.',v:{wing:[0xffc21c,1.7,1.25,0x7a4a00]}},
+  {id:'sayaplaut',s:'wings',ic:'🌊',n:'Sayap Ombak',p:52000,r:'L',b:{fish:18,luck:10},d:'Sifat: dibawa arus ke spot terbaik.',v:{wing:[0x19a0e0,1.4,1.05,0x0a3a6a]}},
+  {id:'rompipelampung',s:'shirt',ic:'🦺',n:'Rompi Pelampung',p:1200,r:'C',b:{fish:5,job:3},d:'Sifat: aman mancing di laut.',v:{shirt:0xff7a1c,logo:0xffd24a,pants:0x1b2650,vest:true}},
+  {id:'batik',s:'shirt',ic:'👔',n:'Kemeja Batik',p:3000,r:'R',b:{bonus:3,inv:5},d:'Sifat: rapi untuk rapat pemegang saham.',v:{shirt:0x7a3a1a,logo:0xd8a648,pants:0x15131c}},
+  {id:'sepatukaret',s:'shoes',ic:'🥾',n:'Sepatu Bot Karet',p:900,r:'C',b:{fish:4},d:'Sifat: tak takut becek dermaga.',v:{shoes:0x2fae5a}},
+  {id:'kalungtaring',s:'neck',ic:'🦈',n:'Kalung Gigi Hiu',p:8000,r:'E',b:{fish:9,luck:3},d:'Sifat: jimat para pelaut.',v:{chain:0xf4f0e8}},
+  {id:'gelangkerang',s:'hand',ic:'🐚',n:'Gelang Kerang',p:2400,r:'R',b:{fish:5,luck:1},d:'Sifat: dengar bisikan ombak.',v:{watchC:0xffe0c0,gem:0x19c0d0}},
   {id:'moto',s:'status',ic:'🏍',n:'Moge hitam',p:15000,r:'R',b:{job:15},d:'Parkir di depan lounge.'},
   {id:'car',s:'status',ic:'🏎',n:'Mobil sport',p:25000,r:'E',b:{job:20},d:'Antar pesanan lebih cepat.'},
   {id:'suv',s:'status',ic:'🚙',n:'SUV mewah',p:40000,r:'E',b:{job:10,luck:2},d:'Gagah di parkiran.'},
@@ -1895,13 +1957,13 @@ const PASSES=[
 if(!PF.pass)PF.pass={};if(!PF.promo)PF.promo={};
 const setDone=st=>st.items.every(id=>PF.items[id]&&PF.items[id].eq);
 const luckCap=()=>PF.pass.hoki?60:50;
-function buffs(){const r={luck:0,bonus:0,job:0,save:0,inv:0},add=b=>{for(const k in b)r[k]+=b[k];};
+function buffs(){const r={luck:0,bonus:0,job:0,save:0,inv:0,fish:0},add=b=>{for(const k in b)r[k]+=b[k];};
   SHOP.forEach(x=>{const o=PF.items[x.id];if(o&&(o.eq||!isWear(x)))add(x.b);});
   SETS.forEach(st=>{if(setDone(st))add(st.b);});PASSES.forEach(ps=>{if(PF.pass[ps.id])add(ps.b);});
   r.luck=Math.min(luckCap(),r.luck);return r;}
-const BI={luck:'🍀',bonus:'💰',job:'💼',save:'🏦',inv:'📊'};
-const buffTxt=b=>['luck','bonus','job','save','inv'].filter(k=>b[k]).map(k=>`${BI[k]} ${k==='luck'?'Hoki ':k==='bonus'?'Cuan ':k==='job'?'Kerja ':k==='inv'?'Investasi ':'Bunga '}+${b[k]}%`);
-const buffChips=b=>['luck','bonus','job','save','inv'].filter(k=>b[k]).map(k=>`<span title="${k==='luck'?'Hoki':k==='bonus'?'Cuan':k==='job'?'Kerja':k==='inv'?'Investasi: dividen, kupon obligasi, sewa & bisnis':'Bunga tabungan'}">${BI[k]} +${b[k]}%</span>`).join('');
+const BI={luck:'🍀',bonus:'💰',job:'💼',save:'🏦',inv:'📊',fish:'🎣'};
+const buffTxt=b=>['luck','bonus','job','save','inv','fish'].filter(k=>b[k]).map(k=>`${BI[k]} ${k==='luck'?'Hoki ':k==='bonus'?'Cuan ':k==='job'?'Kerja ':k==='inv'?'Investasi ':k==='fish'?'Mancing ':'Bunga '}+${b[k]}%`);
+const buffChips=b=>['luck','bonus','job','save','inv','fish'].filter(k=>b[k]).map(k=>`<span title="${k==='luck'?'Hoki':k==='fish'?'Mancing: peluang ikan langka':k==='bonus'?'Cuan':k==='job'?'Kerja':k==='inv'?'Investasi: dividen, kupon obligasi, sewa & bisnis':'Bunga tabungan'}">${BI[k]} +${b[k]}%</span>`).join('');
 function luckTry(bad){const L=buffs().luck;if(L>0&&bad&&Math.random()<L/100){luckFx(L);return true;}return false;}
 const QUESTS=[
   {id:'reme',n:'Main 5 ronde Reme/Qeme di meja host',g:5,d:10},
@@ -3204,6 +3266,9 @@ function cityLife(){const G=cityGrp;
   for(let z=CITY.z0-10;z<=95;z+=13)tower(190+(n%3)*9,z);
   for(let x=40;x<=200;x+=13)tower(x,CITY.z0-16-(n%3)*9);
   for(let x=-200;x<=30;x+=14)tower(x,CITY.z0-18-(n%2)*8);for(let z=CITY.z0;z<=95;z+=14)tower(-195-(n%2)*8,z);
+  // v20: ground under the outer skyline and an open sea to the south, so nothing floats at the map edge
+  {const gT=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#2b3a2c';q.fillRect(0,0,w,h);for(let i=0;i<400;i++){q.fillStyle=`rgba(${Math.random()<.5?'70,100,60':'20,30,22'},.5)`;q.fillRect(Math.random()*w,Math.random()*h,3,3);}});gT.wrapS=gT.wrapT=THREE.RepeatWrapping;gT.repeat.set(60,40);
+   gplane(G,480,322,new THREE.MeshLambertMaterial({map:gT}),0,-235+161,-.03);gplane(G,900,420,new THREE.MeshBasicMaterial({color:0x1d4a7a}),0,87+210,-.04);}
 }
 function syncResidents(){const b=bizS();HOUSES.forEach(H=>{const g=cityResidents[H.id];if(g)g.visible=!b.h[H.id];});}
 function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible)continue;const p=w.p;
@@ -3212,7 +3277,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible)continue;co
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v19';
+const GAME_VER='v20';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v\d+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -3760,17 +3825,25 @@ function civVisit(id){const C=CIVIC[id];if(!C)return;PF.civ=PF.civ||{};const day
 const civCtx=id=>()=>{const C=CIVIC[id],done=(PF.civ||{})[id]===new Date().toDateString();return `<div class="ctx-head"><h3>${C.ic} ${C.n}</h3><small>${C.txt} · ${C.dia?'+'+C.dia+' 💎':'uang saku'} · ${done?'sudah hari ini':'tersedia'}</small></div><div class="ctx-row"><button class="go" id="ctxGo">${done?'Lihat-lihat':'Kunjungi'} (E)</button></div>`;};
 /* ---------- traffic ---------- */
 const traffic=[];const _carBodyG=new THREE.BoxGeometry(2,.8,4.2),_carCabG=new THREE.BoxGeometry(1.7,.6,2.2),_carCabM=mat(0x1a2230),_hlM=new THREE.MeshBasicMaterial({color:0xfff6c8}),_tlM=new THREE.MeshBasicMaterial({color:0xff3040});
-const _carMs=[0xd8435b,0xf2f2f2,0x2f6fe0,0x222228,0xb0b4bc,0xf2a33a,0x2f9e5a,0xffd25f].map(c=>mat(c));
-function carMesh(g,ci,big){const c=new THREE.Group();const b=new THREE.Mesh(_carBodyG,_carMs[ci%_carMs.length]);b.position.y=.6;if(big)b.scale.set(1.25,1.6,2.2);c.add(b);const cab=new THREE.Mesh(_carCabG,_carCabM);cab.position.set(0,big?1.9:1.3,big?1.4:-.2);c.add(cab);
+const _carMs=[0xd8435b,0xf2f2f2,0x2f6fe0,0x222228,0xb0b4bc,0xf2a33a,0x2f9e5a,0xffd25f].map(c=>{const col='#'+new THREE.Color(c).getHexString(),m=mat(c);
+  const side=canvasTex(128,32,(q,w,h)=>{q.fillStyle=col;q.fillRect(0,0,w,h);q.strokeStyle='rgba(0,0,0,.45)';q.lineWidth=2;q.strokeRect(30,3,34,h-6);q.strokeRect(64,3,30,h-6);q.fillStyle='rgba(0,0,0,.55)';q.fillRect(54,12,7,3);q.fillRect(84,12,7,3);q.fillStyle='rgba(255,255,255,.25)';q.fillRect(0,4,w,2);q.fillStyle='rgba(0,0,0,.35)';q.fillRect(0,h-5,w,5);});
+  const front=canvasTex(64,32,(q,w,h)=>{q.fillStyle=col;q.fillRect(0,0,w,h);q.fillStyle='#1a1a20';q.fillRect(16,12,32,10);q.strokeStyle='#888';q.lineWidth=1;for(let x=18;x<48;x+=4){q.beginPath();q.moveTo(x,12);q.lineTo(x,22);q.stroke();}q.fillStyle='#e8e8e8';q.fillRect(22,25,20,5);});
+  const ms=[new THREE.MeshLambertMaterial({map:side}),new THREE.MeshLambertMaterial({map:side}),m,m,new THREE.MeshLambertMaterial({map:front}),new THREE.MeshLambertMaterial({map:front})];return ms;});
+const _cabTex=canvasTex(128,32,(q,w,h)=>{q.fillStyle='#d8dde4';q.fillRect(0,0,w,h);q.fillStyle='#22324a';q.fillRect(6,5,52,h-8);q.fillRect(64,5,56,h-8);q.fillStyle='rgba(255,255,255,.35)';q.fillRect(10,7,20,4);q.fillRect(68,7,22,4);});
+const _cabFr=canvasTex(64,32,(q,w,h)=>{q.fillStyle='#d8dde4';q.fillRect(0,0,w,h);q.fillStyle='#2a3a52';q.fillRect(4,4,56,h-7);q.fillStyle='rgba(255,255,255,.3)';q.fillRect(8,6,30,4);});
+const _cabMs=[new THREE.MeshLambertMaterial({map:_cabTex}),new THREE.MeshLambertMaterial({map:_cabTex}),mat(0xd8dde4),mat(0xd8dde4),new THREE.MeshLambertMaterial({map:_cabFr}),new THREE.MeshLambertMaterial({map:_cabFr})];
+const _wheelG=new THREE.CylinderGeometry(.42,.42,2.1,12),_wheelM=mat(0x16161a);_wheelG.rotateZ(Math.PI/2);
+function carMesh(g,ci,big){const c=new THREE.Group();const b=new THREE.Mesh(_carBodyG,_carMs[ci%_carMs.length]);b.position.y=.75;if(big)b.scale.set(1.25,1.6,2.2);c.add(b);const cab=new THREE.Mesh(_carCabG,_cabMs);[1.35,-1.35].forEach(z=>{const wh=new THREE.Mesh(_wheelG,_wheelM);wh.position.set(0,.42,big?z*2.2:z);if(big)wh.scale.set(1.25,1.2,1.2);c.add(wh);});cab.position.set(0,big?2.0:1.45,big?1.4:-.2);c.add(cab);
   [[-.6,2.11],[.6,2.11]].forEach(([x,z])=>{const h=new THREE.Mesh(new THREE.BoxGeometry(.4,.2,.05),_hlM);h.position.set(x,.7,big?4.6:z);c.add(h);const t=new THREE.Mesh(new THREE.BoxGeometry(.4,.2,.05),_tlM);t.position.set(x,.7,big?-4.6:-z);c.add(t);});g.add(c);return c;}
 function addTraffic(g,ax,az,bx,bz,n,lane){const dx=bx-ax,dz=bz-az,L=Math.hypot(dx,dz),ux=dx/L,uz=dz/L,nx=-uz,nz=ux;
-  for(let i=0;i<n;i++){const m=carMesh(g,pick(8),Math.random()<.12);const dir=i%2?1:-1;traffic.push({m,ax,az,ux,uz,nx,nz,L,t:Math.random()*L,dir,sp:7+Math.random()*6,lane:lane||1.7});}}
+  for(let i=0;i<n;i++){const m=carMesh(g,pick(8),Math.random()<.12);const dir=i%2?1:-1;traffic.push({m,ax,az,ux,uz,nx,nz,L,t:Math.random()*L,dir,sp:7+Math.random()*6,lane:lane||2.4});}}
 function trafficTick(dt){if(!cityGrp||!cityGrp.visible)return;dt=Math.min(dt,.1);for(const c of traffic){const mg=Math.min(6,c.L*.2);c.t+=c.dir*c.sp*dt;if(c.t>c.L-mg){c.t=c.L-mg;c.dir=-1;c.sp=7+Math.random()*6;}else if(c.t<mg){c.t=mg;c.dir=1;c.sp=7+Math.random()*6;}
   const o=c.lane*c.dir;c.m.position.set(c.ax+c.ux*c.t+c.nx*o,0,c.az+c.uz*c.t+c.nz*o);c.m.rotation.y=Math.atan2(c.ux*c.dir,c.uz*c.dir);}}
 /* ---------- build ---------- */
 const _lampPoleG=new THREE.BoxGeometry(.2,5,.2),_lampHeadG=new THREE.SphereGeometry(.36,8,6),_lampPoleM=mat(0x222228),_lampHeadM=new THREE.MeshBasicMaterial({color:0xfff1c0});
 function lamp(g,x,z){const p=new THREE.Mesh(_lampPoleG,_lampPoleM);p.position.set(x,2.5,z);g.add(p);const h=new THREE.Mesh(_lampHeadG,_lampHeadM);h.position.set(x,5.15,z);g.add(h);}
 function roadSeg(g,ax,az,bx,bz,w,lamps){const road=roadSeg.m||(roadSeg.m=new THREE.MeshLambertMaterial({color:0x2b2b33})),lm=roadSeg.l||(roadSeg.l=new THREE.MeshBasicMaterial({color:0xf2f2f2})),side=roadSeg.s||(roadSeg.s=new THREE.MeshLambertMaterial({color:0x9a9088}));
+  w=w<=8?w+1.5:w+1;
   (roadSeg.list||(roadSeg.list=[])).push([ax,az,bx,bz,w]);
   const hz=az===bz,L=hz?Math.abs(bx-ax):Math.abs(bz-az),cx=(ax+bx)/2,cz=(az+bz)/2;
   if(hz){gplane(g,L,w+2.4,side,cx,cz,.007);gplane(g,L,w,road,cx,cz,.009);for(let x=Math.min(ax,bx)+2;x<Math.max(ax,bx);x+=6)gplane(g,2.4,.18,lm,x,cz,.013);if(lamps!==false)for(let x=Math.min(ax,bx)+4;x<Math.max(ax,bx);x+=18){lamp(g,x,cz-w/2-.9);lamp(g,x+9,cz+w/2+.9);}}
@@ -3998,13 +4071,13 @@ const TRL=[
   {id:'mrt',n:'MRT',col:0xd8435b,y:8.6,a:[-168,-51],b:[92,-51],st:[['Barat Daya',-150],['Mall Barat',-118],['Sentral',-76],['Bursa Efek',14],['Permata Timur',88]]},
   {id:'lrt',n:'LRT',col:0x2f6fe0,y:14,a:[-100,-168],b:[-100,80],st:[['Markas',-150],['Sentral Utara',-90],['Plaza Barat',32],['Pesisir',72]]}];
 const trains=[];
-function buildRail(G){const gm=mat(0x9a9aa2),pm=mat(0x7a7a82);TRL.forEach(L=>{const hz=L.a[1]===L.b[1],len=hz?L.b[0]-L.a[0]:L.b[1]-L.a[1],cx=(L.a[0]+L.b[0])/2,cz=(L.a[1]+L.b[1])/2;
+function buildRail(G){const gm=mat(0x9a9aa2),pm=mat(0x7a7a82);TRL.forEach(L=>{if(L.id==='mrt'){buildMrtEntrances(G,L);return;}const hz=L.a[1]===L.b[1],len=hz?L.b[0]-L.a[0]:L.b[1]-L.a[1],cx=(L.a[0]+L.b[0])/2,cz=(L.a[1]+L.b[1])/2;
   const beam=new THREE.Mesh(new THREE.BoxGeometry(hz?len:4,.9,hz?4:len),gm);beam.position.set(cx,L.y,cz);G.add(beam);
   const stripe=new THREE.Mesh(new THREE.BoxGeometry(hz?len:4.05,.25,hz?4.05:len),new THREE.MeshBasicMaterial({color:L.col}));stripe.position.set(cx,L.y-.3,cz);G.add(stripe);
   for(let s=0;s<=len;s+=22){const x=hz?L.a[0]+s:cx,z=hz?cz:L.a[1]+s;const p=new THREE.Mesh(new THREE.BoxGeometry(1.1,L.y,1.1),pm);p.position.set(x,L.y/2,z);G.add(p);colliders.push({x0:x-.55,x1:x+.55,z0:z-.55,z1:z+.55,top:L.y});}
   L.st.forEach(([nm,pos],i)=>{const x=hz?pos:cx,z=hz?cz:pos;const plat=new THREE.Mesh(new THREE.BoxGeometry(hz?16:3,.5,hz?3:16),mat(0xd8d0c0));plat.position.set(hz?x:x+3.4,L.y-.2,hz?z-3.4:z);G.add(plat);
     const roof=new THREE.Mesh(new THREE.BoxGeometry(hz?18:9,.4,hz?9:18),mat(L.col));roof.position.set(x,L.y+4.6,z);G.add(roof);
-    const gx=hz?x:x+5.5,gz=hz?z-5.5:z;cBox(G,3.4,3.2,3.4,0xe8e0d0,gx,1.6,gz,true);cBox(G,3.6,.6,3.6,L.col,gx,3.5,gz);cBox(G,.6,L.y-1,.6,0xe8e0d0,gx,(L.y-1)/2,gz);
+    const gx=hz?x:x+7.5,gz=hz?z-7.5:z;cBox(G,3.4,3.2,3.4,0xe8e0d0,gx,1.6,gz,true);cBox(G,3.6,.6,3.6,L.col,gx,3.5,gz);cBox(G,.6,L.y-1,.6,0xe8e0d0,gx,(L.y-1)/2,gz);
     G.add(neon(`${L.n} ${nm.toUpperCase()}`,hz?x:x+3.6,L.y+2.6,hz?z-4.9:z,hz?Math.PI:Math.PI/2,'#ffffff',L.id==='mrt'?'#ff7a8a':'#7ab4ff',10,1.1));
     const ux=hz?0:1,uz=hz?-1:0;stationAdd('xrail',gx+ux*2.4,gz+uz*2.4,hz?Math.PI:Math.PI/2,`Stasiun ${L.n} ${nm}`,{useDist:3,verb:'Naik',act:()=>XA.xTrip(L.id+':'+i),ctx:()=>railCtx(L,i),btn:L.n});});
   const tg=new THREE.Group();G.add(tg);const cars=3,cl=11;const bodyM=new THREE.MeshLambertMaterial({color:0xf2f4f8}),stM=new THREE.MeshBasicMaterial({color:L.col}),wM=new THREE.MeshBasicMaterial({color:0x22324a});
@@ -4014,7 +4087,7 @@ function trainTick(dt){for(const T of trains){if(T.wait>0){T.wait-=dt;}else{cons
   if(T.hz)T.g.position.set(T.pos,0,T.c);else T.g.position.set(T.c,0,T.pos);}}
 function railCtx(L,i){const me=L.st[i][0];const other=TRL.flatMap(l=>l.st.map((s,j)=>({l,s,j}))).filter(o=>!(o.l===L&&o.j===i));
   return `<div class="ctx-head"><h3>🚇 ${L.n} ${me}</h3><small>Tiket 🪙 3.000 ke stasiun mana saja. Kereta lewat tiap beberapa detik di atas.</small></div><div class="ctx-row">${other.map(o=>bzB('xRide',o.l.id+':'+o.j,`${o.l.n} ${o.s[0]}`,o.l!==L)).join('')}${me==='Sentral'||me==='Sentral Utara'?bzB('xFly','bandara','✈️ KA Bandara')+bzB('xFly','pelabuhan','⚓ KA Pelabuhan')+bzB('xFly','cakra','🏟️ Bus Cakrawala'):''}</div>`;}
-XA.xRide=id=>{const [lid,j]=id.split(':');const L=TRL.find(l=>l.id===lid),s=L&&L.st[+j];if(!s)return;if(!XS().vip&&!xPay(3000))return;const hz=L.a[1]===L.b[1];const x=hz?s[1]:L.a[0]+5.5,z=hz?L.a[1]-5.5:s[1];tpTo(hz?x:x+2.6,hz?z-2.6:z,hz?Math.PI:Math.PI/2);banner(`🚇 ${L.n} ${s[0].toUpperCase()}<small>Pintu terbuka, hati-hati melangkah</small>`,'',1800);qx('ride');xSave();};
+XA.xRide=id=>{const [lid,j]=id.split(':');const L=TRL.find(l=>l.id===lid),s=L&&L.st[+j];if(!s)return;if(!XS().vip&&!xPay(3000))return;const hz=L.a[1]===L.b[1];const x=hz?s[1]:L.a[0]+7.5,z=hz?L.a[1]-7.5:s[1];tpTo(hz?x:x+2.6,hz?z-2.6:z,hz?Math.PI:Math.PI/2);banner(`🚇 ${L.n} ${s[0].toUpperCase()}<small>Pintu terbuka, hati-hati melangkah</small>`,'',1800);qx('ride');xSave();};
 
 /* ---------- v18b props: hotels, SPBU, franchise, islands, castle, oil, tech, stadium... (generalised megamall system) ---------- */
 const ZZ=(k,dz)=>zoneZ(k)+dz;
@@ -4110,19 +4183,19 @@ function buildLandmarks(G){
   const rects=[[-48,-6,-106,-58],[6,48,-106,-58],[-96,-56,-106,-58],[-170,-104,-94,-58]];const rm=[];G.children.forEach(o=>{if(o.isMesh&&(o.geometry===_trunkG||o.geometry===_leafG)&&rects.some(([a,b,c,d])=>o.position.x>a&&o.position.x<b&&o.position.z>c&&o.position.z<d))rm.push(o);});rm.forEach(o=>G.remove(o));}
 
 /* ---------- v18b environment: day/night, weather, city festival, fireworks, minimap, HUD ---------- */
-const DAYMS=720000;const _hemi=scene.children.find(o=>o.isHemisphereLight);
-const SKY={n:new THREE.Color(0x0a0f2a),d:new THREE.Color(0x8cbcec),k:new THREE.Color(0xe8905a),room:new THREE.Color(0x1a120e),tmp:new THREE.Color()};
+const DAYMS=1800000;const _hemi=scene.children.find(o=>o.isHemisphereLight);
+const SKY={n:new THREE.Color(0x182348),d:new THREE.Color(0x8cbcec),k:new THREE.Color(0xe8905a),room:new THREE.Color(0x1a120e),tmp:new THREE.Color()};
 const WX=[{id:'cerah',ic:'☀️',n:'Cerah'},{id:'awan',ic:'⛅',n:'Berawan'},{id:'hujan',ic:'🌧️',n:'Hujan'},{id:'badai',ic:'⛈️',n:'Badai'}];
 let wx=WX[0],wxUntil=0,rainPts=null,xOutside=false;
-function gameClock(){const t=(Date.now()%DAYMS)/DAYMS;const m=Math.floor(t*1440);return {t,h:Math.floor(m/60),mi:m%60,night:t<.23||t>.8};}
+function gameClock(){const t=(Date.now()%DAYMS)/DAYMS;const m=Math.floor(t*1440);return {t,h:Math.floor(m/60),mi:m%60,night:t<.2||t>.8};}
 function festOn(){return Date.now()%1800000<180000;}
 function festLeft(){return Math.ceil((180000-Date.now()%1800000)/1000);}
 function festNext(){return Math.ceil((1800000-Date.now()%1800000)/60000);}
 function envTick(dt){const zk=zoneAt(you.pos.z);xOutside=(cityGrp&&cityGrp.visible)||zk>=0;
-  if(Date.now()>wxUntil){const r=Math.random();wx=r<.5?WX[0]:r<.75?WX[1]:r<.93?WX[2]:WX[3];if(zk===4&&wx.id!=='cerah'&&Math.random()<.7)wx=WX[0];wxUntil=Date.now()+150000+Math.random()*150000;if(started&&xOutside&&wx.id==='badai')logLine('sys',null,'⛈️ Badai melanda Kota Permata. Hati-hati di jalan!');}
+  if(Date.now()>wxUntil){const r=Math.random();wx=r<.6?WX[0]:r<.82?WX[1]:r<.95?WX[2]:WX[3];if(zk===4&&wx.id!=='cerah'&&Math.random()<.7)wx=WX[0];wxUntil=Date.now()+360000+Math.random()*360000;if(started&&xOutside&&wx.id==='badai')logLine('sys',null,'⛈️ Badai melanda Kota Permata. Hati-hati di jalan!');}
   const bg=scene.background,fog=scene.fog;
-  if(!xOutside||window.__camO){bg.copy(SKY.room);fog.color.copy(SKY.room);if(_hemi)_hemi.intensity=.85;sun.intensity=.55;if(rainPts)rainPts.visible=false;return;}
-  const c=gameClock(),sh=Math.sin((c.t-.25)*Math.PI*2),d=Math.max(0,Math.min(1,sh*1.8+.35)),dusk=Math.max(0,1-Math.abs(sh)*4)*(sh>-.3?1:0);
+  if(!xOutside||window.__camO||(zk>=0&&ZN[zk].under)){bg.copy(SKY.room);fog.color.copy(SKY.room);if(_hemi)_hemi.intensity=.85;sun.intensity=.55;if(rainPts)rainPts.visible=false;return;}
+  const c=gameClock(),sh=Math.sin((c.t-.25)*Math.PI*2),d=Math.max(0,Math.min(1,sh*2.2+.6)),dusk=Math.max(0,1-Math.abs(sh)*4)*(sh>-.3?1:0);
   SKY.tmp.copy(SKY.n).lerp(SKY.d,d).lerp(SKY.k,dusk*.45);const wet=wx.id==='hujan'?.55:wx.id==='badai'?.38:wx.id==='awan'?.8:1;SKY.tmp.multiplyScalar(.35+.65*wet);
   if(wx.id==='badai'&&Math.random()<dt*.25){SKY.tmp.setRGB(.9,.92,1);flashFx('rgba(255,255,255,.5)');}
   if(festOn()&&c.night)SKY.tmp.lerp(new THREE.Color(0x2a1040),.3);
@@ -4568,7 +4641,7 @@ corpBox=function(a){if(a.t!=='saham'){const mx=a.sh*.2;return `<div class="walle
   return `<div class="wallet corp"><small>Pemegang saham ${a.id} (di atas 5%)</small><div class="row"><span>Total saham</span><span>${fmt(a.sh)} lembar</span></div>${rows}
     <div class="hold pub"><span><b>Publik · pembelian bebas</b><small>${(ff/a.sh*100).toFixed(1)}% · ${fmt(Math.floor(ff))} lembar tersedia (pemegang di bawah 5% ikut di sini)</small></span></div>
     <div class="row"><span>Bagianmu</span><span>${(mine/a.sh*100).toFixed(2)}% · ${fmt(Math.floor(mine))} lembar</span></div>${ctlAct}<p class="tmsg" id="corpMsg"></p></div>`;};
-function bidForm(a,h){const q=Math.floor(h.ctl?h.q*.5:h.q),px=Math.round(a.p*.9*100)/100;
+function bidForm(a,h){const q=Math.floor(h.q),px=Math.round(a.p*.9*100)/100;
   return `<div class="bidf"><label class="tin"><span>Lembar</span><input id="cbQ" type="number" inputmode="numeric" min="1" max="${q}" value="${q}"><em>maks ${fmtBig(q)}</em></label>
   <label class="tin"><span>Harga</span><input id="cbP" type="number" inputmode="decimal" min="0" step="any" value="${px}"><em>/lembar</em></label>
   <div class="row"><span>Harga pasar</span><span>${fmtP(a.p)}</span></div><div class="row"><span>Total · peluang diterima</span><b id="cbT">-</b></div>
@@ -4577,7 +4650,7 @@ function bidCalc(a){const q=Math.floor(+($('cbQ')||{}).value||0),px=+($('cbP')||
 const _corpDoOld=corpDo;
 corpDo=function(act,a){if(!a||a.t!=='saham')return;const c=corpS(a),m=t=>{const e=$('corpMsg');if(e)e.textContent=t;};
   if(act.startsWith('sel:')){const k=act.slice(4);if((c.tw2||{})[k]===mDay){SFX.error();m('Pemegang ini sudah menolak hari ini. Coba lagi hari bursa berikutnya.');return;}corpSel=corpSel&&corpSel.k===k&&corpSel.id===a.id?null:{id:a.id,k};SFX.pop();phoneRender();setTimeout(()=>{bidCalc(a);['cbQ','cbP'].forEach(i=>{const e=$(i);if(e)e.oninput=()=>bidCalc(a);});const f=document.querySelector('.bidf');if(f)f.scrollIntoView({block:'nearest'});},30);return;}
-  if(act.startsWith('bid:')){const k=act.slice(4),h=holders(a).find(x=>x.k===k);if(!h||h.me)return;let {q,px}=bidCalc(a);const maxQ=Math.floor(h.ctl?h.q*.5:h.q);q=Math.min(q,maxQ);
+  if(act.startsWith('bid:')){const k=act.slice(4),h=holders(a).find(x=>x.k===k);if(!h||h.me)return;let {q,px}=bidCalc(a);const maxQ=Math.floor(h.q);q=Math.min(q,maxQ);
     if(q<1||px<=0){SFX.error();m('Isi jumlah lembar dan harga dulu.');return;}const tot=Math.round(q*px);if(S.bal<tot){SFX.error();m(`Koin kurang. Butuh 🪙 ${fmt(tot)}.`);return;}
     c.tw2=c.tw2||{};if(Math.random()>bidChance(a,px)){c.tw2[k]=mDay;corpSel=null;SFX.error();logLine('sys',null,`${h.n} menolak tawaranmu ${fmtBig(q)} lembar ${a.id} @ ${fmtP(px)}.`);savePF();phoneRender();setTimeout(()=>m(`${h.n}: "Harganya belum cocok." Coba lagi besok atau naikkan harga.`),30);return;}
     S.bal-=tot;PF.hold[a.id]=(PF.hold[a.id]||0)+q;PF.blkQ=PF.blkQ||{};PF.blkQ[a.id]=(PF.blkQ[a.id]||0)+q;PF.cost[a.id]=(PF.cost[a.id]||0)+tot;addTx({id:a.id,side:'buy',q,px,amt:tot});
@@ -4645,6 +4718,197 @@ function dressBuildings(){let n=0;const doorM=new THREE.MeshLambertMaterial({col
     if(h<26&&(dx?d:w)>7){const sg=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.15),signMat(SHOPN[(Math.abs(x*3+z*7)|0)%SHOPN.length],['#1b2430','#3a1d2a','#1d3a2a','#2a2a4a'][n%4]));sg.position.set(0,4.4,.05);grp.add(sg);}
     if(w*d>60)for(let k=0;k<2;k++){const u=new THREE.Mesh(new THREE.BoxGeometry(1.4,.9,1.1),unitM);u.position.set(x+(k?-1:1)*w*.22,h+.45,z+(k?1:-1)*d*.18);G.add(u);}
   }));return n;}
+/* ---------- v20 fishing (from stev's own old game): hold to cast, bobber, reel minigame, catch card, bag, rods, bait, aquarium ---------- */
+const FR=[// rarity tiers: name, colour, weight, base value per fish, xp
+  ['Biasa','#b8c0cc',1000,6e3,4],['Tak Biasa','#5fd35f',400,25e3,8],['Langka','#4d8cff',120,120e3,16],['Epik','#b46bff',35,600e3,35],['Legendaris','#ffb21c',9,4e6,80],['Mitos','#ff4d6d',2.2,25e6,180],['Divine','#7df3ff',.5,150e6,420],['Rahasia','#ff5ab4',.12,600e6,900],['Kolosal','#ff2a2a',0,2e9,3000]];
+const FLOC={
+  kota:{n:'Teluk Permata',sp:[['Ikan Teri',0,.01,.05,'🐟'],['Biji Nangka',0,.2,.8,'🐟'],['Betok Lurik',0,.1,.4,'🐟'],['Gobi Batik',1,.05,.2,'🐠'],['Kakap Lurik',1,1,6,'🐠'],['Bawal',1,.5,3,'🐟'],['Kepe Bendera',2,.1,.5,'🐠'],['Lencam Laguna',2,1,5,'🐟'],['Ubur-ubur Terbalik',2,.3,2,'🪼'],['Kakatua Pelangi',3,1,4,'🐠'],['Botana Ungu',3,.3,1.2,'🐠'],['Pari Bintik',4,10,60,'🐟'],['Belut Listrik',5,5,25,'🐍'],['Naga Laut',6,20,60,'🐉'],['Hiu Baja Hitam',7,80,300,'🦈']]},
+  laut:{n:'Laut',sp:[['Sonang Lamun',0,.2,1,'🐟'],['Rumput Laut',0,.1,.5,'🌿'],['Tongkol',0,1,4,'🐟'],['Bleni Jambul',1,.05,.2,'🐠'],['Triger Tutul',1,.5,2,'🐡'],['Kerapu Macan',2,3,15,'🐟'],['Cumi Kilat',2,.3,2,'🦑'],['Gurita Belang',3,2,10,'🐙'],['Lobster Mutiara',3,.5,3,'🦞'],['Tuna Sirip Kuning',4,30,120,'🐟'],['Marlin Biru',5,60,250,'🐟'],['Koi Dewa',6,5,20,'🎏'],['Kraken Kecil',7,100,400,'🦑']]},
+  pantai:{n:'Pantai',sp:[['Kelomang',0,.02,.1,'🐚'],['Udang Pasir',0,.01,.05,'🦐'],['Ikan Badut',1,.05,.2,'🐠'],['Kepiting Bakau',1,.5,2,'🦀'],['Bintang Laut',1,.1,.5,'⭐'],['Kuda Laut',2,.02,.1,'🐉'],['Ikan Kakatua',2,1,4,'🐠'],['Barakuda',3,5,20,'🐟'],['Hiu Karang',4,20,80,'🦈'],['Pari Manta',5,200,900,'🐟'],['Paus Bintang',6,500,3000,'🐋'],['Leviatan Karang',7,800,5000,'🐉']]}};
+const FKOL=[['Hiu Paus Kolosal','🦈'],['Belut Raksasa Kolosal','🐍'],['Gurita Kolosal','🐙'],['Paus Kolosal','🐋']];
+const FMUT=[['Albino',.8,.05,'grayscale(1) brightness(1.6)'],['Berkilau',.5,.06,'saturate(2.2) brightness(1.3)'],['Membara',1,.025,'sepia(1) saturate(6) hue-rotate(-35deg)'],['Listrik',1.2,.02,'hue-rotate(180deg) saturate(3) brightness(1.2)'],['Radioaktif',1.5,.012,'hue-rotate(80deg) saturate(5)'],['Hantu',2,.008,'opacity(.55) grayscale(.6)'],['Galaksi',3,.004,'hue-rotate(250deg) saturate(3) contrast(1.4)']];
+const FROD=[// id, name, rarity idx, price coins (0=gacha only), luck%, power, speed%, mutation%
+  ['bambu','Rod Bambu',0,0,0,0,0,0],['fiber','Rod Fiber',1,250e3,8,10,10,0],['karbon','Rod Karbon',2,5e6,20,20,20,5],['kraken','Rod Kraken',4,80e6,40,35,30,25],['mustika','Rod Mustika Abadi',4,600e6,70,50,40,60],['naga','Rod Naga Emas',5,0,140,70,55,120]];
+const FBAIT=[['cacing','Cacing',0,0,0,0,'🪱'],['udang','Udang',20e3,20,0,0,'🦐'],['jangkrik','Jangkrik Emas',500e3,60,10,.1,'🦗'],['glow','Umpan Glow',3e6,110,30,.3,'✨']];// id,n,price,luck,mut,kg
+const FLAV=['Sultan pun harus nunggu pelampung.','Sabar... ikan juga butuh waktu mikir.','Angin enak, pas buat mancing.','Pelampung goyang dikit, eh cuma ombak.','Katanya ikan langka suka yang sabar.','Jangan lupa pajang tangkapan terbaik di akuarium.'];
+function FX(){const x=XS();if(!x.fx){x.fx={bag:[],rods:{bambu:1},rod:'bambu',bait:{},bs:'cacing',aq:[],dex:{},xp:0,lv:1,cap:120,best:{},tot:0};if(Array.isArray(x.fish))x.fish.forEach(f=>x.fx.bag.push({n:f.n,ic:f.ic,r:0,m:-1,kg:1,cm:30,v:f.v,loc:'Laut',t:Date.now()}));x.fish=[];}return x.fx;}
+const fRod=()=>FROD.find(r=>r[0]===FX().rod)||FROD[0];
+const fBait=()=>{const F=FX();const b=FBAIT.find(x=>x[0]===F.bs)||FBAIT[0];if(b[2]&&!(F.bait[b[0]]>0))return FBAIT[0];return b;};
+const fNeed=lv=>Math.round(60*Math.pow(lv,1.45));
+function fLocNow(){const zk=zoneAt(you.pos.z);if(zk<0)return 'kota';return ZN[zk].id==='selatara'?'pantai':'laut';}
+function fTarget(){const d=new Date();const day=d.getFullYear()*400+d.getMonth()*32+d.getDate();const F=FX();if(F.tgtD!==day){F.tgtD=day;const all=[];for(const k in FLOC)FLOC[k].sp.forEach(s=>{if(s[1]>=1&&s[1]<=4)all.push(s[0]);});F.tgt=all[day%all.length];}return F.tgt;}
+// is there water a few metres in front of the player?
+function fWater(){if(!you)return null;const fx=Math.sin(you.yaw),fz=Math.cos(you.yaw);for(const d of [3,5,7]){const x=you.pos.x+fx*d,z=you.pos.z+fz*d;
+    if(zoneAt(you.pos.z)<0){if(z>OUT_Z-6.4&&you.pos.z>OUT_Z-16&&x>-176&&x<176)return {x:you.pos.x+fx*9,z:Math.max(z+3,OUT_Z-3)};}
+    else for(const c of colliders){if(c.sea&&x>c.x0&&x<c.x1&&z>c.z0&&z<c.z1)return {x:you.pos.x+fx*9,z:you.pos.z+fz*9};}}return null;}
+const FS={st:'off',pow:0,t:0,bite:0,bob:null,line:null,rod:null,tip:null,near:false,from:null,to:null,reel:null,lastNear:0,flav:0};
+function fUI(){let w=$('fishUI');if(w)return w;w=document.createElement('div');w.id='fishUI';w.className='fishui off';
+  w.innerHTML=`<div class="fbar"><button id="fBag">🎒 <b id="fBagN">0/120</b></button><button id="fRodB">🎣 <b id="fRodN">Rod</b></button><button id="fBaitB">🪱 <b id="fBaitN">Cacing</b></button><button id="fDexB">📖 <b id="fDexN">0/0</b></button></div><div id="fInfo" class="finfo"></div>
+  <div id="fPow" class="fpow off"><i id="fPowI"></i></div><div id="fBub" class="fbub off"></div>
+  <div id="fReel" class="freel off"><div class="frl-top" id="fRT">Tarik!</div><div class="frl-wrap"><div class="frl-track"><div id="fZone" class="frl-zone"></div><div id="fFish" class="frl-fish">🐟</div></div><div class="frl-prog"><i id="fProg"></i></div></div></div>
+  <button id="fBtn" class="fbtn">🎣<b>Mancing</b></button>`;stage.appendChild(w);
+  const b=$('fBtn');b.addEventListener('pointerdown',e=>{e.preventDefault();fDown();});b.addEventListener('pointerup',e=>{e.preventDefault();fUp();});b.addEventListener('pointerleave',()=>{if(FS.st==='charge')fUp();FS.hold=false;});
+  $('fBag').onclick=()=>xOpen('mancing');$('fRodB').onclick=()=>{phFishTab='toko';xOpen('mancing');};$('fBaitB').onclick=()=>{const F=FX(),own=FBAIT.filter(x=>!x[2]||F.bait[x[0]]>0);const i=own.findIndex(x=>x[0]===fBait()[0]);F.bs=own[(i+1)%own.length][0];SFX.pop();fHud();};$('fDexB').onclick=()=>{phFishTab='indeks';xOpen('mancing');};
+  return w;}
+let phFishTab='tas';
+function fHud(){const F=FX(),w=fUI(),loc=FLOC[fLocNow()];$('fBagN').textContent=F.bag.length+'/'+F.cap;$('fRodN').textContent=fRod()[1].replace('Rod ','');const b=fBait();$('fBaitN').textContent=b[1]+(b[2]?' ×'+(F.bait[b[0]]||0):'');
+  $('fDexN').textContent=loc.sp.filter(s=>F.dex[s[0]]).length+'/'+loc.sp.length;const kol=fKol();
+  $('fInfo').innerHTML=`📍 ${loc.n} · Lv ${F.lv} · 🎯 Incaran hari ini: <b>${fTarget()}</b> +100%${kol&&kol.loc===fLocNow()?` · <b style="color:#ff5a5a">🐋 Ada Ikan Kolosal! ${Math.ceil((kol.until-Date.now())/60000)} mnt</b>`:''}`;
+  const btn=$('fBtn');const L={off:['🎣','Mancing'],charge:['💪','Lepas!'],cast:['🎣','...'],wait:['⬆️','Angkat'],bite:['❗','Tarik!'],reel:['💪','Tarik (tahan)']}[FS.st]||['🎣','Mancing'];btn.innerHTML=`${L[0]}<b>${L[1]}</b>`;btn.className='fbtn st-'+FS.st;}
+function fRodMesh(){const av=you.av;if(FS.rod&&FS.rod.parent===av.rArm)return;const g=new THREE.Group();const r=new THREE.Mesh(new THREE.CylinderGeometry(.03,.05,2.6,6),mat(0x6b4a2a));r.position.set(0,1.3,0);g.add(r);const tip=new THREE.Object3D();tip.position.set(0,2.6,0);g.add(tip);
+  g.position.set(0,-.85,.1);g.rotation.x=1.15;av.rArm.add(g);FS.rod=g;FS.tip=tip;}
+function fLine(){if(FS.line)return;const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);FS.line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xf4f4f4}));FS.line.frustumCulled=false;scene.add(FS.line);
+  const b=new THREE.Group();const s1=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0xff3040}));const s2=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8,0,Math.PI*2,Math.PI/2,Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff}));b.add(s1,s2);FS.bob=b;scene.add(b);}
+function fClear(){if(FS.line){scene.remove(FS.line);FS.line=null;}if(FS.bob){scene.remove(FS.bob);FS.bob=null;}$('fPow').classList.add('off');$('fReel').classList.add('off');$('fBub').classList.add('off');FS.reel=null;}
+function fDown(){if(modal||busy)return;audio();FS.hold=true;
+  if(FS.st==='off'){if(FX().bag.length>=FX().cap){SFX.error();showResult('🎒 Tas penuh! Jual atau pajang ikan dulu.');return;}FS.st='charge';FS.pow=0;FS.pd=1;$('fPow').classList.remove('off');fHud();return;}
+  if(FS.st==='wait'){fClear();FS.st='off';fHud();bubble('Angkat dulu deh.');return;}
+  if(FS.st==='bite'){fReelStart();return;}}
+function fUp(){FS.hold=false;if(FS.st==='charge'){fCast();}}
+function bubble(t,ms){const b=$('fBub');b.textContent=t;b.classList.remove('off');clearTimeout(bubble.t);bubble.t=setTimeout(()=>b.classList.add('off'),ms||2600);}
+function fCast(){const w=fWater();$('fPow').classList.add('off');if(!w){FS.st='off';fHud();bubble('Hadap ke air dulu ya.');SFX.error();return;}
+  fRodMesh();fLine();FS.st='cast';FS.t=0;const d=4+FS.pow*9,fx=Math.sin(you.yaw),fz=Math.cos(you.yaw);FS.from=new THREE.Vector3();FS.tip.getWorldPosition(FS.from);FS.to=new THREE.Vector3(you.pos.x+fx*(2+d),.05,you.pos.z+fz*(2+d));
+  FS.loc=fLocNow();SFX.whoosh&&SFX.whoosh();fHud();}
+function fPick(){const F=FX(),rod=fRod(),bait=fBait(),loc=FLOC[FS.loc||'kota'],luck=(rod[4]+bait[3]+(typeof buffs==='function'?(buffs().fish||0):0))/100;
+  const kol=fKol();if(kol&&kol.loc===FS.loc&&Math.random()<.04+luck*.01){const K=FKOL[kol.i];return {n:K[0],ic:K[1],r:8,kg:[5000,20000],kol:1};}
+  const ws=loc.sp.map(s=>FR[s[1]][2]*Math.pow(1+luck,s[1]*.55)*(s[0]===fTarget()?1.5:1));const tot=ws.reduce((a,b)=>a+b,0);let r=Math.random()*tot,i=0;for(;i<ws.length-1;i++){if((r-=ws[i])<=0)break;}
+  const s=loc.sp[i];return {n:s[0],ic:s[4],r:s[1],kg:[s[2],s[3]],odds:Math.max(1,Math.round(tot/ws[i]))};}
+function fReelStart(){const P=fPick();FS.st='reel';FS.fish=P;const rod=fRod();const zs=Math.max(14,30+rod[5]*.25-P.r*2.4);FS.reel={zone:30,zv:0,zs,fp:50,ft:50,fv:0,prog:28,sp:.5+P.r*.28,jt:0};
+  $('fReel').classList.remove('off');$('fRT').innerHTML=`<span style="color:${FR[P.r][1]}">${P.r>=2?FR[P.r][0]:'Ikan menggigit!'}</span>`;$('fFish').textContent=P.ic;$('fZone').style.height=zs+'%';SFX.stop&&SFX.stop();fHud();}
+function fCatch(){const P=FS.fish,F=FX(),rod=fRod(),bait=fBait();fClear();FS.st='off';
+  if(bait[2]){F.bait[bait[0]]=Math.max(0,(F.bait[bait[0]]||0)-1);}
+  let mi=-1;const mb=(rod[7]+bait[4])/100;for(let i=FMUT.length-1;i>=0;i--){if(Math.random()<FMUT[i][2]*(1+mb)){mi=i;break;}}
+  const u=Math.pow(Math.random(),1.6-(bait[5]||0));const kg=Math.round((P.kg[0]+(P.kg[1]-P.kg[0])*u)*100)/100;const cm=Math.round(Math.cbrt(kg)*(P.kol?140:38)*10)/10;
+  const avg=(P.kg[0]+P.kg[1])/2;let v=FR[P.r][3]*(.6+.8*kg/avg)*(1+(mi>=0?FMUT[mi][1]:0))*(1+F.lv*.01)*(P.n===fTarget()?2:1);v=Math.round(v);
+  const isNew=!F.dex[P.n];F.dex[P.n]=(F.dex[P.n]||0)+1;const xp=Math.round(FR[P.r][4]*(isNew?2:1)*(1+(mi>=0?.5:0)));F.xp+=xp;let up=false;while(F.xp>=fNeed(F.lv)){F.xp-=fNeed(F.lv);F.lv++;up=true;}
+  const fish={n:P.n,ic:P.ic,r:P.r,m:mi,kg,cm,v,loc:FLOC[FS.loc||'kota'].n,t:Date.now(),odds:P.odds||0};F.tot=(F.tot||0)+1;if(!F.best[P.n]||kg>F.best[P.n])F.best[P.n]=kg;
+  F.bag.push(fish);qx('fish');if(P.r>=4)qx('bigfish');if(P.r>=6||P.kol){logLine('sys',null,`🌊 Kamu berhasil mendapatkan ${P.n} ${FR[P.r][0]} ${fmtKg(kg)}${P.odds?' · 1 in '+fmt(P.odds):''}!`,'win');banner(`🌊 ${P.n.toUpperCase()}<small>${FR[P.r][0]} · ${fmtKg(kg)}</small>`,'',2600);}
+  SFX[P.r>=4?'big':'win']();you.cheer=1.2;xSave();fCard(fish,isNew,xp,up);fHud();}
+const fmtKg=kg=>kg>=1000?(kg/1000).toLocaleString('id-ID',{maximumFractionDigits:1})+' ton':kg.toLocaleString('id-ID',{maximumFractionDigits:2})+' kg';
+const fmtCm=cm=>cm>=100?(cm/100).toLocaleString('id-ID',{maximumFractionDigits:1})+' m':cm.toLocaleString('id-ID',{maximumFractionDigits:1})+' cm';
+const fIc=(f,sz)=>`<span class="fic" style="font-size:${sz||30}px;${f.m>=0?'filter:'+FMUT[f.m][3]:''}">${f.ic}</span>`;
+function fCard(f,isNew,xp,up){const F=FX(),R=FR[f.r];const m=xModal('',(b,M)=>{b.innerHTML=`<div class="fcard" style="--rc:${R[1]}"><div class="fpill">${R[0]}${f.odds?' · 1 in '+fmt(f.odds):''}</div><div class="fbig">${fIc(f,86)}</div>
+  ${f.m>=0?`<div class="fmut">Mutasi ${FMUT[f.m][0]} +${Math.round(FMUT[f.m][1]*100)}%</div>`:''}<h3>${esc(f.n)}</h3><div class="fkg">${fmtKg(f.kg)} (${fmtCm(f.cm)})</div><div class="fchips"><span>📍 ${f.loc}</span>${isNew?'<span class="new">⭐ Spesies baru</span>':''}<span>🪙 ${fmtBig(f.v)}</span></div>
+  <div class="fxp"><small>Lv ${F.lv}${up?' · NAIK LEVEL!':''} · +${xp} XP</small><div><i style="width:${Math.min(100,F.xp/fNeed(F.lv)*100)}%"></i></div></div>
+  <div class="srow"><button class="pbtn" id="fcK">🎒 Simpan</button><button class="pbtn" id="fcS">Jual 🪙 ${fmtBig(f.v)}</button><button class="pbtn" id="fcA">🐠 Pajang</button></div></div>`;
+  b.querySelector('#fcK').onclick=()=>closeGame();b.querySelector('#fcS').onclick=()=>{fSell([f]);closeGame();};b.querySelector('#fcA').onclick=()=>{fAq(f);closeGame();};},'fcardm');
+  if(m){m.el.querySelector('.phead h3').textContent='Tangkapan';}}
+function fSell(list){const F=FX();let v=0;list.forEach(f=>{const i=F.bag.indexOf(f);if(i>=0){F.bag.splice(i,1);v+=f.v;}});if(!v)return 0;S.bal+=v;SFX.coin();logLine('sys',null,`🐟 ${list.length} ikan terjual: +${fmtBig(v)} koin.`,'win');xSave();fHud();return v;}
+function fAq(f){const F=FX();if(F.aq.length>=40){SFX.error();showResult('Akuarium penuh (40/40).');return;}const i=F.bag.indexOf(f);if(i>=0)F.bag.splice(i,1);F.aq.push(f);SFX.chip();logLine('sys',null,`🐠 ${f.n} dipajang di akuarium.`);xSave();fHud();}
+// colossal fish event + fake global catch announcements
+function fKol(){const x=FX(),now=Date.now();if(!x.kol||now>x.kol.next){const locs=Object.keys(FLOC);x.kol={loc:locs[Math.floor(Math.random()*locs.length)],i:Math.floor(Math.random()*FKOL.length),start:now+(x.kol?0:120000),until:now+(x.kol?0:120000)+360000,next:now+1500000};}return now>=x.kol.start&&now<x.kol.until?x.kol:null;}
+let fAnnT=Date.now()+90000,fKolSaid=0;
+function fAnnounce(){const now=Date.now();if(now<fAnnT)return;fAnnT=now+180000+Math.random()*240000;const ns=npcNames();const n=ns[Math.floor(Math.random()*ns.length)];const lk=Object.keys(FLOC)[Math.floor(Math.random()*3)],L=FLOC[lk];const top=L.sp.filter(s=>s[1]>=5);const s=top[Math.floor(Math.random()*top.length)];
+  const kg=Math.round((s[2]+Math.random()*(s[3]-s[2]))*10)/10,odds=Math.round(FR[0][2]*8/FR[s[1]][2]*(.8+Math.random()*.6));const msg=`🌊 ${n} berhasil mendapatkan ${s[0]} ${FR[s[1]][0]} ${fmtKg(kg)} · 1 in ${fmt(odds)}`;logLine('sys',null,msg);if(started&&!modal)banner(msg.replace('🌊 ','🌊 <b>')+'</b>','',2600);}
+function fTick(dt){if(!started||!you)return;const now=performance.now();fAnnounce();
+  const k=fKol();if(k&&fKolSaid!==k.start){fKolSaid=k.start;logLine('sys',null,`🐋 Ada Ikan Kolosal di ${FLOC[k.loc].n}! 6 menit. Pancing di sana untuk peluang dapat ${FKOL[k.i][0]}.`,'win');}
+  if(now-FS.lastNear>250){FS.lastNear=now;const near=!!fWater()&&!modal&&!busy;const w=fUI();if(near!==FS.near||FS.st!=='off'){FS.near=near;w.classList.toggle('off',!near&&FS.st==='off');if(near)fHud();}
+    if(FS.st!=='off'&&FS.st!=='charge'&&FS.start&&you.pos.distanceTo(FS.start)>1.5){fClear();FS.st='off';fHud();bubble('Kailnya ditarik karena kamu jalan.');}}
+  if(FS.st==='off'){if(FS.rod&&FS.rod.parent){FS.rod.parent.remove(FS.rod);FS.rod=null;}return;}
+  if(FS.rod&&you.av.rArm===FS.rod.parent){you.av.rArm.rotation.x=-.9;}
+  if(FS.st==='charge'){FS.pow+=FS.pd*dt*1.1;if(FS.pow>1){FS.pow=1;FS.pd=-1;}if(FS.pow<0){FS.pow=0;FS.pd=1;}$('fPowI').style.height=(FS.pow*100)+'%';FS.start=you.pos.clone();return;}
+  if(FS.line&&FS.tip){const a=new THREE.Vector3();FS.tip.getWorldPosition(a);const p=FS.line.geometry.attributes.position;p.setXYZ(0,a.x,a.y,a.z);p.setXYZ(1,FS.bob.position.x,FS.bob.position.y+.1,FS.bob.position.z);p.needsUpdate=true;}
+  if(FS.st==='cast'){FS.t+=dt/.7;const t=Math.min(1,FS.t);FS.bob.position.lerpVectors(FS.from,FS.to,t);FS.bob.position.y=FS.from.y*(1-t)+.05+Math.sin(t*Math.PI)*4;if(t>=1){FS.st='wait';const rod=fRod();FS.bite=now+(2200+Math.random()*5500)*(1-rod[6]/100);FS.flav=now+1200;fHud();}return;}
+  if(FS.st==='wait'){FS.bob.position.y=.05+Math.sin(now/400)*.04;if(now>FS.flav){FS.flav=now+6000;bubble(FLAV[Math.floor(Math.random()*FLAV.length)],2800);}if(now>FS.bite){FS.st='bite';FS.bt=now;bubble('❗ Ikan menggigit! Tekan Tarik!',1400);SFX.tick&&SFX.tick(1,.8);fHud();}return;}
+  if(FS.st==='bite'){FS.bob.position.y=-.12+Math.sin(now/60)*.08;if(now-FS.bt>1600){FS.st='wait';FS.bite=now+2500+Math.random()*4000;bubble('Yah, ikannya kabur. Tunggu lagi...');fHud();}return;}
+  if(FS.st==='reel'){const R=FS.reel;FS.bob.position.y=-.05+Math.sin(now/90)*.1;
+    R.zv+=(FS.hold?120:-110)*dt;R.zv=Math.max(-70,Math.min(70,R.zv));R.zone+=R.zv*dt;if(R.zone<0){R.zone=0;R.zv=0;}if(R.zone>100-R.zs){R.zone=100-R.zs;R.zv=0;}
+    R.jt-=dt;if(R.jt<=0){R.ft=Math.random()*92+4;R.jt=(.5+Math.random()*1.2)/R.sp;}R.fv+=((R.ft-R.fp)*2.2*R.sp-R.fv*1.8)*dt;R.fp=Math.max(0,Math.min(96,R.fp+R.fv*dt));
+    const inZ=R.fp+2>=R.zone&&R.fp+2<=R.zone+R.zs;R.prog+=(inZ?30:-20/(1+fRod()[5]/60))*dt;
+    $('fZone').style.bottom=R.zone+'%';$('fFish').style.bottom=R.fp+'%';$('fProg').style.height=Math.max(0,Math.min(100,R.prog))+'%';$('fZone').classList.toggle('on',inZ);
+    if(R.prog>=100)fCatch();else if(R.prog<=0){fClear();FS.st='off';SFX.error();bubble('Lepas! Ikannya kabur.');fHud();}}}
+const _xTick20=xTick;xTick=function(dt){_xTick20(dt);try{fTick(dt);}catch(e){console.error(e);}};
+// keyboard: F = fishing button
+addEventListener('keydown',e=>{if(!started||modal||e.repeat)return;if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;if(e.key.toLowerCase()==='f'&&(FS.near||FS.st!=='off')){e.preventDefault();fDown();}});
+addEventListener('keyup',e=>{if(e.key.toLowerCase()==='f')fUp();});
+// fish market sells the bag (locked fish stay)
+XA.xFishSell=()=>{const F=FX(),l=F.bag.filter(f=>!f.lk);if(!l.length){SFX.error();showResult('Tidak ada ikan untuk dijual. Mancing dulu!');return;}const v=fSell(l);bizDone(`🐟 ${l.length} ikan terjual di Pasar Ikan: +${fmtBig(v)} koin.`,'win');};
+fishMarketCtx=function(){const F=FX(),l=F.bag.filter(f=>!f.lk);return `<div class="ctx-head"><h3>🐟 Pasar Ikan</h3><small>${l.length} ikan siap jual · nilai ${fmtBig(l.reduce((s,x)=>s+x.v,0))}</small></div><div class="ctx-row">${bzB('xFishSell','','Jual semua (kecuali dikunci)')}${bzB('xFishApp','','🎒 Tas',1)}</div>`;};
+fishOpen=function(){bubble('Hadap ke laut lalu tahan tombol 🎣 Mancing.',3000);fUI().classList.remove('off');fHud();};
+XA.xFishApp=()=>xOpen('mancing');
+// aquarium passive income: 0.05% of displayed value per minute while playing
+setInterval(()=>{if(!started)return;const F=FX();if(!F.aq.length)return;const v=F.aq.reduce((s,f)=>s+f.v,0)*.0005;if(v>=1){S.bal+=Math.round(v);F.aqE=(F.aqE||0)+Math.round(v);}},60000);
+const FSORT={v:(a,b)=>b.v-a.v,r:(a,b)=>b.r-a.r||b.v-a.v,t:(a,b)=>b.t-a.t,kg:(a,b)=>b.kg-a.kg};let fSortK='v';
+xView('mancing',{t:'Mancing',s:'Mancing',ic:'🎣',bg:'linear-gradient(135deg,#2f9edb,#1d5a8a)',r:()=>{const F=FX(),tab=phFishTab;
+  const tabs=`<div class="seg">${[['tas','🎒 Tas'],['toko','🛒 Toko'],['aq','🐠 Akuarium'],['indeks','📖 Indeks']].map(([k,n])=>`<button data-xa="xFTab" data-id="${k}" class="${tab===k?'on buy':''}">${n}</button>`).join('')}</div>`;
+  const head=`<div class="wallet"><small>Pemancing Lv ${F.lv} · ${fmt(F.tot||0)} tangkapan</small><b style="font-size:15px">${fRod()[1]} · ${fBait()[1]}</b><div class="fxp" style="margin-top:4px"><div><i style="width:${Math.min(100,F.xp/fNeed(F.lv)*100)}%"></i></div><small>${fmt(F.xp)} / ${fmt(fNeed(F.lv))} XP</small></div></div>`;
+  let body='';
+  if(tab==='tas'){const L=F.bag.slice().sort(FSORT[fSortK]);body=`<div class="frow"><span>Tas ${F.bag.length}/${F.cap}</span><span>nilai ${fmtBig(F.bag.reduce((s,f)=>s+f.v,0))}</span></div><div class="srow">${[['v','Nilai'],['r','Langka'],['kg','Berat'],['t','Baru']].map(([k,n])=>xB('xFSort',k,(fSortK===k?'✓ ':'')+n)).join('')}${xB('xFQuick','','Buang cepat (jual semua tidak dikunci)','small')}</div>
+    <div class="fgrid">${L.map(f=>{const i=F.bag.indexOf(f);return `<div class="fcell" style="--rc:${FR[f.r][1]}">${fIc(f,30)}<b>${esc(f.n)}</b><small>${f.m>=0?`<em>${FMUT[f.m][0]}</em> `:''}${fmtKg(f.kg)}</small><small>🪙 ${fmtBig(f.v)}</small><div class="fca">${xB('xFLock',i,f.lk?'🔒':'🔓')}${xB('xFSell1',i,'Jual')}${xB('xFAq',i,'🐠')}</div></div>`;}).join('')||'<p class="muted">Tas kosong. Hadap ke laut lalu tahan tombol 🎣 Mancing.</p>'}</div>
+    ${F.cap<345?`<div class="bzr"><span>Perbesar tas +75 slot</span>${xB('xFCap','','💎 '+(40+(F.cap-120)/75*40))}</div>`:''}`;}
+  if(tab==='toko'){body=`<h5>🎣 Rod</h5>${FROD.map(r=>{const own=F.rods[r[0]],on=F.rod===r[0];return `<div class="bzr"><span><b style="color:${FR[r[2]][1]}">${r[1]}</b><small>${FR[r[2]][0]} · 🍀 +${r[4]}% hoki · 💪 ${r[5]} · ⚡ +${r[6]}% cepat${r[7]?' · 🧬 +'+r[7]+'% mutasi':''}</small></span>${on?'<b>Dipakai</b>':own?xB('xFRod',r[0],'Pakai'):r[3]?xB('xFBuyRod',r[0],'🪙 '+fmtBig(r[3])):'<small>gacha</small>'}</div>`;}).join('')}
+    <div class="bzr"><span><b>🎰 Gacha Rod</b><small>Fiber 50% · Karbon 30% · Kraken 14% · Mustika 5% · Naga Emas 1%</small></span>${xB('xFGacha','','💎 50')}</div>
+    <h5>🪱 Umpan</h5>${FBAIT.map(b=>`<div class="bzr"><span><b>${b[6]} ${b[1]}</b><small>${b[2]?`+${b[3]}% hoki${b[4]?' · +'+b[4]+'% mutasi':''}${b[5]?' · ikan lebih berat':''} · punya ${F.bait[b[0]]||0}`:'Gratis, tanpa bonus'}</small></span>${b[2]?xB('xFBait',b[0],'10× 🪙 '+fmtBig(b[2]*10)):''}${F.bs===b[0]?'<b>Dipakai</b>':xB('xFBaitUse',b[0],'Pakai')}</div>`).join('')}`;}
+  if(tab==='aq'){const v=F.aq.reduce((s,f)=>s+f.v,0);body=`<div class="frow"><span>Pajang ${F.aq.length}/40</span><span>nilai ${fmtBig(v)}</span></div><div class="aqtank">${F.aq.map((f,i)=>`<span class="aqf" style="top:${8+(i*37)%78}%;animation-duration:${8+(i*3)%9}s;animation-delay:-${i*1.3}s">${fIc(f,22+Math.min(20,Math.log10(f.kg+1)*8))}</span>`).join('')}<i class="aqb"></i></div><p class="muted">Akuarium memberi 0,05% nilai pajangan tiap menit selama main${F.aqE?` · total ${fmtBig(F.aqE)}`:''}.</p>
+    <div class="fgrid">${F.aq.map((f,i)=>`<div class="fcell" style="--rc:${FR[f.r][1]}">${fIc(f,26)}<b>${esc(f.n)}</b><small>${fmtKg(f.kg)} · 🪙 ${fmtBig(f.v)}</small><div class="fca">${xB('xFAqOut',i,'Ke tas')}</div></div>`).join('')}</div>`;}
+  if(tab==='indeks'){body=Object.keys(FLOC).map(k=>{const L=FLOC[k];return `<h5>📍 ${L.n} ${L.sp.filter(s=>F.dex[s[0]]).length}/${L.sp.length} spesies</h5><div class="fgrid">${L.sp.map(s=>F.dex[s[0]]?`<div class="fcell" style="--rc:${FR[s[1]][1]}"><span class="fic" style="font-size:26px">${s[4]}</span><b>${s[0]}</b><small>${FR[s[1]][0]} · ×${F.dex[s[0]]}</small><small>terberat ${fmtKg(F.best[s[0]]||0)}</small></div>`:`<div class="fcell lock"><span class="fic" style="font-size:26px;filter:brightness(0)">${s[4]}</span><b>???</b><small>${FR[s[1]][0]}</small></div>`).join('')}</div>`;}).join('');}
+  return head+tabs+body;}});
+XA.xFTab=k=>{phFishTab=k;phoneRender();};XA.xFSort=k=>{fSortK=k;phoneRender();};
+XA.xFQuick=()=>{const F=FX(),l=F.bag.filter(f=>!f.lk);if(!l.length)return;fSell(l);phoneRender();};
+XA.xFSell1=i=>{const f=FX().bag[+i];if(f)fSell([f]);phoneRender();};XA.xFLock=i=>{const f=FX().bag[+i];if(f){f.lk=!f.lk;savePF();}phoneRender();};
+XA.xFAq=i=>{const f=FX().bag[+i];if(f)fAq(f);phoneRender();};XA.xFAqOut=i=>{const F=FX();if(F.bag.length>=F.cap){SFX.error();return;}const f=F.aq.splice(+i,1)[0];if(f)F.bag.push(f);xSave();phoneRender();};
+XA.xFCap=()=>{const F=FX(),c=40+(F.cap-120)/75*40;if((PF.dia||0)<c){SFX.error();showResult('💎 Diamond kurang.');return;}PF.dia-=c;F.cap+=75;SFX.big();xSave();phoneRender();};
+XA.xFRod=id=>{FX().rod=id;SFX.pop();xSave();phoneRender();fHud();};
+XA.xFBuyRod=id=>{const r=FROD.find(x=>x[0]===id);if(!r||!xPay(r[3]))return;FX().rods[id]=1;FX().rod=id;SFX.big();logLine('sys',null,`🎣 Kamu membeli ${r[1]}!`,'win');xSave();phoneRender();fHud();};
+XA.xFGacha=()=>{if((PF.dia||0)<50){SFX.error();showResult('💎 Diamond kurang (butuh 50).');return;}PF.dia-=50;const x=Math.random();const id=x<.01?'naga':x<.06?'mustika':x<.2?'kraken':x<.5?'karbon':'fiber';const r=FROD.find(y=>y[0]===id),F=FX(),dup=F.rods[id];
+  if(dup){const back=Math.round(r[3]*.3||50e6);S.bal+=back;showResult(`🎰 ${r[1]} (duplikat) → +🪙 ${fmtBig(back)}`);}else{F.rods[id]=1;showResult(`🎰 Dapat ${r[1]}!`);if(r[2]>=4)banner(`🎰 ${r[1].toUpperCase()}<small>${FR[r[2]][0]}</small>`,'',2400);}SFX[r[2]>=4?'big':'win']();xSave();phoneRender();};
+XA.xFBait=id=>{const b=FBAIT.find(x=>x[0]===id);if(!b||!xPay(b[2]*10))return;const F=FX();F.bait[id]=(F.bait[id]||0)+10;F.bs=id;SFX.coin();xSave();phoneRender();fHud();};
+XA.xFBaitUse=id=>{FX().bs=id;SFX.pop();xSave();phoneRender();fHud();};
+/* ---------- v20: underground MRT. Street entrances with stairs, one shared platform hall below ---------- */
+ZN.push({id:'mrt',n:'🚇 Stasiun MRT Bawah Tanah',sp:[0,0,Math.PI],under:1});
+const MRTS={cur:2,sign:null,signT:null,train:null,tt:0,ph:0};
+function mrtL(){return TRL.find(l=>l.id==='mrt');}
+function mrtExit(i){const L=mrtL(),x=L.st[i][1],z=L.a[1]-7.5;return [x+3.2,z-3.2,Math.PI];}
+const stairTex=()=>canvasTex(64,128,(q,w,h)=>{for(let i=0;i<10;i++){const k=i/10;q.fillStyle=`rgb(${150-130*k|0},${150-130*k|0},${158-130*k|0})`;q.fillRect(0,i*h/10,w,h/10);q.fillStyle=`rgba(255,210,95,${.8-.7*k})`;q.fillRect(0,i*h/10,w,2);}});
+function buildMrtEntrances(G,L){const sT=stairTex(),glass=new THREE.MeshBasicMaterial({color:0x9ad0ff,transparent:true,opacity:.35,side:THREE.DoubleSide});
+  L.st.forEach(([nm,pos],i)=>{const x=pos,z=L.a[1]-7.5;const g=new THREE.Group();g.position.set(x,0,z);G.add(g);
+    const pit=new THREE.Mesh(new THREE.PlaneGeometry(2.6,5),new THREE.MeshBasicMaterial({map:sT}));pit.rotation.x=-Math.PI/2;pit.position.set(0,.03,0);g.add(pit);
+    cBox(g,.25,1.1,5.4,0xb0b4bc,-1.45,.55,0);cBox(g,.25,1.1,5.4,0xb0b4bc,1.45,.55,0);cBox(g,3.15,1.1,.25,0xb0b4bc,0,.55,-2.65);
+    [[-1.6,-2.6],[1.6,-2.6],[-1.6,2.4],[1.6,2.4]].forEach(([a,b])=>cBox(g,.18,3.4,.18,0x30343c,a,1.7,b));
+    const rf=new THREE.Mesh(new THREE.BoxGeometry(3.8,.12,6),glass);rf.position.set(0,3.45,0);g.add(rf);cBox(g,3.9,.25,.25,0xd8435b,0,3.35,2.95);cBox(g,3.9,.25,.25,0xd8435b,0,3.35,-2.95);
+    cBox(g,.2,4.2,.2,0x30343c,2.4,2.1,2.6);const lg=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#d8435b';q.beginPath();q.arc(64,64,60,0,7);q.fill();q.fillStyle='#fff';q.font='900 70px sans-serif';q.textAlign='center';q.textBaseline='middle';q.fillText('M',64,68);});
+    const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({map:lg,side:THREE.DoubleSide}));sg.position.set(2.4,4.6,2.6);g.add(sg);
+    G.add(neon(`MRT ${nm.toUpperCase()}`,x,4.05,z+2.98,0,'#ffffff','#ff7a8a',5,.7));
+    colliders.push({x0:x-1.6,x1:x+1.6,z0:z-2.8,z1:z+2.4,top:1.1});
+    stationAdd('xrail',x,z+3.6,0,`Stasiun MRT ${nm}`,{useDist:2.6,verb:'Turun ke',act:()=>mrtGo(i),ctx:()=>`<div class="ctx-head"><h3>🚇 MRT ${esc(nm)}</h3><small>Stasiun bawah tanah · ${XS().vip?'gratis (Black Card)':'🪙 3.000 sekali jalan'}</small></div><div class="ctx-row">${bzB('xMrtGo',i,'⬇️ Turun ke peron')}</div>`,btn:'MRT'});});}
+XA.xMrtGo=i=>mrtGo(+i);
+function mrtSign(){if(!MRTS.signT)return;const L=mrtL(),i=MRTS.cur,nm=L.st[i][0],prev=L.st[i-1],next=L.st[i+1];redrawTex(MRTS.signT,(q,w,h)=>{q.fillStyle='#1b1d26';q.fillRect(0,0,w,h);q.fillStyle='#d8435b';q.fillRect(0,0,w,14);q.fillRect(0,h-14,w,14);
+  q.fillStyle='#fff';q.font='800 64px sans-serif';q.textAlign='center';q.textBaseline='middle';q.fillText(nm.toUpperCase(),w/2,h/2-8);q.font='600 24px sans-serif';q.fillStyle='#c8ccd4';
+  q.textAlign='left';q.fillText(prev?'◀ '+prev[0]:'',24,h-36);q.textAlign='right';q.fillText(next?next[0]+' ▶':'',w-24,h-36);q.textAlign='center';q.fillText('MRT · JALUR MERAH',w/2,36);});}
+function mrtGo(i,ride){const k=ZN.findIndex(z=>z.id==='mrt'),zc=zoneZ(k);MRTS.cur=i;mrtSign();tpTo(ride?-12:21,ride?zc-8:zc-1,Math.PI);banner(`🚇 MRT ${mrtL().st[i][0].toUpperCase()}<small>${ride?'Kereta tiba. Silakan keluar lewat tangga ⬆':'Selamat datang di peron bawah tanah'}</small>`,'',2200);}
+function mrtTrip(){const L=mrtL();openTrip('🚇 Mau ke mana?',`Kamu di peron MRT ${L.st[MRTS.cur][0]}. Pilih tujuan.`,tripSections(L,MRTS.cur));}
+const _xRide20=XA.xRide;XA.xRide=id=>{const [lid,j]=String(id).split(':');if(lid!=='mrt'){_xRide20(id);return;}if(!XS().vip&&!xPay(3000))return;mrtGo(+j,true);qx('ride');xSave();};
+ZB.mrt=(G,zc,k)=>{const tile=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#e4e6ea';q.fillRect(0,0,w,h);q.strokeStyle='#c4c8ce';q.lineWidth=2;for(let i=0;i<=2;i++){q.beginPath();q.moveTo(i*64,0);q.lineTo(i*64,h);q.stroke();q.beginPath();q.moveTo(0,i*64);q.lineTo(w,i*64);q.stroke();}});tile.wrapS=tile.wrapT=THREE.RepeatWrapping;tile.repeat.set(20,8);
+  gplane(G,66,26,new THREE.MeshLambertMaterial({map:tile}),0,zc,.004);gplane(G,66,10,new THREE.MeshLambertMaterial({color:0x2a2a30}),0,zc-17,.004);gplane(G,66,.6,new THREE.MeshBasicMaterial({color:0xffd25f}),0,zc-12.9,.01);
+  [-1.1,1.1].forEach(o=>cBox(G,66,.18,.18,0x9aa0aa,0,.12,zc-17+o));for(let x=-32;x<32;x+=1.6)cBox(G,.3,.08,3.2,0x5a4a3a,x,.04,zc-17);
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(66,36),mat(0xd0d4da));ceil.rotation.x=Math.PI/2;ceil.position.set(0,8,zc-4);G.add(ceil);
+  for(let x=-28;x<=28;x+=8)cBox(G,6,.12,.5,0xffffff,x,7.9,zc-2,false,true),cBox(G,6,.12,.5,0xffffff,x,7.9,zc+7,false,true);
+  cBox(G,66,8,.6,0xc8ccd2,0,4,zc+13.3,true);cBox(G,.6,8,36,0xc8ccd2,-33,4,zc-4,true);cBox(G,.6,8,36,0xc8ccd2,33,4,zc-4,true);cBox(G,66,8,.6,0x9aa0aa,0,4,zc-22.3,true);
+  cBox(G,66,.5,.62,0xd8435b,0,1.2,zc+13);
+  // platform screen doors
+  const gm=new THREE.MeshBasicMaterial({color:0x9ad0ff,transparent:true,opacity:.28});for(let x=-30;x<30;x+=3){const p=new THREE.Mesh(new THREE.BoxGeometry(2.7,2.4,.08),gm);p.position.set(x+1.5,1.2,zc-12.4);G.add(p);cBox(G,.18,2.6,.22,0x5a6068,x,1.3,zc-12.4);}
+  cBox(G,60,.5,.4,0x30343c,0,2.75,zc-12.4);cBox(G,60,.12,.42,0xd8435b,0,2.55,zc-12.4,false,true);colliders.push({x0:-33,x1:33,z0:zc-12.8,z1:zc-12,top:3});
+  // pillars and benches
+  [-18,-6,6,18].forEach(x=>{cBox(G,1.2,8,1.2,0xf2f2f2,x,4,zc+1,true);cBox(G,1.24,.5,1.24,0xd8435b,x,2.6,zc+1);});
+  [-12,0,12].forEach(x=>{cBox(G,4,.45,1,0x8a8f9e,x,.5,zc+11.4,true);});
+  // big station name signs (one on the track wall, one over the doors)
+  MRTS.signT=canvasTex(1024,256,()=>{});const sm=new THREE.MeshBasicMaterial({map:MRTS.signT});const s1=new THREE.Mesh(new THREE.PlaneGeometry(16,4),sm);s1.position.set(0,4.6,zc-21.95);G.add(s1);
+  const s2=new THREE.Mesh(new THREE.PlaneGeometry(8,2),sm);s2.position.set(0,4.4,zc+12.95);s2.rotation.y=Math.PI;G.add(s2);
+  // ad panels on the back wall
+  ['#2f6fe0','#3a9e5a','#f2a33a','#b46bff'].forEach((c,i)=>{const t=canvasTex(256,128,(q,w,h)=>{q.fillStyle=c;q.fillRect(0,0,w,h);q.fillStyle='#fff';q.font='800 30px sans-serif';q.textAlign='center';q.fillText(['BANK RAKYAT RAYA','KOPI NUSA','PERMATA HOLDING','GAME STUDIO'][i],w/2,62);q.font='600 18px sans-serif';q.fillText('Kota Permata',w/2,96);});
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(5,2.5),new THREE.MeshBasicMaterial({map:t}));p.position.set(-24+i*16,3.4,zc+12.95);p.rotation.y=Math.PI;G.add(p);});
+  // exit stairs going up on both ends
+  [-25,25].forEach(sx=>{for(let s=0;s<12;s++)cBox(G,4,.5,1,0x9aa0aa,sx,.25+s*.55,zc+12.4-s*.9-11*0+0,false);const ex=canvasTex(256,96,(q,w,h)=>{q.fillStyle='#ffd25f';q.fillRect(0,0,w,h);q.fillStyle='#1b1d26';q.font='800 40px sans-serif';q.textAlign='center';q.textBaseline='middle';q.fillText('⬆ KELUAR',w/2,h/2);});
+    const e=new THREE.Mesh(new THREE.PlaneGeometry(3,1.1),new THREE.MeshBasicMaterial({map:ex}));e.position.set(sx,6.8,zc+5);e.rotation.y=Math.PI;G.add(e);
+    stationAdd('xrail',sx,zc+3.5,Math.PI,'Keluar ke jalan',{useDist:3,verb:'Naik ke',act:()=>{const [x,z,y]=mrtExit(MRTS.cur);tpTo(x,z,y);},ctx:()=>`<div class="ctx-head"><h3>⬆ Keluar</h3><small>Naik ke jalan di Stasiun MRT ${esc(mrtL().st[MRTS.cur][0])}</small></div><div class="ctx-row">${bzB('xMrtOut','','⬆ Keluar ke jalan')}</div>`,btn:'KELUAR'});});
+  stationAdd('xrail',0,zc-10.6,0,'Naik kereta MRT',{useDist:3,verb:'Naik',act:mrtTrip,ctx:()=>`<div class="ctx-head"><h3>🚇 Peron MRT ${esc(mrtL().st[MRTS.cur][0])}</h3><small>${XS().vip?'Gratis (Black Card)':'🪙 3.000 sekali jalan'}</small></div><div class="ctx-row">${bzB('xMrtTrip','','🎫 Pilih tujuan')}</div>`,btn:'NAIK'});
+  // the train that rolls in and out
+  const tg=new THREE.Group();tg.position.set(-120,0,zc-17);G.add(tg);const bm=new THREE.MeshLambertMaterial({color:0xf2f4f8}),wm=new THREE.MeshBasicMaterial({color:0x22324a}),rm=new THREE.MeshBasicMaterial({color:0xd8435b});
+  for(let c=0;c<4;c++){const o=(c-1.5)*15;const b=new THREE.Mesh(new THREE.BoxGeometry(14.4,3.2,3),bm);b.position.set(o,1.9,0);tg.add(b);const w=new THREE.Mesh(new THREE.BoxGeometry(13,.9,3.04),wm);w.position.set(o,2.4,0);tg.add(w);const r=new THREE.Mesh(new THREE.BoxGeometry(14.4,.3,3.05),rm);r.position.set(o,1.2,0);tg.add(r);}
+  MRTS.train=tg;
+  for(let i=0;i<6;i++)addWalker(G,[[-20,zc+6],[20,zc+6],[-10,zc-6],[10,zc-6],[0,zc+9],[-26,zc+2],[26,zc+2]]);
+  zAnim.push({k,f:dt=>{MRTS.tt+=dt;const T=MRTS.tt%26;let x;if(T<5){const u=T/5;x=-120+120*(1-Math.pow(1-u,2));}else if(T<12)x=0;else if(T<17){const u=(T-12)/5;x=120*u*u;}else x=-130;tg.position.x=x;tg.visible=x>-125&&x<125;}});};
+XA.xMrtOut=()=>{const [x,z,y]=mrtExit(MRTS.cur);tpTo(x,z,y);};XA.xMrtTrip=()=>mrtTrip();
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
