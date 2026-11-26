@@ -3481,7 +3481,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v42.1';
+const GAME_VER='v43';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7820,6 +7820,87 @@ const PHT={down:0,t:0,last:{}};
 ['pointerup','pointercancel','touchend','touchcancel'].forEach(ev=>document.addEventListener(ev,()=>{PHT.down=0;PHT.t=performance.now();},{capture:true,passive:true}));
 document.addEventListener('scroll',e=>{if(e.target&&e.target.closest&&e.target.closest('#phone'))PHT.t=performance.now();},{capture:true,passive:true});
 phoneSoft=(f=>function(fromTick){if(!fromTick&&!window.__phF&&(PHT.down||performance.now()-PHT.t<1200))return;if(fromTick){const now=performance.now();if(PHT.down||now-PHT.t<2500)return;const gap=phView==='rank'?5000:phView==='home'?4000:0;if(gap){if(now-(PHT.last[phView]||0)<gap)return;PHT.last[phView]=now;}}return f.apply(this,arguments);})(phoneSoft);
+
+/* ================= v43: Dinasti (menikah, anak, pendidikan, pewaris, warisan antar generasi) ================= */
+const DY={first:{L:['Arya','Bima','Dimas','Raka','Satria','Gilang','Bagas','Reno','Fajar','Yudha','Kenzo','Rafi'],P:['Ayu','Sekar','Nadia','Laras','Citra','Dewi','Kirana','Maya','Putri','Salsa','Tiara','Wulan']},
+  last:['Wiratama','Kusuma','Hadiwijaya','Prawira','Santoso','Adinata','Mahendra','Suryadi','Lesmana','Gunawan'],
+  tr:{biz:['💼','Pebisnis','Pendapatan bisnis +10%'],nob:['👑','Bangsawan','Bisnis +5%, reputasi naik tiap jam'],kind:['💗','Dermawan','Harmoni turun 2x lebih lambat, reputasi naik'],smart:['🎓','Cerdas','Biaya sekolah anak −50%, bonus anak dewasa +50%']},
+  edu:{bis:['💼','Sekolah Bisnis','+5% pendapatan bisnis'],keu:['📈','Sekolah Keuangan','+4% pendapatan bisnis, bonus dividen'],dip:['🕊️','Sekolah Diplomasi','+2% bisnis, reputasi naik']},
+  party:[['Sederhana',1,10],['Mewah',3,25],['Kerajaan',10,45]],YR:60000,ADULT:18};
+function dyS(){const D=PF.dyn=PF.dyn||{sp:null,kids:[],gen:1,anc:[],h:[],cand:null,ct:0,follow:1};D.kids=D.kids||[];D.anc=D.anc||[];D.h=D.h||[];if(!D.fam)D.fam='Keluarga '+DY.last[pick(DY.last.length)];return D;}
+function dyLog(ic,t,c){const D=dyS();D.h.unshift({ic,t,c:c||'',at:Date.now()});D.h=D.h.slice(0,30);}
+function dyPal(){const p=randPal();p.shirt=SHIRTS[pick(SHIRTS.length)];return p;}
+function dyName(g){return DY.first[g][pick(DY.first[g].length)];}
+function dyAge(k){return Math.floor((Date.now()-k.born)/DY.YR);}
+function dyStage(k){const a=dyAge(k);return a<3?['👶','Bayi']:a<12?['🧒','Anak']:a<DY.ADULT?['🧑','Remaja']:['🧑‍💼','Dewasa'];}
+function dyCost(){return Math.max(1e8,Math.round(netWorth()*.005));}
+function dyCand(){const D=dyS();if(!D.cand||Date.now()-D.ct>1800000){const ks=Object.keys(DY.tr);D.cand=[0,1,2,3].map(i=>{const g=pick(2)?'P':'L';return {n:dyName(g)+' '+DY.last[pick(DY.last.length)],g,tr:ks[(i+pick(4))%4],pal:dyPal(),love:40+pick(50)};});D.ct=Date.now();}return D.cand;}
+function dyBonus(){const D=dyS();let b=Math.min(.4,(D.gen-1)*.04);const sp=D.sp;if(sp){if(sp.tr==='biz')b+=.10;if(sp.tr==='nob')b+=.05;}
+  const m=sp&&sp.tr==='smart'?1.5:1;D.kids.forEach(k=>{if(dyAge(k)>=DY.ADULT&&k.edu)b+=({bis:.05,keu:.04,dip:.02}[k.edu]||0)*m;});return b;}
+bizTick=(f=>function(){const b=S.bal;const r=f.apply(this,arguments);try{const d=S.bal-b,x=dyBonus();if(d>0&&x>0){const e=Math.round(d*x);S.bal+=e;if(typeof incAdd==='function'){incAdd('bisnis',e,'Bonus dinasti '+Math.round(x*100)+'%');INC41.last=S.bal;}}}catch(e){}return r;})(bizTick);
+/* actions */
+XA.xDyProp=i=>{const D=dyS();if(D.sp)return;const c=dyCand()[+i];if(!c)return;D.pick=+i;phoneRender();};
+XA.xDyWed=v=>{const D=dyS();if(D.sp||D.pick==null)return;const c=dyCand()[D.pick],P=DY.party[+v];if(!c||!P)return;const cost=dyCost()*P[1];if(S.bal<cost){showResult('Koin kurang untuk pesta pernikahan (🪙 '+fmtBig(cost)+')');return;}
+  S.bal-=cost;D.sp={n:c.n,g:c.g,tr:c.tr,pal:c.pal,t:Date.now(),har:Math.min(100,c.love+P[2])};D.pick=null;D.cand=null;D.kt=Date.now();
+  dyLog('💍',`Menikah dengan ${c.n} (pesta ${P[0]}, 🪙 ${fmtBig(cost)}).`,'up');logLine('sys',null,`💍 Selamat! Kamu menikah dengan ${c.n} dalam pesta ${P[0]}. ${D.fam} memulai babak baru.`,'win');
+  try{banner(`💍 PERNIKAHAN<small>${esc(c.n)} · pesta ${P[0]}</small>`,'',3200);SFX.big();if(you){for(let i=0;i<6;i++)setTimeout(()=>firework(you.pos.x+(Math.random()-.5)*20,14+Math.random()*8,you.pos.z+(Math.random()-.5)*20),i*350);}}catch(e){}
+  savePF();dyFollowSync();phoneRender();};
+XA.xDyCancel=()=>{dyS().pick=null;phoneRender();};
+XA.xDyGift=v=>{const D=dyS();if(!D.sp)return;const k=[[.2,6],[1,15],[4,35]][+v];const cost=Math.round(dyCost()*k[0]);if(S.bal<cost){showResult('Koin kurang');return;}S.bal-=cost;D.sp.har=Math.min(100,D.sp.har+k[1]);
+  dyLog('🎁',`Hadiah untuk ${D.sp.n}: harmoni +${k[1]} (🪙 ${fmtBig(cost)}).`);SFX.coin();savePF();phoneRender();};
+XA.xDyBaby=()=>{const D=dyS();if(!D.sp||D.kids.length>=4)return;if(D.sp.har<50){showResult('Harmoni minimal 50 dulu');return;}if(Date.now()-(D.kt||0)<300000){showResult('Tunggu sebentar, jarak antar anak minimal 5 menit');return;}dyBorn();};
+function dyBorn(){const D=dyS();const g=pick(2)?'P':'L',k={n:dyName(g),g,born:Date.now(),edu:null,pal:dyPal()};D.kids.push(k);D.kt=Date.now();
+  dyLog(g==='L'?'👦':'👧',`${k.n} lahir! Selamat untuk ${D.fam}.`,'up');logLine('sys',null,`👶 Anak ${D.kids.length} lahir: ${k.n} ${D.fam.replace('Keluarga ','')}.`,'win');try{banner(`👶 ${esc(k.n)} LAHIR<small>${esc(D.fam)}</small>`,'',2600);SFX.big();}catch(e){}savePF();if(phView==='dinasti')phoneRender();}
+XA.xDyEdu=v=>{const D=dyS();const [i,e]=String(v).split(':'),k=D.kids[+i];if(!k||k.edu||!DY.edu[e])return;const a=dyAge(k);if(a<6){showResult('Anak belum cukup umur sekolah (6 tahun)');return;}
+  const cost=Math.round(dyCost()*2*(D.sp&&D.sp.tr==='smart'?.5:1));if(S.bal<cost){showResult('Koin kurang');return;}S.bal-=cost;k.edu=e;dyLog(DY.edu[e][0],`${k.n} masuk ${DY.edu[e][1]} (🪙 ${fmtBig(cost)}).`);SFX.coin();savePF();phoneRender();};
+XA.xDyHeir=i=>{const D=dyS();const k=D.kids[+i];if(!k)return;D.heir=+i;dyLog('⭐',`${k.n} ditunjuk sebagai pewaris.`);savePF();phoneRender();};
+XA.xDyFollow=()=>{const D=dyS();D.follow=D.follow?0:1;dyFollowSync();savePF();phoneRender();};
+XA.xDyPass=()=>{const D=dyS();const k=D.kids[D.heir];if(!k||dyAge(k)<DY.ADULT){showResult('Pilih pewaris yang sudah dewasa dulu');return;}
+  if(!D.passOk){D.passOk=Date.now();showResult('Tekan sekali lagi untuk mewariskan. Pajak warisan 15% dari koin tunai.');setTimeout(()=>{D.passOk=0;},6000);return;}D.passOk=0;
+  const tax=Math.floor(S.bal*.15);S.bal-=tax;D.anc.unshift({n:'Generasi '+D.gen,sp:D.sp?D.sp.n:null,kids:D.kids.map(x=>x.n),t:Date.now(),nw:Math.round(netWorth())});
+  D.gen++;const heirN=k.n;D.sp=null;D.kids=[];D.heir=null;D.cand=null;
+  dyLog('🏰',`${heirN} meneruskan ${D.fam} sebagai Generasi ${D.gen}. Pajak warisan 🪙 ${fmtBig(tax)}. Bonus dinasti sekarang +${Math.round(Math.min(.4,(D.gen-1)*.04)*100)}%.`,'up');
+  logLine('sys',null,`🏰 ${heirN} kini memimpin ${D.fam} (Generasi ${D.gen}). Semua harta diwariskan, pajak warisan 🪙 ${fmtBig(tax)}.`,'win');try{banner(`🏰 GENERASI ${D.gen}<small>${esc(heirN)} meneruskan ${esc(D.fam)}</small>`,'',3500);SFX.big();}catch(e){}
+  savePF();dyFollowSync();phoneRender();};
+XA.xDyFam=()=>{const D=dyS();const n=DY.last[(DY.last.indexOf(D.fam.replace('Keluarga ',''))+1)%DY.last.length];D.fam='Keluarga '+n;savePF();phoneRender();};
+/* ticks: harmony, babies, NPC dynasties */
+setInterval(()=>{try{if(!started)return;const D=dyS();if(D.sp){D.sp.har=Math.max(0,D.sp.har-(D.sp.tr==='kind'?.5:1));
+  if((D.sp.tr==='nob'||D.sp.tr==='kind')&&PF.rep)PF.rep.pts=(PF.rep.pts||0)+2;
+  if(D.sp.har>=60&&D.kids.length<4&&Date.now()-(D.kt||0)>600000&&Math.random()<.25)dyBorn();
+  if(D.sp.har<=0&&Math.random()<.3){const n=D.sp.n,take=Math.floor(S.bal*.05);S.bal-=take;D.sp=null;dyLog('💔',`${n} pergi karena merasa diabaikan dan membawa 🪙 ${fmtBig(take)}.`,'dn');logLine('sys',null,`💔 ${n} meninggalkanmu. Jaga harmoni keluarga dengan hadiah.`,'lose');dyFollowSync();}
+  else if(D.sp.har<25&&Math.random()<.2)logLine('sys',null,`💬 ${D.sp.n} merasa kurang diperhatikan. Harmoni ${Math.round(D.sp.har)}.`,'lose');}
+  D.kids.forEach(k=>{const a=dyAge(k);if(a>=DY.ADULT&&!k.ad){k.ad=1;dyLog('🎓',`${k.n} sudah dewasa${k.edu?' dan ikut mengelola bisnis keluarga':''}.`,'up');}});
+  dyFollowSync();savePF();}catch(e){}},60000);
+setInterval(()=>{try{if(!started||Math.random()<.5)return;const T=TYCOONS.slice();const a=T.splice(pick(T.length),1)[0],b=T[pick(T.length)];const m=`💍 ${a} dan ${b} resmi berbesan. Dua dinasti bisnis bersatu.`;news.unshift(m);news=news.slice(0,6);logLine('sys',null,m);}catch(e){}},1500000);
+/* 3D: spouse and older children follow you */
+const DYF={list:[]};
+function dyFollowSync(){try{if(!you||typeof makeAvatar!=='function')return;const D=dyS();const want=[];if(D.follow){if(D.sp)want.push({id:'sp',pal:D.sp.pal,s:1});D.kids.forEach((k,i)=>{const a=dyAge(k);if(a>=3)want.push({id:'k'+i+k.n,pal:k.pal,s:a<12?.62:a<DY.ADULT?.82:.95});});}
+  DYF.list=DYF.list.filter(f=>{if(want.find(w=>w.id===f.id&&w.s===f.s))return true;scene.remove(f.av.root);return false;});
+  want.forEach((w,i)=>{if(DYF.list.find(f=>f.id===w.id))return;const av=makeAvatar(w.pal);av.root.scale.setScalar(w.s);av.root.position.copy(you.pos);DYF.list.push({id:w.id,s:w.s,av,ph:Math.random()*6});});
+  DYF.list.forEach((f,i)=>f.slot=i);}catch(e){console.error('dyF',e);}}
+function dyFollowTick(dt){if(!DYF.list.length||!you)return;const yaw=you.yaw||0;DYF.list.forEach(f=>{const side=f.slot%2?1:-1,row=1+Math.floor(f.slot/2);const ox=side*1.4,oz=-1.6*row;
+  const tx=you.pos.x+Math.cos(yaw)*ox+Math.sin(yaw)*oz,tz=you.pos.z-Math.sin(yaw)*ox+Math.cos(yaw)*oz;const p=f.av.root.position,dx=tx-p.x,dz=tz-p.z,d=Math.hypot(dx,dz);
+  if(d>25){p.set(tx,you.pos.y,tz);return;}const sp=Math.min(d*3.5,12)*dt;if(d>.05){p.x+=dx/d*sp;p.z+=dz/d*sp;f.av.root.rotation.y=Math.atan2(dx,dz);}else f.av.root.rotation.y+=(yaw-f.av.root.rotation.y)*.1;p.y+=(you.pos.y-p.y)*.2;
+  const w=d>.3?1:0;f.ph+=dt*9*w;const sw=Math.sin(f.ph)*.6*w;if(f.av.lLeg){f.av.lLeg.rotation.x=sw;f.av.rLeg.rotation.x=-sw;f.av.lArm.rotation.x=-sw;f.av.rArm.rotation.x=sw;}});}
+xTick=(f=>function(dt){const r=f.apply(this,arguments);try{dyFollowTick(Math.min(dt||.016,.1));}catch(e){}return r;})(xTick);
+setTimeout(function dy43(){if(!started||!you){setTimeout(dy43,2000);return;}dyFollowSync();},3000);
+/* app */
+xView('dinasti',{t:'Dinasti',s:'Dinasti',ic:'🏰',bg:'linear-gradient(135deg,#8a3fd1,#ffd25f)',r:()=>{const D=dyS(),b=dyBonus(),sp=D.sp;let h=`<div class="wallet"><small>Generasi ${D.gen} · ${D.kids.length} anak</small><b>🏰 ${esc(D.fam)}</b>
+  <div class="row"><span>Bonus pendapatan bisnis</span><span class="up">+${Math.round(b*100)}%</span></div><div class="row"><span>Bonus generasi (permanen)</span><span>+${Math.round(Math.min(.4,(D.gen-1)*.04)*100)}%</span></div></div>
+  <div class="srow">${xB('xDyFollow','',D.follow?'👨‍👩‍👧 Keluarga ikut jalan: Nyala':'👨‍👩‍👧 Keluarga ikut jalan: Mati','small')}${xB('xDyFam','','🔁 Ganti nama keluarga','small')}</div>`;
+  if(sp){const T=DY.tr[sp.tr];h+=`<div class="thd">Pasangan</div><div class="chap"><span style="font-size:24px">${sp.g==='P'?'👰':'🤵'}</span><div><b>${esc(sp.n)}</b><small>${T[0]} ${T[1]}: ${T[2]} · menikah ${new Date(sp.t).toLocaleDateString('id-ID')}</small></div></div>
+    <div class="ei-box"><div class="row"><span>Harmoni</span><span class="${sp.har<30?'dn':'up'}">${Math.round(sp.har)}/100${sp.har<30?' ⚠️':''}</span></div><p class="muted">Harmoni turun pelan tiap menit. Di atas 60, anak bisa lahir sendiri. Kalau sampai 0, pasangan bisa pergi.</p>
+    <div class="srow">${[['🌹 Bunga',.2],['💎 Perhiasan',1],['🏝️ Liburan',4]].map((x,i)=>xB('xDyGift',i,`${x[0]} · 🪙 ${fmtBig(Math.round(dyCost()*x[1]))}`,'small',S.bal<dyCost()*x[1])).join('')}</div>
+    ${D.kids.length<4?`<div class="srow">${xB('xDyBaby','','👶 Program anak','small p',sp.har<50)}</div>`:''}</div>`;}
+  else if(D.pick!=null){const c=dyCand()[D.pick];h+=`<div class="thd">Lamaran diterima! Pilih pesta</div><div class="chap"><span style="font-size:24px">💍</span><div><b>${esc(c.n)}</b><small>${DY.tr[c.tr][0]} ${DY.tr[c.tr][1]}: ${DY.tr[c.tr][2]}</small></div></div>
+    <div class="ei-box">${DY.party.map((P,i)=>`<div class="moopt"><span>Pesta ${P[0]} · harmoni +${P[2]}</span><div>${xB('xDyWed',i,'🪙 '+fmtBig(dyCost()*P[1]),'small p',S.bal<dyCost()*P[1])}</div></div>`).join('')}<div class="srow">${xB('xDyCancel','','Batal','small')}</div></div>`;}
+  else h+=`<div class="thd">Cari pasangan</div><p class="muted">Calon berganti tiap 30 menit. Sifat pasangan memberi bonus permanen selama menikah.</p>${dyCand().map((c,i)=>`<div class="chap"><span style="font-size:24px">${c.g==='P'?'👩':'👨'}</span><div><b>${esc(c.n)}</b><small>${DY.tr[c.tr][0]} ${DY.tr[c.tr][1]}: ${DY.tr[c.tr][2]} · cocok ${c.love}%</small></div>${xB('xDyProp',i,'💍 Lamar','small p')}</div>`).join('')}`;
+  if(D.kids.length){h+=`<div class="thd">Anak</div>`+D.kids.map((k,i)=>{const st=dyStage(k),a=dyAge(k),E=k.edu&&DY.edu[k.edu];return `<div class="chap"><span style="font-size:24px">${st[0]}</span><div><b>${esc(k.n)}${D.heir===i?' ⭐ Pewaris':''}</b><small>${st[1]} · ${a} tahun${E?` · ${E[0]} ${E[1]} (${E[2]})`:''}</small>
+    ${!k.edu&&a>=6?`<div class="srow">${Object.keys(DY.edu).map(e=>xB('xDyEdu',i+':'+e,DY.edu[e][0]+' '+DY.edu[e][1].replace('Sekolah ',''),'small')).join('')}</div>`:''}</div>${a>=DY.ADULT&&D.heir!==i?xB('xDyHeir',i,'⭐ Jadikan pewaris','small'):''}</div>`;}).join('')+`<p class="muted">1 menit = 1 tahun. Sekolah mulai umur 6 (🪙 ${fmtBig(Math.round(dyCost()*2*(sp&&sp.tr==='smart'?.5:1)))}). Anak dewasa yang sekolah ikut menambah pendapatan bisnis.</p>`;}
+  const hk=D.kids[D.heir];h+=`<div class="thd">Warisan</div><div class="ei-box"><p class="muted">Wariskan semua harta ke pewaris dewasa: generasi naik, bonus permanen +4% per generasi (maks 40%), pajak warisan 15% dari koin tunai. Pasangan dan anak dimulai baru di generasi berikutnya.</p>${xB('xDyPass','',hk&&dyAge(hk)>=DY.ADULT?`🏰 Wariskan ke ${esc(hk.n)}`:'🏰 Butuh pewaris dewasa','small p',!(hk&&dyAge(hk)>=DY.ADULT))}</div>`;
+  if(D.anc.length)h+=`<div class="thd">Silsilah</div>`+D.anc.map(a=>`<div class="chap"><span style="font-size:20px">📜</span><div><b>${a.n}</b><small>${a.sp?'Pasangan '+esc(a.sp)+' · ':''}${a.kids.length} anak · kekayaan 🪙 ${fmtBig(a.nw)}</small></div></div>`).join('');
+  if(D.h.length)h+=`<div class="thd">Catatan keluarga</div>`+D.h.slice(0,12).map(x=>`<div class="chap"><span style="font-size:20px">${x.ic}</span><div><small class="${x.c}">${x.t}</small></div></div>`).join('');
+  return h;}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
