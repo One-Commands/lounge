@@ -768,8 +768,8 @@ function ytCard(){let c=$('ytCard');if(c)return c;c=document.createElement('div'
   h.addEventListener('pointerup',()=>{if(drag){drag=null;try{localStorage.setItem('lounge-yt-pos',JSON.stringify([c.offsetLeft,c.offsetTop]));}catch(e){}}});
   return c;}
 async function ytPlay(opts){
-  ytCard();$('ytT').textContent='Memuat...';SET.music=false;applyAudio();
-  try{await ytLoad();}catch(e){$('ytT').textContent='YouTube tidak bisa dimuat di sini.';logLine('sys',null,'Pemutar YouTube tidak bisa dimuat. Coba buka game lewat link GitHub dan cek internet.');return;}
+  ytCard();($('ytT')||{}).textContent='Memuat...';SET.music=false;applyAudio();
+  try{await ytLoad();}catch(e){($('ytT')||{}).textContent='YouTube tidak bisa dimuat di sini.';logLine('sys',null,'Pemutar YouTube tidak bisa dimuat. Coba buka game lewat link GitHub dan cek internet.');return;}
   const vol=SET.mv;const ev={onReady:e=>{e.target.setVolume(vol);e.target.playVideo();ytTitle();},onStateChange:e=>{if(e.data===0&&!opts.list)ytStep(1);ytTitle();},onError:()=>{logLine('sys',null,'Lagu ini tidak bisa diputar di luar YouTube, lanjut ke lagu berikutnya.');setTimeout(()=>ytStep(1),800);}};
   YT.list=opts.list||null;if(opts.q){YT.q=opts.q;YT.i=opts.i||0;}
   const pv=opts.list?{listType:'playlist',list:opts.list,autoplay:1,playsinline:1}:{autoplay:1,playsinline:1,rel:0};
@@ -799,8 +799,8 @@ function openMusic(){
     body.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{audio();const id=b.dataset.st;if(SET.music&&SET.style===id){SET.music=false;}else{ytStop();SET.style=id;SET.music=true;mstepX=0;}applyAudio();restartMusicTimer();draw();});
     body.querySelectorAll('[data-ncs]').forEach(b=>b.onclick=()=>{ytPlay({q:NCS.slice(),i:+b.dataset.ncs});draw();});
     $('muAll').onclick=()=>{const q=NCS.slice().sort(()=>Math.random()-.5);ytPlay({q,i:0});draw();};
-    $('muGo').onclick=()=>{const r=ytParse($('muLink').value);if(!r.id&&!r.list){$('muMsg').textContent='Link YouTube tidak dikenali.';return;}
-      if(r.list)ytPlay({list:r.list});else ytPlay({q:[{n:'Lagu pilihanmu',id:r.id}],i:0});$('muMsg').textContent='Memutar dari link.';};
+    $('muGo').onclick=()=>{const r=ytParse($('muLink').value);if(!r.id&&!r.list){($('muMsg')||{}).textContent='Link YouTube tidak dikenali.';return;}
+      if(r.list)ytPlay({list:r.list});else ytPlay({q:[{n:'Lagu pilihanmu',id:r.id}],i:0});($('muMsg')||{}).textContent='Memutar dari link.';};
     $('muVol').oninput=e=>{SET.mv=+e.target.value;$('muVolV').textContent=SET.mv+'%';applyAudio();ytVol();};
   };
   modal={el,st:{label:'Musik'},busy:false,refresh(){}};
@@ -1566,19 +1566,19 @@ function openSettings(){
         <div class="srow"><button class="pbtn" id="sExp">Buat kode</button><button class="pbtn" id="sCopy">Salin</button><button class="pbtn" id="sImp">Muat dari kode</button></div></section>
       <section class="setg"><h4>Lainnya</h4><button class="pbtn danger" id="sReset">Mulai ulang dari awal</button></section>
       <p class="pmsg" id="sMsg"></p>`;
-    const msg=t=>{$('sMsg').textContent=t;};
+    const msg=t=>{($('sMsg')||{}).textContent=t;};
     $('sVol').oninput=e=>{SET.sfx=+e.target.value;$('sVolV').textContent=SET.sfx+'%';applyAudio();};
     $('sVol').onchange=()=>{audio();SFX.coin();};
     $('sMv').oninput=e=>{SET.mv=+e.target.value;$('sMvV').textContent=SET.mv+'%';applyAudio();ytVol();};$('sPick').onclick=()=>{closeGame();openMusic();};
     body.querySelectorAll('[data-tx]').forEach(b=>b.onclick=()=>{SET.tx=b.dataset.tx;saveSet();txApply();SFX.pop();draw();});{const fb=body.querySelector('#sFps');if(fb)fb.onclick=()=>{SET.fps=!SET.fps;saveSet();SFX.pop();draw();};}body.querySelectorAll('[data-gfx]').forEach(b=>b.onclick=()=>{SET.gfx=b.dataset.gfx;saveSet();gfxApply();SFX.coin();draw();msg('Grafis: '+b.textContent+(gfxLite()?' (mode ringan aktif)':' (mode normal aktif)'));});
     $('sMus').onclick=e=>{audio();SET.music=!SET.music;e.currentTarget.setAttribute('aria-pressed',SET.music);e.currentTarget.textContent=SET.music?'Nyala':'Mati';applyAudio();};
-    body.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(slotKey(b.dataset.save),JSON.stringify(snap()));SFX.coin();draw();$('sMsg').textContent=`Tersimpan di slot ${b.dataset.save}.`;}catch(e){msg('Gagal menyimpan di browser ini. Pakai kode simpan.');}});
-    body.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{const d=slotInfo(b.dataset.load);if(!d)return;try{applySnap(d);SFX.big();logLine('sys',null,`Data slot ${b.dataset.load} dimuat.`);draw();$('sMsg').textContent=`Slot ${b.dataset.load} dimuat.`;}catch(e){msg('Data slot rusak.');}});
+    body.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(slotKey(b.dataset.save),JSON.stringify(snap()));SFX.coin();draw();($('sMsg')||{}).textContent=`Tersimpan di slot ${b.dataset.save}.`;}catch(e){msg('Gagal menyimpan di browser ini. Pakai kode simpan.');}});
+    body.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{const d=slotInfo(b.dataset.load);if(!d)return;try{applySnap(d);SFX.big();logLine('sys',null,`Data slot ${b.dataset.load} dimuat.`);draw();($('sMsg')||{}).textContent=`Slot ${b.dataset.load} dimuat.`;}catch(e){msg('Data slot rusak.');}});
     try{accBind(body);}catch(e){}$('sExp').onclick=async()=>{$('sCode').value=await encSnap2(snap());$('sCode').select();msg('Kode dibuat. Salin dan simpan baik-baik.');};
     $('sCopy').onclick=async()=>{const t=$('sCode');if(!t.value)t.value=await encSnap2(snap());t.select();const ok=()=>msg('Kode tersalin.');try{navigator.clipboard.writeText(t.value).then(ok,()=>{document.execCommand('copy');ok();});}catch(e){try{document.execCommand('copy');ok();}catch(_){msg('Salin manual dari kotak di atas.');}}};
-    $('sImp').onclick=async()=>{const c=$('sCode').value;if(!c.trim()){msg('Tempel kode simpan dulu.');return;}try{applySnap(await decSnap2(c));SFX.big();logLine('sys',null,'Data dari kode simpan dimuat.');draw();$('sMsg').textContent='Berhasil dimuat dari kode.';}catch(e){if(e&&e.acc)return;SFX.error();msg('Kode tidak valid.');}};
+    $('sImp').onclick=async()=>{const c=$('sCode').value;if(!c.trim()){msg('Tempel kode simpan dulu.');return;}try{applySnap(await decSnap2(c));SFX.big();logLine('sys',null,'Data dari kode simpan dimuat.');draw();($('sMsg')||{}).textContent='Berhasil dimuat dari kode.';}catch(e){if(e&&e.acc)return;SFX.error();msg('Kode tidak valid.');}};
     $('sReset').onclick=e=>{const b=e.currentTarget;if(!b.dataset.ok){b.dataset.ok=1;b.textContent='Yakin? Semua progres hilang. Klik lagi';SFX.error();return;}
-      applySnap({S:{bal:1000,wins:0,losses:0,hist:[]},PF:{hold:{},cost:{},bank:{save:0,loan:0,score:650,paid:0},items:{},tx:[],rivals:RIVAL_BASE.map(([n,w])=>({n,w,tr:0,d:0})),aidT:0,rankBest:99}});logLine('sys',null,'Game dimulai ulang dari awal.');draw();$('sMsg').textContent='Game dimulai ulang.';};
+      applySnap({S:{bal:1000,wins:0,losses:0,hist:[]},PF:{hold:{},cost:{},bank:{save:0,loan:0,score:650,paid:0},items:{},tx:[],rivals:RIVAL_BASE.map(([n,w])=>({n,w,tr:0,d:0})),aidT:0,rankBest:99}});logLine('sys',null,'Game dimulai ulang dari awal.');draw();($('sMsg')||{}).textContent='Game dimulai ulang.';};
   };
   draw();SFX.pop();
 }
@@ -3135,12 +3135,12 @@ function openMabar(){
         <p class="pmsg" id="mMsg">${MP.duel&&MP.duel.stage==='sent'?'Menunggu jawaban tantangan...':''}</p>`;
       $('mLeave').onclick=()=>{mpLeave();};
       $('mCopy').onclick=()=>{const link=location.href.split('#')[0].split('?')[0];const t=`Main Lounge bareng aku! Buka ${link} lalu tekan 👥 dan masukkan kode: ${MP.code}`;
-        const ok=()=>{$('mMsg').textContent='Tersalin. Tempel di chat ke temanmu.';};try{navigator.clipboard.writeText(t).then(ok,()=>{$('mMsg').textContent=t;});}catch(e){$('mMsg').textContent=t;}};
+        const ok=()=>{($('mMsg')||{}).textContent='Tersalin. Tempel di chat ke temanmu.';};try{navigator.clipboard.writeText(t).then(ok,()=>{($('mMsg')||{}).textContent=t;});}catch(e){($('mMsg')||{}).textContent=t;}};
       ['mMyQ','mOpQ'].forEach(i=>dotInput($(i)));
       const rd=()=>{SET.mpMyK=$('mMyK').value;SET.mpOpK=$('mOpK').value;SET.mpMyQ=stQ(SET.mpMyK,parseDots($('mMyQ').value));SET.mpOpQ=stQ(SET.mpOpK,parseDots($('mOpQ').value));saveSet();return {mine:{k:SET.mpMyK,q:SET.mpMyQ},theirs:{k:SET.mpOpK,q:SET.mpOpQ}};};
       ['mMyK','mOpK','mMyQ','mOpQ'].forEach(i=>$(i).onchange=rd);
       $('mMyP').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const k=$('mMyK').value,base=k==='coin'?S.bal:(PF.hold[k]||0);$('mMyQ').value=dots(k==='coin'?Math.floor(base*(+b.dataset.p)/100):stQ(k,base*(+b.dataset.p)/100));rd();SFX.chip();});
-      body.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{const sa=rd();const er=mpChallenge(b.dataset.duel,0,sa);$('mMsg').textContent=er||'Tantangan dikirim. Menunggu jawaban...';draw();});
+      body.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{const sa=rd();const er=mpChallenge(b.dataset.duel,0,sa);($('mMsg')||{}).textContent=er||'Tantangan dikirim. Menunggu jawaban...';draw();});
     }else{
       body.innerHTML=`<section class="setg"><h4>Nama kamu</h4><input id="mName" maxlength="14" value="${esc(SET.name||'')}" placeholder="Nama yang dilihat teman"></section>
         <section class="setg"><h4>Bikin room</h4><p class="muted">Kamu dapat kode 4 huruf. Teman yang masukin kode itu bakal muncul di kasino yang sama.</p><button class="pbtn" id="mCreate" ${MP.st==='wait'?'disabled':''}>Bikin room</button></section>
@@ -3214,13 +3214,13 @@ async function ndPlay(rv,g,stake,my,op){my=my||{k:'coin',q:stake};op=op||{k:'coi
   stage.appendChild(el);modal={el,st:{label:'Duel'},busy:true,refresh(){}};busy=true;myCost=stTake(my);render();
   const roll=async(id,mine)=>{const box=$(id);for(let k=0;k<18;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(65+k*6);}
     let r=ndRoll(g.id);
-    if(mine){const L=0;const opp=ndOpp;if(L>0&&ndOpp&&r.v<=opp.v&&Math.random()<L/100){box.textContent=r.show;await wait(500);luckFx(L);$('ndMsg').textContent='🍀 Hoki aktif! Diulang...';await wait(800);
+    if(mine){const L=0;const opp=ndOpp;if(L>0&&ndOpp&&r.v<=opp.v&&Math.random()<L/100){box.textContent=r.show;await wait(500);luckFx(L);($('ndMsg')||{}).textContent='🍀 Hoki aktif! Diulang...';await wait(800);
       for(let k=0;k<3;k++){const c=ndRoll(g.id);if(c.v>r.v)r=c;}for(let k=0;k<10;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(70);}}}
     box.textContent=r.show;SFX.chip();return r;};
   let ndOpp=null,o,y,round=0;
-  do{round++;if(round>1){$('ndMsg').textContent='Seri! Diulang...';await wait(900);}
-    $('ndMsg').textContent=`${rv.n} giliran duluan...`;o=await roll('ndO',false);ndOpp=o;await wait(500);
-    $('ndMsg').textContent='Giliran kamu...';y=await roll('ndY',true);await wait(400);
+  do{round++;if(round>1){($('ndMsg')||{}).textContent='Seri! Diulang...';await wait(900);}
+    ($('ndMsg')||{}).textContent=`${rv.n} giliran duluan...`;o=await roll('ndO',false);ndOpp=o;await wait(500);
+    ($('ndMsg')||{}).textContent='Giliran kamu...';y=await roll('ndY',true);await wait(400);
   }while(y.v===o.v&&round<5);
   const win=y.v>o.v;
   if(win){stGive(my,myCost);stGive(op);S.wins++;npcTake(rv.n,op);SFX.big();you.cheer=2;$('ndMsg').innerHTML=`<b class="okc">MENANG!</b> +${stTxt(op)}`;logLine('sys',null,`Duel ${g.n}: kamu mengalahkan ${rv.n}. +${stTxt(op)}.`,'win');}
@@ -3561,7 +3561,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v50';
+const GAME_VER='v50.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -4053,7 +4053,7 @@ function openAssetDuel(name){if(modal||busy)return;const R=ranking(),opp=R.find(
     el.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{my.q=stQ(my.k,myHave(my.k)*(+b.dataset.p)/100);lead='me';SFX.chip();draw();});
     el.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{op.q=stQ(op.k,npcAvail(opp.n,op.k)*(+b.dataset.op)/100);lead='op';SFX.chip();draw();});
     $('adRe').onclick=()=>{ratio=.97+Math.random()*.06;SFX.pop();draw();};
-    $('adGo').onclick=()=>{if(!(my.q>0&&op.q>0)||!stHave(my)){SFX.error();$('adMsg').textContent='Taruhanmu belum cukup.';return;}if(Math.random()<.1){SFX.error();$('adMsg').textContent=`${opp.n}: "Hmm, coba tawar ulang dulu."`;ratio=.97+Math.random()*.06;return;}
+    $('adGo').onclick=()=>{if(!(my.q>0&&op.q>0)||!stHave(my)){SFX.error();($('adMsg')||{}).textContent='Taruhanmu belum cukup.';return;}if(Math.random()<.1){SFX.error();($('adMsg')||{}).textContent=`${opp.n}: "Hmm, coba tawar ulang dulu."`;ratio=.97+Math.random()*.06;return;}
       const m={k:my.k,q:my.q},o={k:op.k,q:op.q};modal=null;el.remove();logLine('sys',null,`⚔️ Duel aset vs ${opp.n}: ${stTxt(m)} lawan ${stTxt(o)} (${g.n}).`);ndPlay({n:opp.n,w:opp.w},g,0,m,o);};};
   draw();}
 // NPCs sometimes challenge you with their shares against yours, at equal value
@@ -4917,11 +4917,11 @@ openMusic=function(){if(!started)return;if(modal)closeGame();if(modal)return;for
   const show=()=>{body.innerHTML=`<div class="muh"><b>Hasil untuk "${esc(resQ)}"</b><button class="mulink" id="muBack">‹ Kembali</button></div><div class="mugrid">${res.map((x,i)=>muCard(x,i,'r')).join('')}</div>`;bind();};
   const go=q=>{q=String(q||'').trim();if(!q)return;const yl=ytParse(q);if(yl.id||yl.list){closeGame();if(yl.list)ytPlay({list:yl.list});else ytPlay({q:[{n:'Lagu pilihanmu',id:yl.id}],i:0});return;}
     S.s=[q,...S.s.filter(x=>x.toLowerCase()!==q.toLowerCase())].slice(0,8);muSave();$('muQ').value=q;resQ=q;
-    body.innerHTML='<div class="muload">🔎 Mencari lagu...</div>';$('muMsg').textContent='';
+    body.innerHTML='<div class="muload">🔎 Mencari lagu...</div>';($('muMsg')||{}).textContent='';
     muSearch(q).then(r=>{if(!el.isConnected)return;res=r;show();}).catch(()=>{if(!el.isConnected)return;body.innerHTML=`<div class="muload">Pencarian lagi tidak bisa dihubungi dari jaringan ini.<br><small>Cara lain: buka YouTube, salin link lagunya, lalu tempel di kotak cari di atas.</small><br><a class="pbtn" style="display:inline-block;margin-top:8px" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${encodeURIComponent(q)}">Buka YouTube</a> <button class="pbtn" id="muBack">‹ Kembali</button></div>`;bind();});};
   const bind=()=>{body.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>go(b.dataset.q));body.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{S.s.splice(+b.dataset.del,1);muSave();home();});
     const c=$('muClr');if(c)c.onclick=()=>{S.s=[];muSave();home();};const bk=$('muBack');if(bk)bk.onclick=home;
-    body.querySelectorAll('[data-mu]').forEach(b=>b.onclick=()=>{const L=b.dataset.mu==='r'?res:S.p.slice();muPlayList(L,+b.dataset.i);$('muMsg').textContent='▶ Memutar: '+(L[+b.dataset.i]||{}).n;});};
+    body.querySelectorAll('[data-mu]').forEach(b=>b.onclick=()=>{const L=b.dataset.mu==='r'?res:S.p.slice();muPlayList(L,+b.dataset.i);($('muMsg')||{}).textContent='▶ Memutar: '+(L[+b.dataset.i]||{}).n;});};
   $('muF').onsubmit=e=>{e.preventDefault();go($('muQ').value);};
   home();
   // the older sections (built-in music, NCS, link, volume) are kept inside the collapsible box
@@ -6025,7 +6025,7 @@ function openPakDuel(name){if(modal||busy)return;const R=ranking(),opp=R.find(r=
     el.querySelectorAll('[data-mc]').forEach(b=>b.onclick=()=>{myCash=b.dataset.mc==='1';draw();});
     el.querySelectorAll('[data-oc]').forEach(b=>b.onclick=()=>{opCash=b.dataset.oc==='1';draw();});
     $('pkOne').onclick=()=>{modal=null;el.remove();openAssetDuel(opp.n);};
-    $('pkGo').onclick=()=>{if(!ok||!my.every(stHave)){SFX.error();$('pkMsg').textContent='Hartamu sudah berubah, atur ulang.';return;}modal=null;el.remove();
+    $('pkGo').onclick=()=>{if(!ok||!my.every(stHave)){SFX.error();($('pkMsg')||{}).textContent='Hartamu sudah berubah, atur ulang.';return;}modal=null;el.remove();
       logLine('sys',null,`⚔️ Duel gabungan vs ${opp.n}: ${pakTxt(my)} lawan ${pakTxt(op)} (${g.n}).`);pakPlay({n:opp.n,w:opp.w},g,my,op);};};
   draw();}
 async function pakPlay(rv,g,my,op){if(modal)closeGame();closePhone();for(const k in keys)keys[k]=false;
@@ -6035,7 +6035,7 @@ async function pakPlay(rv,g,my,op){if(modal)closeGame();closePhone();for(const k
     <p class="muted" style="text-align:center;margin:2px 0">${pakTxt(my)}<br>vs ${pakTxt(op)}</p><p class="pmsg" id="ndMsg">${g.rule}</p><button class="pbtn" id="ndX" disabled>Tutup</button></div></div>`;
   stage.appendChild(el);modal={el,st:{label:'Duel'},busy:true,refresh(){}};busy=true;const costs=my.map(st=>stTake(st));render();
   const roll=async id=>{const box=$(id);for(let k=0;k<18;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(65+k*6);}const r=ndRoll(g.id);box.textContent=r.show;SFX.chip();return r;};
-  let o,y,round=0;do{round++;if(round>1){$('ndMsg').textContent='Seri! Diulang...';await wait(900);}$('ndMsg').textContent=`${rv.n} giliran duluan...`;o=await roll('ndO');await wait(500);$('ndMsg').textContent='Giliran kamu...';y=await roll('ndY');await wait(400);}while(y.v===o.v&&round<5);
+  let o,y,round=0;do{round++;if(round>1){($('ndMsg')||{}).textContent='Seri! Diulang...';await wait(900);}($('ndMsg')||{}).textContent=`${rv.n} giliran duluan...`;o=await roll('ndO');await wait(500);($('ndMsg')||{}).textContent='Giliran kamu...';y=await roll('ndY');await wait(400);}while(y.v===o.v&&round<5);
   const win=y.v>o.v;
   if(win){my.forEach((st,i)=>stGive(st,costs[i]));op.forEach(st=>{stGive(st);npcTake(rv.n,st);});S.wins++;SFX.big();you.cheer=2;$('ndMsg').innerHTML=`<b class="okc">MENANG!</b> +🪙 ${fmtBig(Math.round(pakVal(op)))}`;logLine('sys',null,`Duel gabungan ${g.n}: kamu mengalahkan ${rv.n}. +${pakTxt(op)}.`,'win');}
   else{S.losses++;my.forEach(st=>npcGive(rv.n,st));SFX.lose();$('ndMsg').innerHTML=`<b style="color:var(--red)">KALAH</b> -🪙 ${fmtBig(Math.round(pakVal(my)))}`;logLine('sys',null,`Duel gabungan ${g.n}: kamu kalah dari ${rv.n}. -${pakTxt(my)}.`,'lose');}
@@ -6302,7 +6302,7 @@ function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)key
       body=C2('🏙️','Jual properti otomatis',`Manajer menjual properti kalau tawaran pembeli untung minimal ${s.auto||0}% dari nilai.${s.auto?'':' (mati)'}`,O('Untung minimal',[0,10,15,25,50].map(v=>B(s.auto===v,'pa:'+v,v?v+'%':'Mati')).join('')))
       +C2('💹','Jual saham otomatis',`${st.on?`Ambil untung: saat naik ≥${st.gain}% dari harga beli, manajer jual ${st.pct}% sedikit demi sedikit (maks 5 menit sekali per saham).`:'Ambil untung mati.'} ${st.loss?`Cut loss: saat turun ${st.loss}% dari harga beli, manajer langsung jual semua lembar saham itu.`:'Cut loss mati.'}`,
         O('Ambil untung',B(st.on,'son',st.on?'Aktif':'Mati'))+O('Jual per kali',[5,10,15].map(v=>B(st.pct===v,'sp:'+v,v+'%')).join(''))+O('Saat untung',[10,20,40].map(v=>B(st.gain===v,'sg:'+v,'≥'+v+'%')).join(''))+O('Cut loss saat rugi',[0,5,10,15,20].map(v=>B((st.loss||0)===v,'sl:'+v,v?'−'+v+'%':'Mati')).join('')))
-      +'<p class="muted">Crypto tidak pernah dijual manajer.</p>';}
+      +mcryUI();}
     if(moTab==='rep')body=card('📋',`Hari bursa ke-${mDay}`,`Pemasukan bisnis ±${fmtBig(Math.round(rep.inc||0))}<br>Properti terjual: ${rep.sold||0}<br>Hasil jual saham: ${fmtBig(Math.round(rep.trim||0))}<br>Pajak properti: ${fmtBig(Math.round(rep.tax||0))}`,'')+card('🏢','Total bisnis',`Nilai ${fmtBig(Math.round(propVal()))} · pemasukan ±${fmtBig(Math.round(bizDaily()))}/hari`,'');
     if(moTab==='set'){const lv=c.mlv||1;body=card('👔',`Manajer Lv ${lv}`,`Makin tinggi level, pembeli rela bayar lebih mahal saat nego.`,lv<5?`<button class="mogo" data-mo="lv">Latih · 🪙 ${fmtBig(Math.round(5e9*Math.pow(2.2,lv-1)))}</button>`:'<small>Maks</small>')
       +card('🛡️','Asuransi properti',insured()?`Aktif sampai ${new Date(c.ins).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}. Melindungi dari sabotase, preman, dan gugatan.`:'Lindungi dari sabotase dan preman selama 1 jam.',`<button class="mogo" data-mo="ins">${insured()?'Perpanjang':'Aktifkan'} · 🪙 ${fmtBig(Math.round(propVal()*.003+1e8))}</button>`)
@@ -7044,9 +7044,12 @@ xView('valas',{t:'Valas',s:'Valas',ic:'💱',bg:'linear-gradient(135deg,#3ddc84,
   const amts=[[1e8,'100 jt'],[1e9,'1 M'],[1e10,'10 M'],[1e11,'100 M'],[1e12,'1 T'],[1e13,'10 T']];
   return `<div class="wallet"><small>Kurs acuan</small><b>1 USD = 🪙 ${fmt(Math.round(usdRate()))}</b><div class="row"><span>Total valasmu</span><span>🪙 ${fmtBig(Math.round(tot))} · ${fmtUSD(toUSD(tot))}</span></div><div class="row"><span>Biaya tukar</span><span>0,25% beli dan jual</span></div></div>
   <div class="thd">Nominal sekali beli</div><div class="srow fxamt">${amts.map(([v,l])=>`<button class="small${fxAmt===v?' p':''}" data-xa="xFxAmt" data-id="${v}">🪙 ${l}</button>`).join('')}</div>
+  <div class="srow fxamt">${[10,25,50,100].map(p=>`<button class="small" data-xa="xFxPct" data-id="${p}">${p}% saldo</button>`).join('')}</div>
+  <div class="bk" style="display:flex;gap:8px;margin:6px 0"><input id="fxIn" inputmode="text" maxlength="20" placeholder="Nominal bebas, contoh 2,5 T / 750 M / 300 jt" style="flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid #d8c8a8;background:#fff;color:#3a2a1a"><button class="small p" data-xa="xFxIn">Pakai</button></div>
+  <p class="muted" style="margin:0 0 6px">Sekali beli sekarang: <b>🪙 ${fmtBig(fxAmt)}</b></p>
   <div class="thd">20 mata uang negara dan kerajaan</div><p class="muted" style="margin:0 0 6px">Negaramu (Republik Nusantara Raya) netral dan memakai koin. Kalau dua kerajaan berperang, kurs keduanya melemah. Pemenang menguat, yang kalah anjlok.</p>`+FXC.map(([c,fl,n])=>{const r=F.r[c],ch=(r/F.o[c]-1)*100,h=F.h[c]||0;
     return `<div class="fxr"><span class="fxf">${fl}</span><div class="fxn"><b>${c}${(()=>{try{const k=(FXC.find(x=>x[0]===c)||[])[4];return k&&WS().wars.some(v=>v.a===k||v.b===k)?' <span class="fxwar">⚔️ perang</span>':'';}catch(e){return '';}})()}</b><small>${n}${h>0?` · punya ${fmtBig(Math.round(h))} (🪙 ${fmtBig(Math.round(h*r))})`:''}</small></div><div class="fxp">🪙 ${r>=100?fmt(Math.round(r)):r.toLocaleString('id-ID',{maximumFractionDigits:2})}<br><span class="${ch>=0?'up':'dn'}">${ch>=0?'+':''}${ch.toFixed(2)}%</span></div>
-      <div class="fxb"><button class="small p" data-xa="xFx" data-id="b:${c}">Beli</button>${h>0?`<button class="small" data-xa="xFx" data-id="s50:${c}">Jual ½</button><button class="small" data-xa="xFx" data-id="s:${c}">Jual semua</button>`:''}</div></div>`;}).join('');}});
+      <div class="fxb"><button class="small p" data-xa="xFx" data-id="b:${c}">Beli 🪙 ${fmtBig(Math.min(fxAmt,Math.floor(S.bal)))}</button>${h>0?`<button class="small" data-xa="xFx" data-id="s50:${c}">Jual ½</button><button class="small" data-xa="xFx" data-id="s:${c}">Jual semua</button>`:''}</div></div>`;}).join('');}});
 
 /* ================= v34: challenges & info go to a notification button instead of popping up ================= */
 const NTF={hold:null,btn:null,m:null};
@@ -8625,6 +8628,40 @@ XA.xTkSel=id=>{ISW.sel=id||null;SFX.pop();ISW.redraw();};
 XA.xTkAsg=id=>{const s=tkS(),o=s.off.find(x=>x.id===id);if(!o)return;s.asg[o.role]=o.id;SFX.chip();savePF();ISW.redraw();};
 XA.xIstOpen=()=>{closePhone();setTimeout(()=>openIstana(),30);};
 xView('istana',{t:'Istana',s:'Istana',ic:'🏯',bg:'linear-gradient(135deg,#ffd25f,#b8322a)',r:()=>{setTimeout(()=>{if(phView==='istana'){phView='home';closePhone();openIstana();}},20);return '<p class="muted">Membuka jendela Istana...</p>';}});
+
+/* ================= v50.1: pasar lebih tenang (dana kecil tidak menggerakkan harga), nominal valas bebas, manajer crypto otomatis ================= */
+/* 1) price only moves after about 10% of the tradable amount has been bought or sold (accumulated, slowly forgotten) */
+const MPX={last:null};
+ammBuy=(f=>function(a,amt){const r=f.apply(this,arguments);try{MPX.last={id:a.id,q:r.q,s:1,t:performance.now()};}catch(e){}return r;})(ammBuy);
+ammSell=(f=>function(a,q){const r=f.apply(this,arguments);try{MPX.last={id:a.id,q:+q,s:-1,t:performance.now()};}catch(e){}return r;})(ammSell);
+function mpBase(a){return Math.max(1,(a.sh||1)*(a.t==='saham'?FLOAT:.2));}
+function mpPress(a){return (PF.mpr||{})[a.id]||0;}
+setImpact=(f=>function(a,p2){const L=MPX.last;if(!L||L.id!==a.id||performance.now()-L.t>800||!(L.q>0))return f.apply(this,arguments);MPX.last=null;
+  const P=PF.mpr=PF.mpr||{};let v=(P[a.id]||0)+L.s*L.q/mpBase(a);const steps=Math.trunc(v/.1);if(!steps){P[a.id]=v;return 0;}
+  v-=steps*.1;P[a.id]=v;const mv=Math.max(-.2,Math.min(.2,steps*.008*(1+Math.random()*.25)));a.p=Math.max(minP(a),a.p*(1+mv));a.f=(a.f||a.p)*(1+mv*.05);a.h[a.h.length-1]=a.p;return mv;})(setImpact);
+setInterval(()=>{const P=PF.mpr;if(!P)return;for(const k in P){P[k]*=.92;if(Math.abs(P[k])<1e-4)delete P[k];}},60000);
+/* 2) valas: any amount (type it with jt / M / T) or a share of your balance */
+function parseKoin(s){s=String(s||'').trim().toLowerCase().replace(/\s+/g,'').replace(/\./g,'').replace(',','.');const m=s.match(/^([\d.]+)(rb|ribu|jt|juta|m|miliar|t|triliun)?$/);if(!m)return 0;const n=parseFloat(m[1]);const u={rb:1e3,ribu:1e3,jt:1e6,juta:1e6,m:1e9,miliar:1e9,t:1e12,triliun:1e12}[m[2]]||1;return Math.floor(n*u);}
+let FXIN='';
+XA.xFxIn=()=>{const el=document.getElementById('fxIn');const v=parseKoin(el?el.value:FXIN);if(v<1000){showResult('Tulis nominal, contoh: 2,5 T atau 750 M');return;}fxAmt=v;FXIN='';SFX.chip();phoneRender();};
+XA.xFxPct=p=>{fxAmt=Math.max(1000,Math.floor(S.bal*(+p)/100));SFX.chip();phoneRender();};
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='fxIn')FXIN=e.target.value;},true);
+
+/* 3) manager: automatic crypto selling and buying within limits */
+function mcry(){const m=PF.mcry=PF.mcry||{};if(m.on==null)Object.assign(m,{on:0,gain:20,pct:10,loss:0,buy:0,dip:10,amt:1e10,max:1e11,spent:0,t:{}});m.t=m.t||{};return m;}
+XA.xMcry=v=>{const [k,x]=String(v).split(':'),m=mcry();if(k==='on'||k==='buy')m[k]=m[k]?0:1;else m[k]=+x;if(k==='max'||k==='buy')m.spent=0;SFX.pop();savePF();if(modal&&modal.st&&modal.st.label==='Kantor Manajer')modal.refresh();};
+function mcryUI(){const m=mcry(),B=(on,v,t)=>`<button class="${on?'mogo':'mog'}" data-xa="xMcry" data-id="${v}">${t}</button>`,O=(l,b)=>`<div class="moopt"><span>${l}</span><div>${b}</div></div>`;
+  const C2=(ic,t,sub,rows)=>`<div class="mocard mocard2"><div class="mohd"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div></div>${rows}</div>`;
+  return C2('₿','Jual crypto otomatis',m.on?`Saat crypto naik ≥${m.gain}% dari harga beli, manajer jual ${m.pct}% (maks 5 menit sekali per koin).${m.loss?` Cut loss −${m.loss}%: jual semua.`:''}`:'Mati.',
+      O('Status',B(m.on,'on',m.on?'Aktif':'Mati'))+O('Jual per kali',[10,25,50].map(v=>B(m.pct===v,'pct:'+v,v+'%')).join(''))+O('Saat untung',[10,20,50,100].map(v=>B(m.gain===v,'gain:'+v,'≥'+v+'%')).join(''))+O('Cut loss',[0,10,20,30].map(v=>B(m.loss===v,'loss:'+v,v?'−'+v+'%':'Mati')).join('')))
+    +C2('🛒','Beli crypto otomatis',m.buy?`Saat harga turun ≥${m.dip}% dari puncak terakhir, manajer beli 🪙 ${fmtBig(m.amt)} per kali. Sudah terpakai 🪙 ${fmtBig(m.spent)} dari batas 🪙 ${fmtBig(m.max)}.`:'Mati.',
+      O('Status',B(m.buy,'buy',m.buy?'Aktif':'Mati'))+O('Beli saat turun',[5,10,20,30].map(v=>B(m.dip===v,'dip:'+v,'−'+v+'%')).join(''))+O('Per kali beli',[[1e9,'1 M'],[1e10,'10 M'],[1e11,'100 M'],[1e12,'1 T']].map(([v,l])=>B(m.amt===v,'amt:'+v,l)).join(''))+O('Batas total',[[1e11,'100 M'],[1e12,'1 T'],[1e13,'10 T'],[1e14,'100 T']].map(([v,l])=>B(m.max===v,'max:'+v,l)).join('')));}
+setInterval(()=>{try{if(!started||!anyMgr())return;const m=mcry();if(!m.on&&!m.buy)return;window.__quiet=1;const now=Date.now();
+  MK.forEach(a=>{if(a.t!=='crypto')return;const have=PF.hold[a.id]||0,last=m.t[a.id]||0;if(now-last<300000)return;
+    if(m.on&&have>0){const avg=(PF.cost[a.id]||0)/have;if(avg>0){if(m.loss&&a.p<=avg*(1-m.loss/100)){mktSell(a,have,'👔 Manajer cut loss crypto');m.t[a.id]=now;return;}
+      if(a.p>=avg*(1+m.gain/100)){mktSell(a,have*m.pct/100,'👔 Manajer jual crypto');m.t[a.id]=now;return;}}}
+    if(m.buy&&m.spent+m.amt<=m.max&&S.bal>m.amt*2){const top=Math.max(...(a.h||[a.p]).slice(-60));if(a.p<=top*(1-m.dip/100)){const q=mktBuy(a,m.amt,'👔 Manajer beli crypto');if(q>0){m.spent+=m.amt;m.t[a.id]=now;}}}});
+  savePF();}catch(e){console.error('mcry',e);}finally{setTimeout(()=>{window.__quiet=0;},0);}},60000);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
