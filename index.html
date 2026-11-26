@@ -334,6 +334,22 @@ em.up{color:#3ddc84;font-style:normal}em.dn{color:#ff6a6a;font-style:normal}.kki
 .phone.shopPh .phside hr{border:0;border-top:2px dashed #cdbd99;margin:2px 0;width:100%}
 .phone.shopPh .ph-top #phPin{background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:10px;height:36px;padding:0 10px;font-weight:800}
 
+/* v28 */
+.lvPill{margin-left:6px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(180deg,#3b82f6,#2563d6);color:#fff;border:2px solid #fff;border-radius:999px;padding:2px 10px 2px 4px;font:800 12px var(--body);box-shadow:0 2px 0 rgba(0,0,0,.25);align-self:flex-start;cursor:pointer}
+.lvPill b{background:#ffd25f;color:#3a2400;border-radius:999px;padding:0 7px}.lvPill i{display:block;width:60px;height:6px;background:rgba(255,255,255,.3);border-radius:4px;overflow:hidden;font-style:normal}.lvPill i s{display:block;height:100%;background:#ffd25f;text-decoration:none}
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:8px;align-items:end;background:#fff;border:2px solid #e2d3b0;border-radius:14px;padding:10px 10px 0}
+.podium div{text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;min-width:0}
+.podium div b{font-size:12.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium div small{color:#6d6180}
+.podium div u{display:block;width:100%;border-radius:10px 10px 0 0;text-decoration:none;color:#3a2400;font:900 20px var(--display);padding-top:6px}
+.podium .p1 u{height:64px;background:linear-gradient(180deg,#ffe08a,#e8a62a)}.podium .p2 u{height:46px;background:linear-gradient(180deg,#eef1f6,#b9c2cf)}.podium .p3 u{height:34px;background:linear-gradient(180deg,#f3c49a,#c9834c)}
+.podium .av{font-size:26px}
+.xpbar{height:10px;background:#ece3cf;border-radius:6px;overflow:hidden;margin:6px 0}.xpbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd25f,#e8a62a)}
+.chap{display:flex;gap:10px;align-items:center;background:#fff;border:2px solid #e2d3b0;border-radius:12px;padding:9px 11px}.chap.done{opacity:.6}.chap.now{border-color:#2f6fd6}.chap>div{flex:1;min-width:0}.chap b{display:block}.chap small{color:#6d6180}
+.koran{background:#fffdf6;border:2px solid #e2d3b0;border-radius:12px;padding:12px 14px;font-family:Georgia,serif;color:#2a2238}.koran h5{margin:0 0 6px;font:900 22px Georgia,serif;border-bottom:3px double #2a2238;padding-bottom:4px;text-align:center}.koran p{margin:6px 0;padding-bottom:6px;border-bottom:1px solid #efe3c8;font-size:13.5px}
+.tutc{display:flex;flex-direction:column;gap:8px}.tutc .mocard{margin:0}
+body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.panel,body.txl .phone.shopPh .ph-body{zoom:1.15}
+
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -1378,7 +1394,7 @@ function openSettings(){
       <label class="rng"><span>Musik</span><button class="small" id="sMus" aria-pressed="${SET.music}">${SET.music?'Nyala':'Mati'}</button></label>
       <label class="rng"><span>Volume musik</span><input type="range" id="sMv" min="0" max="100" value="${SET.mv}"><b id="sMvV">${SET.mv}%</b></label><button class="pbtn" id="sPick">🎵 Pilih lagu (bawaan / NCS / YouTube)</button></section>
       <section class="setg"><h4>Grafis</h4><p class="muted">Ringan: tanpa bayangan dan resolusi lebih hemat, jalan jadi lebih mulus di HP. Hemat baterai: 30 FPS dan resolusi lebih rendah, paling irit. Saat HP atau jendela terbuka, dunia 3D otomatis diperlambat supaya baterai awet.</p><div class="srow">${['auto','hemat','ringan','normal'].map(g=>`<button class="pbtn" data-gfx="${g}" aria-pressed="${(SET.gfx||'auto')===g}">${g==='auto'?'Otomatis':g==='hemat'?'🔋 Hemat baterai':g==='ringan'?'Ringan':'Normal'}</button>`).join('')}</div></section>
-      <section class="setg"><h4>Penghitung FPS</h4><div class="srow"><button class="pbtn" id="sFps" aria-pressed="${!!SET.fps}">${SET.fps?'Tampil':'Sembunyi'}</button></div></section><section class="setg"><h4>Simpan & muat</h4><p class="muted">Progres juga tersimpan otomatis di browser ini. Slot dipakai untuk cadangan.</p>${slots}</section>
+      <section class="setg"><h4>Ukuran teks</h4><div class="srow">${[['s','Kecil'],['m','Sedang'],['l','Besar']].map(([k,n])=>`<button class="pbtn" data-tx="${k}" aria-pressed="${(SET.tx||'m')===k}">${n}</button>`).join('')}</div></section><section class="setg"><h4>Penghitung FPS</h4><div class="srow"><button class="pbtn" id="sFps" aria-pressed="${!!SET.fps}">${SET.fps?'Tampil':'Sembunyi'}</button></div></section><section class="setg"><h4>Simpan & muat</h4><p class="muted">Progres juga tersimpan otomatis di browser ini. Slot dipakai untuk cadangan.</p>${slots}</section>
       <section class="setg"><h4>Kode simpan</h4><p class="muted">Untuk pindah ke perangkat atau browser lain: buat kode, salin, lalu tempel di sana.</p>
         <textarea id="sCode" rows="3" placeholder="Tempel kode simpan di sini" spellcheck="false"></textarea>
         <div class="srow"><button class="pbtn" id="sExp">Buat kode</button><button class="pbtn" id="sCopy">Salin</button><button class="pbtn" id="sImp">Muat dari kode</button></div></section>
@@ -1388,7 +1404,7 @@ function openSettings(){
     $('sVol').oninput=e=>{SET.sfx=+e.target.value;$('sVolV').textContent=SET.sfx+'%';applyAudio();};
     $('sVol').onchange=()=>{audio();SFX.coin();};
     $('sMv').oninput=e=>{SET.mv=+e.target.value;$('sMvV').textContent=SET.mv+'%';applyAudio();ytVol();};$('sPick').onclick=()=>{closeGame();openMusic();};
-    {const fb=body.querySelector('#sFps');if(fb)fb.onclick=()=>{SET.fps=!SET.fps;saveSet();SFX.pop();draw();};}body.querySelectorAll('[data-gfx]').forEach(b=>b.onclick=()=>{SET.gfx=b.dataset.gfx;saveSet();gfxApply();SFX.coin();draw();msg('Grafis: '+b.textContent+(gfxLite()?' (mode ringan aktif)':' (mode normal aktif)'));});
+    body.querySelectorAll('[data-tx]').forEach(b=>b.onclick=()=>{SET.tx=b.dataset.tx;saveSet();txApply();SFX.pop();draw();});{const fb=body.querySelector('#sFps');if(fb)fb.onclick=()=>{SET.fps=!SET.fps;saveSet();SFX.pop();draw();};}body.querySelectorAll('[data-gfx]').forEach(b=>b.onclick=()=>{SET.gfx=b.dataset.gfx;saveSet();gfxApply();SFX.coin();draw();msg('Grafis: '+b.textContent+(gfxLite()?' (mode ringan aktif)':' (mode normal aktif)'));});
     $('sMus').onclick=e=>{audio();SET.music=!SET.music;e.currentTarget.setAttribute('aria-pressed',SET.music);e.currentTarget.textContent=SET.music?'Nyala':'Mati';applyAudio();};
     body.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(slotKey(b.dataset.save),JSON.stringify(snap()));SFX.coin();draw();$('sMsg').textContent=`Tersimpan di slot ${b.dataset.save}.`;}catch(e){msg('Gagal menyimpan di browser ini. Pakai kode simpan.');}});
     body.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{const d=slotInfo(b.dataset.load);if(!d)return;try{applySnap(d);SFX.big();logLine('sys',null,`Data slot ${b.dataset.load} dimuat.`);draw();$('sMsg').textContent=`Slot ${b.dataset.load} dimuat.`;}catch(e){msg('Data slot rusak.');}});
@@ -3379,7 +3395,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v27';
+const GAME_VER='v28';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6271,6 +6287,65 @@ phoneRender=(f=>function(){const r=f.apply(this,arguments);const ph=$('phone');i
 /* K4 + K5: taxi app: go anywhere from the phone */
 xView('taksi',{t:'Taksi Online',s:'Taksi',ic:'🚕',bg:'linear-gradient(135deg,#ffd25f,#e8a62a)',r:()=>{let S=[];try{S=tripSections(null,-1);}catch(e){}
   return `<div class="wallet"><small>Taksi Permata</small><b>Mau ke mana?</b><div class="row"><span>Langsung diantar ke tujuan, tanpa jalan ke stasiun.</span></div></div>`+S.map(s=>`<div class="thd">${s.h}</div><div class="tlist">${s.rows.map(o=>tRow(Object.assign({},o,{here:false}))).join('')}</div>`).join('');}});
+
+/* ================= v28: level pemain, profil, podium, koran, tutorial, ukuran teks, jalan taipan ================= */
+/* P16: cap confetti */
+{const _b=burst;burst=function(pos,n){if(confetti.length>120)return;return _b(pos,Math.min(gfxLite()?20:40,n|0));};}
+/* Q1 + Q2: player level */
+function lvS(){PF.lv=PF.lv||{xp:0,lv:1};return PF.lv;}
+const lvNeed=l=>Math.round(60*l*l);
+function xpAdd(n,why){const s=lvS();s.xp+=n;let up=0;while(s.xp>=lvNeed(s.lv)){s.xp-=lvNeed(s.lv);s.lv++;up++;
+    const coin=Math.round(1e6*s.lv*s.lv),dia=5+Math.floor(s.lv/5)*5;S.bal+=coin;PF.dia=(PF.dia||0)+dia;
+    try{banner(`⭐ NAIK LEVEL ${s.lv}<small>+🪙 ${fmtBig(coin)} · +💎 ${dia}</small>`,'',2600);SFX.win();}catch(e){}logLine('sys',null,`⭐ Kamu naik ke Level ${s.lv}! Hadiah 🪙 ${fmtBig(coin)} dan 💎 ${dia}.`,'win');}
+  if(up){save();render();}lvPill();}
+function lvPill(){const host=$('money');if(!host)return;let el=$('lvPill');if(!el){el=document.createElement('button');el.id='lvPill';el.className='lvPill';el.onclick=e=>{e.stopPropagation();xOpen('profil');};host.appendChild(el);}
+  const s=lvS();el.innerHTML=`<b>Lv ${s.lv}</b><i><s style="width:${Math.min(100,s.xp/lvNeed(s.lv)*100)}%"></s></i>`;}
+{const _ll=logLine;logLine=function(kind,name,text,cls){const r=_ll.apply(this,arguments);try{if(kind==='sys'&&cls==='win'&&!/naik ke Level/.test(text||''))xpAdd(8);}catch(e){}return r;};}
+{const _at=addTx;addTx=function(t){const r=_at.apply(this,arguments);try{xpAdd(2);}catch(e){}return r;};}
+setInterval(()=>{if(started&&!document.hidden)xpAdd(3);},60000);
+setTimeout(function lvBoot(){if(!started){setTimeout(lvBoot,2000);return;}lvPill();},2500);
+/* Q4: story chain "Jalan Taipan" */
+const CHAPS=[[1e6,'Anak Baru','Kumpulkan kekayaan 1 juta'],[1e8,'Pedagang Kecil','Kekayaan 100 juta'],[1e9,'Miliarder Muda','Kekayaan 1 miliar'],[1e10,'Juragan Kota','Kekayaan 10 miliar'],[1e11,'Konglomerat','Kekayaan 100 miliar'],[1e12,'Triliuner','Kekayaan 1 triliun'],[1e13,'Taipan Nasional','Kekayaan 10 triliun'],[5e13,'Raja Bisnis','Kekayaan 50 triliun'],[1e14,'Sultan Dunia','Kekayaan 100 triliun']];
+XA.xChap=v=>{const i=+v,c=CHAPS[i],s=lvS();s.ch=s.ch||{};if(!c||s.ch[i]||netWorth()<c[0])return;s.ch[i]=1;const coin=Math.round(c[0]*.02),dia=10+i*5;S.bal+=coin;PF.dia=(PF.dia||0)+dia;xpAdd(40+i*20);
+  logLine('sys',null,`📖 Bab "${c[1]}" selesai! +🪙 ${fmtBig(coin)} dan 💎 ${dia}.`,'win');SFX.win();save();savePF();phoneRender();render();};
+/* T14: profile */
+xView('profil',{t:'Profil',s:'Profil',ic:'🪪',bg:'linear-gradient(135deg,#6cc0ff,#2563d6)',dot:()=>{const s=lvS();s.ch=s.ch||{};return CHAPS.filter((c,i)=>!s.ch[i]&&netWorth()>=c[0]).length;},r:()=>{const s=lvS();s.ch=s.ch||{};const nw=netWorth(),R=ranking(),rk=R.findIndex(r=>r.me)+1;
+  const props=MEGA.filter(M=>megaS(M).me).length,stk=MK.filter(a=>(PF.hold[a.id]||0)>0).length,bd=Object.keys((XS().badge)||{}).length;
+  const cur=CHAPS.findIndex((c,i)=>!s.ch[i]);
+  return `<div class="wallet"><small>Pemain</small><b>🧑 Kamu · Lv ${s.lv}</b><div class="xpbar"><i style="width:${Math.min(100,s.xp/lvNeed(s.lv)*100)}%"></i></div><div class="row"><span>XP</span><span>${fmt(Math.round(s.xp))} / ${fmt(lvNeed(s.lv))}</span></div><div class="row"><span>Gelar</span><span>${esc(titleOf(nw))}</span></div><div class="row"><span>Peringkat</span><span>#${rk}</span></div><div class="row"><span>Kekayaan bersih</span><span>${fmtBig(Math.round(nw))}</span></div></div>
+   <div class="wallet"><small>Statistik</small><div class="row"><span>Menang / kalah</span><span>${fmt(S.wins)} / ${fmt(S.losses)}</span></div><div class="row"><span>Properti dimiliki</span><span>${props}</span></div><div class="row"><span>Saham dipegang</span><span>${stk} jenis</span></div><div class="row"><span>Lencana</span><span>${bd}</span></div><div class="row"><span>Diamond</span><span>💎 ${fmt(PF.dia||0)}</span></div></div>
+   <div class="thd">📖 Jalan Taipan</div>${CHAPS.map((c,i)=>{const done=s.ch[i],ok=nw>=c[0];return `<div class="chap ${done?'done':i===cur?'now':''}"><span style="font-size:22px">${done?'✅':ok?'🎁':'🔒'}</span><div><b>Bab ${i+1}: ${c[1]}</b><small>${c[2]} · hadiah 🪙 ${fmtBig(Math.round(c[0]*.02))} + 💎 ${10+i*5}</small></div>${done?'':`<button class="small p" data-xa="xChap" data-id="${i}" ${ok?'':'disabled'}>Klaim</button>`}</div>`;}).join('')}
+   <p class="news">XP didapat dari menang, transaksi, dan waktu bermain. Tiap naik level dapat koin dan diamond.</p>`;}});
+/* T25: city newspaper */
+xView('koran',{t:'Koran Permata',s:'Koran',ic:'📰',bg:'linear-gradient(135deg,#d6c7a8,#8a7350)',r:()=>`<div class="koran"><h5>KORAN PERMATA</h5><small style="display:block;text-align:center;color:#6d6180">Hari bursa ke-${mDay}</small>${news.map(n=>`<p>${esc(n)}</p>`).join('')||'<p>Belum ada berita.</p>'}</div>`});
+/* T15: podium on the leaderboard */
+phoneRender=(f=>function(){const r=f.apply(this,arguments);try{const ph=$('phone');if(ph&&!ph.classList.contains('hidden')&&phView==='rank'){const b=ph.querySelector('.ph-body');if(b&&!b.querySelector('.podium')){const R=ranking().slice(0,3);if(R.length===3){
+    const c=(x,i)=>`<div class="p${i+1}"><span class="av">${x.me?'🧑':['👑','🎩','💼'][i]}</span><b>${esc(x.me?'Kamu':x.n)}</b><small>${fmtBig(Math.round(x.w||x.nw||0))}</small><u>${i+1}</u></div>`;
+    const d=document.createElement('div');d.className='podium';d.innerHTML=c(R[1],1)+c(R[0],0)+c(R[2],2);const w=b.querySelector('.wallet');if(w)w.after(d);else b.prepend(d);}}}}catch(e){console.warn('podium',e);}return r;})(phoneRender);
+/* T19: text size */
+function txApply(){document.body.classList.toggle('txs',SET.tx==='s');document.body.classList.toggle('txl',SET.tx==='l');}txApply();
+/* T20: short tutorial for new players */
+setTimeout(function tutBoot(){if(!started||modal||!$('phone').classList.contains('hidden')){setTimeout(tutBoot,3000);return;}if(PF.tut)return;PF.tut=1;savePF();
+  xModal('👋 Selamat datang di Lounge Vegas',(body)=>{const card=(ic,t,s)=>`<div class="mocard"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${s}</small></div></div>`;
+    body.innerHTML=`<div class="tutc">${card('🕹️','Jalan dan interaksi','Geser joystick untuk jalan. Dekati meja atau gedung lalu tekan AKSI (atau E).')}${card('📱','HP kamu','Semua app ada di HP: saham, bank, bisnis, ranking, taksi. Pakai kolom cari dan sematkan app favorit.')}${card('🏢','Jadi taipan','Beli properti dan saham, sewa manajer, dan ikuti bab Jalan Taipan di app Profil.')}${card('⚔️','Duel adil','Semua duel murni 50:50. Pertaruhkan koin atau aset gabungan.')}${card('🔋','Hemat baterai','Main lama di HP? Pilih Setting > Grafis > Hemat baterai.')}</div><button class="pbtn" id="tutOk">Ayo mulai</button>`;
+    body.querySelector('#tutOk').onclick=()=>closeGame();});},12000);
+
+/* v28 part B: city services (cinema, restaurant, gym, business school, hospital spa) with timed buffs */
+const CSV=[['bioskop','🎬','Bioskop Permata','Nonton film terbaru. Cuan main +8% selama 10 menit.',{bonus:8},600000,.0004],
+  ['resto','🍽️','Restoran Mewah Kencana','Makan malam sultan. Gaji kerja +15% selama 10 menit.',{job:15},600000,.0005],
+  ['gym','🏋️','Gym Garuda','Latihan keras. Bunga investasi +6% selama 15 menit.',{inv:6},900000,.0006],
+  ['sekolah','🎓','Sekolah Bisnis Nusantara','Kursus kilat. Pemasukan bisnis +10% selama 15 menit.',{biz:10},900000,.001],
+  ['spa','💆','Spa & Klinik Mutiara','Pulihkan diri. Cuan main +5% dan gaji +5% selama 20 menit.',{bonus:5,job:5},1200000,.0008]];
+function cityB(){PF.cityB=PF.cityB||{};const now=Date.now();for(const k in PF.cityB)if(PF.cityB[k]<now)delete PF.cityB[k];return PF.cityB;}
+const csvCost=c=>Math.max(1e5,Math.round(netWorth()*c[6]/1e3)*1e3);
+buffs=(f=>function(){const r=f.apply(this,arguments);try{const B=cityB();CSV.forEach(c=>{if(B[c[0]])for(const k in c[4])if(k!=='biz')r[k]=(r[k]||0)+c[4][k];});}catch(e){}return r;})(buffs);
+xMult=(f=>function(){let m=f.apply(this,arguments);try{const B=cityB();CSV.forEach(c=>{if(B[c[0]]&&c[4].biz)m*=1+c[4].biz/100;});}catch(e){}return m;})(xMult);
+XA.xCsv=v=>{const c=CSV.find(x=>x[0]===v);if(!c)return;const cost=csvCost(c);if(S.bal<cost){SFX.error();showResult('Koin belum cukup');return;}
+  S.bal-=cost;const B=cityB();B[c[0]]=Math.max(Date.now(),B[c[0]]||0)+c[5];xpAdd(5);logLine('sys',null,`${c[1]} ${c[2]}: ${c[3]}`,'win');SFX.coin();save();savePF();render();phoneRender();};
+xView('kota',{t:'Layanan Kota',s:'Kota',ic:'🏙️',bg:'linear-gradient(135deg,#8ef0a8,#2f6fd6)',dot:()=>0,r:()=>{const B=cityB(),now=Date.now();
+  return `<div class="wallet"><small>Layanan kota</small><b>Mau ke mana hari ini?</b><div class="row"><span>Buff aktif</span><span>${Object.keys(B).length||'Belum ada'}</span></div></div>`+
+  CSV.map(c=>{const on=B[c[0]],left=on?Math.ceil((on-now)/60000):0,cost=csvCost(c);return `<div class="chap ${on?'now':''}"><span style="font-size:26px">${c[1]}</span><div><b>${c[2]}</b><small>${c[3]}${on?` · aktif ${left} menit lagi`:''}</small></div><button class="small p" data-xa="xCsv" data-id="${c[0]}" ${S.bal<cost?'disabled':''}>${on?'Tambah':'Pergi'} · 🪙 ${fmtBig(cost)}</button></div>`;}).join('')+
+  '<p class="news">Harga menyesuaikan kekayaanmu. Buff bisa ditumpuk waktunya. Tidak memengaruhi duel, duel tetap 50:50.</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
