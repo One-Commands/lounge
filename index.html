@@ -394,6 +394,33 @@ body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.
 .chatpanel h4{margin:0 14px!important;color:#7a6f86!important}.chatpanel .hist{padding:0 12px;max-height:70px;overflow-y:auto}.chatpanel .hist i{background:#ece3cf!important;color:#4a3f5a}.chatpanel .hist i.w{color:#1f8a52}.chatpanel .hist i.l{color:#c53030}
 .chatpanel .mpchat{margin:0 12px}.chatpanel .mpchat input{background:#fff!important;color:#2a2238!important;border:2px solid #eadfca!important}
 #chatNew{position:absolute;left:50%;transform:translateX(-50%);bottom:110px;z-index:41;border:0;border-radius:14px;background:#2f6fd6;color:#fff;font-weight:800;padding:8px 14px;box-shadow:0 4px 0 #1d4ea8;display:none}
+/* v35.1: table / station panel in shop style as a bottom sheet */
+.ctx{bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;width:min(600px,calc(100% - 340px))!important;min-width:min(420px,calc(100% - 24px));max-height:calc(100% - 84px);overflow-y:auto;z-index:30!important;background:#f6efe2!important;border:3px solid #2f6fd6!important;border-radius:18px!important;padding:0 14px 14px!important;gap:10px!important;color:#2a2238;box-shadow:0 14px 40px rgba(0,0,0,.5);animation:ctxUp .26s cubic-bezier(.2,.9,.3,1.2)!important}
+@keyframes ctxUp{from{opacity:0;transform:translate(-50%,40px) scale(.96)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+.ctx .ctx-head{position:sticky;top:0;z-index:2;margin:0 -14px;padding:10px 16px;background:linear-gradient(180deg,#4f8df0,#2f6fd6);border-radius:0;align-items:center}
+.ctx .ctx-head h3{color:#fff!important;font-size:19px}.ctx .ctx-head small{color:rgba(255,255,255,.88)!important}
+.ctx .betv,.ctx label,.ctx p,.ctx span{color:#2a2238}.ctx .muted{color:#7a6f86!important}
+.ctx button.small,.ctx .pbtn,.ctx .bxt button:not(.allin):not(.go2),.ctx button:not(.go):not(.chip):not(.go2):not(.allin):not(.p){background:#ece3cf!important;color:#4a3f5a!important;border:0!important;border-radius:12px;min-height:44px;box-shadow:0 3px 0 #d6cab0}
+.ctx button[aria-pressed="true"]{background:#2f6fd6!important;color:#fff!important;box-shadow:0 3px 0 #1d4ea8}
+.ctx .bxt .go2,.ctx .go{min-height:48px;border-radius:14px}.ctx .bxt .allin{min-height:44px;border-radius:12px}
+.ctx input,.ctx select{background:#fff!important;color:#2a2238!important;border:2px solid #eadfca!important;border-radius:12px;min-height:44px}
+.ctx .go:disabled{background:#e4ddd0!important;color:#a59c8e!important;box-shadow:none}
+@media (max-width:760px){.ctx{width:calc(100% - 24px)!important;min-width:0}}
+#balUsd{margin-top:4px;align-self:flex-start;background:linear-gradient(180deg,#e9fbe9,#d4f3d8);border:2px solid #3ddc84;color:#145c33;font:800 12px Nunito,sans-serif;border-radius:10px;padding:2px 9px;box-shadow:0 2px 0 rgba(0,0,0,.2);white-space:nowrap}
+#balUsd.usdOn{background:linear-gradient(180deg,#3ddc84,#1f8a52);color:#fff;border-color:#fff}
+.bxt .usdTg{background:#ece3cf!important;color:#4a3f5a!important;border-radius:12px;min-height:44px;padding:0 12px;font-weight:800}
+.bxt .usdTg.on{background:linear-gradient(180deg,#3ddc84,#1f8a52)!important;color:#fff!important}
+
+#tabLock{position:fixed;inset:0;z-index:999;background:rgba(20,16,30,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+#tabLock>div{background:#f6efe2;border:3px solid #2f6fd6;border-radius:18px;padding:20px;max-width:440px;display:flex;flex-direction:column;gap:10px;text-align:center;color:#2a2238}
+#tabLock b{font-size:20px}#tabLock small{color:#6a5f78;font-size:14px}#tabLock button{min-height:48px;border:0;border-radius:14px;background:linear-gradient(180deg,#ffd25f,#e8a62a);color:#3a2400;font-weight:800;font-size:16px}
+/* smooth transitions */
+.modal.noanim,.modal.noanim>.panel{animation:none!important}
+.modal.tabsw .momain{animation:moFade .2s ease-out}
+@keyframes moFade{from{opacity:.35;transform:translateY(6px)}to{opacity:1;transform:none}}
+.moside button,.phside button{transition:background .18s ease,color .18s ease,transform .12s ease}
+.moside button:active,.phside button:active{transform:scale(.97)}
+
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -565,7 +592,7 @@ const HOST="Bang Rio";
 /* ---------- state ---------- */
 let S={bal:1000,bet:0,wins:0,losses:0,hist:[]};
 try{const s=JSON.parse(localStorage.getItem('lounge-reme-3d')||'null');if(s&&typeof s.bal==='number')S=Object.assign(S,s,{bet:0});}catch(e){}
-function save(){try{localStorage.setItem('lounge-reme-3d',JSON.stringify({bal:S.bal,wins:S.wins,losses:S.losses,hist:S.hist}));}catch(e){}}
+function save(){try{localStorage.setItem('lounge-reme-3d',JSON.stringify({bal:S.bal,wins:S.wins,losses:S.losses,hist:S.hist,usdS:S.usdS||null}));}catch(e){}}
 let busy=false,started=false,tieHost=true;
 
 /* ---------- audio (synthesized) ---------- */
@@ -3434,7 +3461,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v35';
+const GAME_VER='v35.2';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7003,6 +7030,45 @@ xView('denah',{t:'Denah Kerajaan',s:'Denah',ic:'🗺️',bg:'linear-gradient(135
 ZB.nirwana=(f=>function(G,zc,k){f.apply(this,arguments);try{stationAdd('swentry',96,zc+58,Math.PI,'Jalan ke Permukiman',{useDist:3.5,verb:'Pergi',act:()=>swGo(),btn:'PERMUKIMAN',ctx:()=>`<div class="ctx-head"><h3>🏘️ Jalan ke Permukiman Swarnapura</h3><small>Kampung warga: rumah adat, pasar pagi, sawah, candi</small></div><div class="ctx-row"><button class="go" id="ctxGo">Pergi (E)</button><button class="go alt" data-xa="xDenah" data-id="">🗺️ Denah</button></div>`});
   cBox(G,.6,4,.6,0x5a3a24,94,2,zc+58);cBox(G,.6,4,.6,0x5a3a24,98,2,zc+58);cBox(G,5,.8,.6,0x8a3a24,96,4.2,zc+58);}catch(e){console.error(e);}})(ZB.nirwana);
 tripSections=(f=>function(){const S=f.apply(this,arguments);const a=S.find(s=>s.h==='Antarkota');if(a&&XS().vis&&XS().vis.nirwana)a.rows.push({col:'#8fc46a',n:'🏘️ Permukiman Swarnapura',sub:'Kampung warga Kerajaan Nirwana Agung',fee:'🪙 '+fmtBig(5000),a:'xFly',id:'swarna'});return S;})(tripSections);
+
+/* ================= v35.1: bet with USD in any casino game; USD shown under the coin balance ================= */
+SET.betUSD=SET.betUSD||false;
+const usdHave=()=>fxS().h.USD||0;
+function casinoNow(){try{const ph=$('phone');if(ph&&!ph.classList.contains('hidden'))return false;if(modal&&modal.el&&modal.el.querySelector('.mchips'))return true;const c=$('ctx');if(c&&!c.classList.contains('hidden')&&$('ctxBx'))return true;}catch(e){}return false;}
+function usdStart(){if(S.usdS||!SET.betUSD)return;const F=fxS(),q=usdHave();if(q<=0)return;const r=usdRate();S.usdS={coin:S.bal,ext:0,r};F.h.USD=0;S.bal=Math.floor(q*r);save();savePF();try{showResult(`💵 Main pakai USD · saldo taruhan US$ ${fmt(Math.floor(q))}`);}catch(e){}}
+function usdEnd(){const U=S.usdS;if(!U)return;const F=fxS(),play=Math.max(0,S.bal-U.ext);F.h.USD=(F.h.USD||0)+play/U.r;S.bal=U.coin+U.ext;S.usdS=null;save();savePF();try{render();}catch(e){}}
+/* income that arrives during a USD session stays coins */
+bizTick=(f=>function(){const b=S.bal;const r=f.apply(this,arguments);if(S.usdS){const d=S.bal-b;if(d>0)S.usdS.ext+=d;}return r;})(bizTick);
+setInterval(()=>{if(!started)return;const inC=casinoNow();if(inC&&SET.betUSD&&!S.usdS)usdStart();else if(S.usdS&&(!inC||!SET.betUSD)&&!(S.bet>0)&&!busy)usdEnd();},300);
+setTimeout(()=>{if(S.usdS){usdEnd();}},1500);
+/* phone or shop while a USD session is open: end it first so USD can't buy anything */
+togglePhone=(f=>function(){if(S.usdS&&!(S.bet>0)&&!busy)usdEnd();return f.apply(this,arguments);})(togglePhone);
+/* USD toggle in every bet panel */
+betExtras=(f=>function(cur,on,label){const box=f.apply(this,arguments);try{const b=document.createElement('button');b.className='usdTg'+(SET.betUSD?' on':'');const up=()=>{b.textContent=SET.betUSD?`💵 USD (US$ ${fmtUSDs(S.usdS?S.bal/S.usdS.r:usdHave())})`:'🪙 Koin';b.classList.toggle('on',!!SET.betUSD);};up();
+  b.onclick=e=>{e.stopPropagation();if(S.bet>0||busy){SFX.error();showResult('Selesaikan taruhan dulu sebelum ganti mata uang');return;}if(!SET.betUSD&&usdHave()<=0){SFX.error();showResult('Belum punya USD. Beli dulu di app 💱 Valas');return;}SET.betUSD=!SET.betUSD;if(SET.betUSD)usdStart();else usdEnd();up();SFX.pop();};
+  box.insertBefore(b,box.firstChild);setInterval(()=>{if(b.isConnected)up();},1000);}catch(e){}return box;})(betExtras);
+const fmtUSDs=n=>{const A=Math.abs(n);if(A>=1e12)return (n/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';if(A>=1e9)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A>=1e6)return (n/1e6).toLocaleString('id-ID',{maximumFractionDigits:2})+' jt';return Math.floor(n).toLocaleString('id-ID');};
+/* HUD: USD line under the coin box */
+render=(f=>function(){const r=f.apply(this,arguments);try{let u=$('balUsd');if(!u){u=document.createElement('div');u.id='balUsd';const m=$('money');m.parentNode.insertBefore(u,m.nextSibling);}
+  if(S.usdS){u.innerHTML=`💵 <b>Mode USD</b> · taruhan US$ ${fmtUSDs(S.bal/S.usdS.r)}`;u.className='usdOn';}
+  else{const h=usdHave();u.innerHTML=`≈ US$ ${fmtUSDs(S.bal/usdRate())}${h>0?` · 💵 US$ ${fmtUSDs(h)}`:''}`;u.className='';}}catch(e){}return r;})(render);
+setInterval(()=>{try{if(started)render();}catch(e){}},5000);
+/* keep the left HUD stack from overlapping */
+setInterval(()=>{try{const tl=document.querySelector('.hud-tl'),s=stage.getBoundingClientRect();if(!tl)return;let y=tl.getBoundingClientRect().bottom-s.top+6;const xp=$('xPill');if(xp&&xp.offsetParent){xp.style.top=y+'px';y+=xp.offsetHeight+8;}const ma=$('mgrAdv');if(ma&&ma.offsetParent){ma.style.top=y+'px';}}catch(e){}},500);
+
+
+/* ================= v35.1: one active tab owns the save (old tabs stop overwriting) ================= */
+(function(){const ID=Math.random().toString(36).slice(2)+Date.now().toString(36);let passive=false;
+  try{localStorage.setItem('lounge-tab',ID);}catch(e){}
+  const _set=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(k,v){if(this===localStorage&&/^lounge-(reme-3d|vegas-hp)$/.test(k)){let cur=null;try{cur=localStorage.getItem('lounge-tab');}catch(e){}if(cur&&cur!==ID){goPassive();return;}}return _set.call(this,k,v);};
+  function goPassive(){if(passive)return;passive=true;try{const o=document.createElement('div');o.id='tabLock';o.innerHTML=`<div><b>🔒 Game dibuka di tab lain</b><small>Supaya progres tidak tertimpa, hanya satu tab yang menyimpan. Tutup tab ini, atau lanjut main di sini (tab lain berhenti menyimpan).</small><button>Main di tab ini</button></div>`;
+    o.querySelector('button').onclick=()=>{try{_set.call(localStorage,'lounge-tab',ID+'x');}catch(e){}location.reload();};document.body.appendChild(o);}catch(e){}}
+  addEventListener('storage',e=>{if(e.key==='lounge-tab'&&e.newValue&&e.newValue!==ID)goPassive();});})();
+/* smoother Kantor Manajer: no full-window re-animation on tab switch, keep scroll */
+openMgrOffice=(f=>function(){const r=f.apply(this,arguments);try{const el=modal&&modal.el;if(el){setTimeout(()=>el.classList.add('noanim'),420);
+  const mo=new MutationObserver(()=>{const m=el.querySelector('.momain');if(m&&el._sc!=null&&el._keep){m.scrollTop=el._sc;}});mo.observe(el,{childList:true});
+  el.addEventListener('click',e=>{const m=el.querySelector('.momain');const t=e.target.closest('[data-tab],[data-mo]');if(!t||!m)return;el._keep=!!t.dataset.mo;el._sc=m.scrollTop;if(t.dataset.tab){el.classList.add('tabsw');clearTimeout(el._tt);el._tt=setTimeout(()=>el.classList.remove('tabsw'),260);}},true);}}catch(e){}return r;})(openMgrOffice);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
