@@ -354,6 +354,8 @@ body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.
 .result{top:auto !important;bottom:calc(78px + env(safe-area-inset-bottom,0px)) !important;max-width:calc(100% - 40px);overflow:hidden;text-overflow:ellipsis;font-size:clamp(14px,2.2vw,20px) !important}
 .money b{font-size:20px}
 .lvPill i{width:36px !important}
+.hud-tl .sub>i{display:none !important}.hud-tl .sub{background:transparent !important;border:0 !important;padding:0 !important}.hud-tl .sub .lvPill{margin:0 !important}
+#xMini{display:none !important}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3394,7 +3396,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v32';
+const GAME_VER='v32.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6592,6 +6594,43 @@ const SESS={t:Date.now(),nw:null};setTimeout(function sb(){if(!started){setTimeo
 xView('rekap',{t:'Rekap Main',s:'Rekap',ic:'📊',bg:'linear-gradient(135deg,#6cc0ff,#b46bff)',r:()=>{const min=Math.round((Date.now()-SESS.t)/60000),d=netWorth()-(SESS.nw||netWorth());
   return `<div class="wallet"><small>Sesi ini</small><b>${min} menit bermain</b><div class="row"><span>Perubahan kekayaan</span><span class="${d>=0?'up':'dn'}">${d>=0?'+':'-'}${fmtBig(Math.abs(Math.round(d)))}</span></div><div class="row"><span>Level sekarang</span><span>${lvS().lv}</span></div><div class="row"><span>Properti</span><span>${MEGA.filter(M=>megaS(M).me).length}</span></div><div class="row"><span>Reputasi</span><span>${fmt((PF.rep||{}).pts||0)}</span></div></div><p class="news">${d>=0?'Mantap, kekayaanmu bertambah sesi ini. Lanjutkan!':'Sesi ini lagi turun. Coba cek saran Kantor Manajer atau pasang stop loss.'}</p>`;}});
 
+/* ================= v32.1: HUD shows level only; detailed clothes, crowns and hats ================= */
+youPal=(f=>function(){const p=f.apply(this,arguments);try{const it=PF.items||{};const x=SHOP.find(y=>y.s==='shirt'&&it[y.id]&&it[y.id].eq);p.shirtT=x?x.id:null;p.isYou=1;}catch(e){}return p;})(youPal);
+const dk=(c,k)=>new THREE.Color(typeof c==='string'?c:c).multiplyScalar(k).getHex();
+makeAvatar=(f=>function(p){const a=f.apply(this,arguments);try{if(!p||!a||!a.body)return a;const body=a.body,MC={};
+  const M=(c,glow)=>{const k=c+'|'+(glow?1:0);return MC[k]||(MC[k]=glow?new THREE.MeshBasicMaterial({color:c}):new THREE.MeshLambertMaterial({color:c}));};
+  const B=(w,h,d,c,x,y,z,par,glow,rz)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c,glow));m.position.set(x,y,z);if(rz)m.rotation.z=rz;(par||body).add(m);return m;};
+  const sh=typeof p.shirt==='number'?p.shirt:0x2f6fe0,pa=typeof p.pants==='number'?p.pants:0x2b2b3a,t=p.shirtT;
+  /* every outfit: collar, hem, cuffs, belt, pant cuffs and seams */
+  B(.6,.08,.08,dk(sh,.7),0,1.97,.22);B(1.02,.08,.52,dk(sh,.78),0,1.04+.02,0);
+  [a.lArm,a.rArm].forEach(arm=>{B(.45,.1,.45,dk(sh,.72),0,-.72,0,arm);});
+  B(1.0,.09,.52,0x3a2616,0,1.0,0);B(.16,.12,.04,0xffd24a,0,1.0,.27);
+  [a.lLeg,a.rLeg].forEach(l=>{B(.5,.1,.5,dk(pa,.7),0,-.8,0,l);B(.03,.6,.02,dk(pa,.75),0,-.45,.25,l);});
+  B(.02,.5,.02,dk(sh,.75),0,1.5,.255);
+  if(t==='suit'||t==='tux'){const lc=t==='tux'?0x111118:0x2a2a36;B(.2,.55,.03,lc,-.17,1.65,.265,null,false,.25);B(.2,.55,.03,lc,.17,1.65,.265,null,false,-.25);B(.12,.08,.03,t==='tux'?0xff4d6a:0xf4f4f4,.3,1.75,.27);if(t==='suit'){B(.1,.42,.03,0x9e1f33,0,1.62,.275);B(.14,.1,.03,0x9e1f33,0,1.86,.275);}}
+  if(t==='hoodie'){B(.56,.28,.04,dk(sh,.85),0,1.22,.27);[-.1,.1].forEach(x=>B(.03,.26,.03,0xf4f4f4,x,1.82,.28));}
+  if(['goldjkt','leatherj','varsity','neonsuit','firesuit'].includes(t)){B(.04,.92,.03,t==='neonsuit'?0x7df3ff:0xc9c9c9,0,1.5,.27,null,t==='neonsuit');
+    if(t==='varsity'){[a.lArm,a.rArm].forEach(arm=>B(.44,.7,.44,0xf4f4f4,0,-.42,0,arm));B(.3,.3,.03,0xffd24a,-.26,1.66,.27);}
+    if(t==='neonsuit'||t==='firesuit'){const gc=t==='neonsuit'?0xc77dff:0xffb21c;B(1.02,.05,.52,gc,0,1.3,0,null,true);B(1.02,.05,.52,gc,0,1.75,0,null,true);[a.lArm,a.rArm].forEach(arm=>B(.44,.05,.44,gc,0,-.4,0,arm,true));}}
+  if(t==='jersey'){B(1.02,.12,.52,0xffffff,0,1.88,0);B(.34,.34,.03,0xffffff,0,1.55,-.265);}
+  if(t==='armor'){B(.86,.7,.08,0xc9ced6,0,1.55,.27);B(.6,.12,.09,0xffd24a,0,1.78,.3);[a.lArm,a.rArm].forEach(arm=>B(.55,.25,.55,0xaab2bd,0,-.05,0,arm));}
+  if(['robe','kimono','galaxys'].includes(t)){B(.16,1.25,.04,t==='kimono'?0xffd24a:t==='galaxys'?0x9ff3ff:0xffd24a,0,1.45,.27,null,t==='galaxys',.62);B(1.04,.14,.54,dk(sh,.6),0,1.12,0);}
+  if(t==='hawaii'){B(.5,.08,.03,0xffffff,-.2,1.95,.27,null,false,.3);B(.5,.08,.03,0xffffff,.2,1.95,.27,null,false,-.3);}
+  /* crowns and hats */
+  const hat=p.hatType,g=p.hatG;
+  if(hat==='crown'){B(.9,.08,.9,0x9e1f33,0,2.9,0);const dome=new THREE.Mesh(new THREE.SphereGeometry(.36,12,8,0,Math.PI*2,0,Math.PI/2),M(0x9e1f33));dome.position.y=2.98;body.add(dome);
+    for(let k=0;k<6;k++){const an=k/6*Math.PI*2,pr=new THREE.Mesh(new THREE.SphereGeometry(.05,6,6),M(0xfff6e0,true));pr.position.set(Math.cos(an)*.42,3.37,Math.sin(an)*.42);body.add(pr);}
+    const cr=new THREE.Mesh(new THREE.OctahedronGeometry(.1),M(0xffd24a));cr.position.y=3.42;body.add(cr);B(.04,.16,.04,0xffd24a,0,3.55,0);B(.14,.04,.04,0xffd24a,0,3.57,0);}
+  if(g&&g.hat==='crownx'){const rg=new THREE.Mesh(new THREE.TorusGeometry(.45,.04,6,24),M(g.c2||0xffd24a,true));rg.rotation.x=Math.PI/2;rg.position.y=2.88;body.add(rg);const orb=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),M(g.c,true));orb.position.y=3.35;body.add(orb);}
+  if(g&&g.hat==='top'){B(.8,.04,.8,g.c2||0xffd24a,0,3.58,0);B(.12,.16,.03,0xff4d6a,.3,3.0,.33);}
+  if(g&&g.hat==='helm'){B(.08,.3,.7,g.c2||0xff3355,0,3.22,-.05);B(.86,.08,.04,dk(g.c,.6),0,2.72,.46);}
+  if(g&&g.hat==='cap'){B(.12,.06,.12,dk(g.c,.6),0,3.04,0);B(.22,.18,.02,g.c2||0xffffff,0,2.92,.45,null,!!g.glow);}
+  if(g&&g.hat==='band'){B(.86,.04,.86,dk(g.c,.7),0,2.68,0);}
+  if(hat==='fedora'||hat==='cowboy'){B(.1,.06,.02,0xffd24a,.32,2.95,.3);}
+  if(hat==='wizard'){[[.2,3.2,.28],[-.15,3.5,.2],[.05,3.75,.13]].forEach(([x,y,z])=>B(.06,.06,.03,0xffffff,x,y,z,null,true));}
+}catch(e){console.warn('dress',e);}return a;})(makeAvatar);
+
+mmDraw=function(){};
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
