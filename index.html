@@ -2280,7 +2280,7 @@ function showBroke(){
 const RIVAL_BASE=[['Sultan Bram',320000],['Tante Lily',180000],['Om Hartono',110000],['Citra',72000],['Rangga',48000],['Melati',30000],['Kevin',19000],['Ayu',12000],['Budi',7500],['Dimas',4200],['Nadia',2500],['Reza',1200],['Sari',600]];
 if(!PF.rivals||PF.rivals.length!==RIVAL_BASE.length)PF.rivals=RIVAL_BASE.map(([n,w])=>({n,w,tr:0,d:0}));
 const TITLES=[[0,'Pemula'],[5000,'Pemain'],[20000,'High Roller'],[80000,'Bos Meja'],[200000,'Sultan'],[500000,'Legenda']];
-const titleOf=w=>TITLES.filter(t=>w>=t[0]).pop()[1];
+const titleOf=w=>{const L=TITLES.filter(t=>w>=t[0]);return (L.length?L[L.length-1]:TITLES[0])[1];};
 function rivalTick(){PF.rivals.forEach(r=>{const old=r.w;r.w=Math.max(100,r.w*Math.exp(.004+.035*gauss()));
   if(Math.random()<.02){const up=Math.random()<.55,k=.15+Math.random()*.3;r.w*=up?1+k:1-k;if(r.w>3000)logLine('npc',r.n,up?`baru menang besar! Kekayaan naik ${Math.round(k*100)}%.`:`lagi apes, kekayaan turun ${Math.round(k*100)}%.`);}
   r.d=r.w-old;r.w=Math.round(r.w);});}
@@ -3490,7 +3490,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v47';
+const GAME_VER='v48';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -3606,7 +3606,7 @@ const stOptsAll=sel=>[`<option value="coin" ${sel==='coin'?'selected':''}>🪙 K
 const stQ=(k,v)=>{const a=assetOf(k);return a&&a.t==='saham'?Math.floor(v):v;};
 /* leaderboard: company owners count their controlling stakes */
 
-function oppW(rv,d){const r=PF.rivals.find(x=>x.n===rv.n);if(r){if(r.w+d<100&&TYCOONS.includes(rv.n)){PF.tyW=PF.tyW||{};PF.tyW[rv.n]=(PF.tyW[rv.n]||0)+(r.w+d-100);r.w=100;return;}r.w=Math.max(100,r.w+d);return;}PF.tyW=PF.tyW||{};PF.tyW[rv.n]=(PF.tyW[rv.n]||0)+d;}
+function oppW(rv,d){d=+d;if(!isFinite(d)||!rv)return;const r=PF.rivals.find(x=>x.n===rv.n);if(r){if(r.w+d<100&&TYCOONS.includes(rv.n)){PF.tyW=PF.tyW||{};PF.tyW[rv.n]=(PF.tyW[rv.n]||0)+(r.w+d-100);r.w=100;return;}r.w=Math.max(100,r.w+d);return;}PF.tyW=PF.tyW||{};PF.tyW[rv.n]=(PF.tyW[rv.n]||0)+d;}
 
 /* duel with assets against an NPC */
 /* custom bet controls shared by all casino games */
@@ -3928,10 +3928,18 @@ function whaleTrade(){const a=MK[pick(MK.length)],ns=npcNames(),n=ns[pick(ns.len
 setInterval(()=>{if(!started)return;PF.tyW=PF.tyW||{};const H=npcH();
   TYCOONS.forEach(n=>{PF.tyW[n]=(PF.tyW[n]||0)+(tyBase(n)+(PF.tyW[n]||0))*.0015;});
   for(const n in H){let d=0;for(const id in H[n]){const a=assetOf(id);if(a&&a.t==='saham')d+=H[n][id]*Math.min(a.p,a.f||a.p)*.002;}if(d>0)oppW({n},d);}},60000);
-function ranking(){const me={n:'Kamu',w:Math.round(netWorth()),me:true};const L=PF.rivals.map(r=>Object.assign({},r));
+/* v48: repair NaN / Infinity in NPC wealth, holdings and prices so the Ranking never breaks */
+function rkHeal(force){const fx=v=>isFinite(+v)?+v:0;let bad=0;(PF.rivals||[]).forEach(r=>{if(!isFinite(r.w)){r.w=1000;bad++;}});
+  const T=PF.tyW||{};for(const n in T)if(!isFinite(T[n])){T[n]=0;bad++;}
+  MK.forEach(a=>{if(!isFinite(a.p)||a.p<=0){a.p=a.f&&isFinite(a.f)&&a.f>0?a.f:(a.p0||1);bad++;}if(a.f!=null&&!(isFinite(a.f)&&a.f>0)){a.f=a.p;bad++;}if(!(a.sh>0)&&a.t==='saham'){a.sh=1e6;bad++;}});
+  const H=PF.npcH||{};for(const n in H){const h=H[n];if(!h)continue;for(const id in h)if(!isFinite(h[id])){h[id]=0;bad++;}}
+  for(const id in (PF.hold||{}))if(!isFinite(PF.hold[id])){PF.hold[id]=0;bad++;}
+  for(const id in (PF.corp||{})){const c=PF.corp[id];if(c&&c.cf!=null&&!isFinite(c.cf)){c.cf=CTRL;bad++;}}
+  if(!isFinite(S.bal)){S.bal=0;bad++;}if(bad&&(force||1)){console.warn('rkHeal fixed',bad);try{savePF();}catch(e){}}return bad;}
+function ranking(){try{rkHeal();}catch(e){}const nw0=Math.round(netWorth()),me={n:'Kamu',w:isFinite(nw0)?nw0:Math.round(+S.bal||0),me:true};const L=PF.rivals.map(r=>Object.assign({},r));
   TYCOONS.forEach(n=>{if(!L.find(r=>r.n===n))L.push({n,w:Math.max(1000,tyBase(n)+((PF.tyW||{})[n]||0)),d:0,only:1});});
   L.forEach(r=>{const co=MK.filter(a=>a.t==='saham'&&corpS(a).o===r.n),sv=co.reduce((s,a)=>s+cfOf(a)*a.sh*fairLo(a),0)+blkOf(r.n),pv=npcPort(r.n),mv=megaOf(r.n).reduce((s,M)=>s+megaS(M).v,0),ty=!r.only&&TYCOONS.includes(r.n)?tyBase(r.n)+((PF.tyW||{})[r.n]||0):0;r.cash=r.w+ty;r.pv=pv;r.sv=sv;r.mv=mv;r.mg=megaOf(r.n).length;r.w=Math.round(r.w+ty+sv+pv+mv);if(co.length){r.co=co.map(a=>a.id);r.ty=1;}});
-  return L.concat([me]).sort((a,b)=>b.w-a.w);}
+  L.forEach(r=>{if(!isFinite(r.w))r.w=Math.round(isFinite(r.cash)?r.cash:1000);});return L.concat([me]).sort((a,b)=>b.w-a.w);}
 /* ---------- asset duels v2: pick what the NPC stakes, real transfers, NPC asset challenges ---------- */
 const cfOf=a=>{const c=corpS(a);return c.cf!=null?c.cf:CTRL;};
 const unitV=k=>k==='coin'?1:(a=>a?fairLo(a):0)(assetOf(k));
@@ -7925,7 +7933,8 @@ function openRankWin(){if(modal)return;closePhone();for(const k in keys)keys[k]=
   const row=(r,i)=>`<div class="rkw ${r.me?'me':''}" data-n="${esc(r.n)}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${r.co&&r.co.length?' · 🏢 '+r.co.join(', '):''}${r.mg?' · 🏬 '+r.mg+' mall':''}</small></div>
     <span class="w"><b>${fmtUSD(toUSD(r.w))}</b><small>🪙 ${fmtBig(r.w)}</small></span><div class="rkb"><button class="mog" data-h="${esc(r.n)}">${rkWOpen===r.n?'Tutup':'📋 Harta'}</button>${r.me?'':`${r.only?'':`<button class="mog" data-du="${esc(r.n)}">Duel</button>`}<button class="mogo" data-ad="${esc(r.n)}">⚔️ Aset</button>`}</div></div>
     ${rkWOpen===r.n?`<div class="harta rkh"><h5>📋 Rincian harta ${esc(r.me?'kamu':r.n)}</h5>${r.me?hartaMe():hartaNpc(r.n)}</div>`:''}`;
-  const draw=()=>{const R=ranking(),rk=R.findIndex(r=>r.me)+1,nw=netWorth(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
+  const draw=()=>{try{draw0();}catch(e){console.error('rank draw',e);el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ranking"><div class="mohead"><b>🏆 Ranking</b><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain"><p class="muted">Ranking gagal dimuat, data sedang diperbaiki otomatis. Tutup lalu buka lagi.</p><small>${esc(String(e&&e.message||e))}</small></div></div>`;try{rkHeal(1);}catch(_){}}};
+  const draw0=()=>{const R=ranking(),rk=R.findIndex(r=>r.me)+1,nw=netWorth(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
     if(rkWTab==='rank'){const top=R.slice(0,3);body=`<div class="mocard rkme"><div class="moic">🏆</div><div class="mot"><b>Peringkatmu #${rk} · ${titleOf(nw)}</b><small>Kekayaan bersih ${fmtUSD(toUSD(nw))} · 🪙 ${fmtBig(Math.round(nw))}</small></div></div>
       <div class="rkpod">${[1,0,2].map(j=>top[j]?`<div class="p${j+1}"><span>${['🥇','🥈','🥉'][j]}</span><b>${esc(top[j].me?'Kamu':top[j].n)}</b><small>🪙 ${fmtBig(top[j].w)}</small><i>${j+1}</i></div>`:'').join('')}</div>`+R.map(row).join('');}
     else{const best=PF.rankBest||99;body=RANK_REW.slice().reverse().map(([l,v])=>`<div class="mocard"><div class="moic">${l===1?'👑':'🎖️'}</div><div class="mot"><b>Masuk Top ${l}</b><small>Hadiah 🪙 ${fmt(v)} · ${best<=l?'✅ sudah didapat':'belum'}</small></div></div>`).join('')+`<p class="muted">Ranking dihitung dari kekayaan bersih: tunai, investasi, tabungan, barang, bisnis dan perusahaan dikurangi hutang. NPC boleh lebih kaya darimu.</p>`;}
@@ -8238,6 +8247,85 @@ function openIpoWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k
   el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
 XA.xNiOpen=()=>{closePhone();setTimeout(()=>openIpoWin(),30);};
 xView('ipobursa',{t:'IPO Bursa',s:'IPO Bursa',ic:'🛎️',bg:'linear-gradient(135deg,#7fd4ff,#2a6adf)',r:()=>{setTimeout(()=>{if(phView==='ipobursa'){phView='home';closePhone();openIpoWin();}},20);return '<p class="muted">Membuka jendela IPO Bursa...</p>';}});
+
+/* ================= v48: Museum Keluarga (koleksi lelang dipajang, pengunjung, tiket, pameran tamu) ================= */
+const MU48={SLOT:[0,4,8,12,18,24],TIX:[['gratis','🆓','Gratis',0,2],['murah','🎟️','Murah',.00015,1.4],['normal','🎫','Normal',.00025,1],['mahal','💎','Eksklusif',.00035,.6]],X:3360};
+function mzS(){const m=PF.mus48=PF.mus48||{};m.lv=m.lv||0;m.tix=m.tix||'normal';m.hide=m.hide||{};m.guest=m.guest||null;m.h=m.h||[];m.vis=m.vis||0;m.earn=m.earn||0;return m;}
+function mzLog(ic,t,c){const m=mzS();m.h.unshift({ic,t,c:c||'',at:Date.now()});m.h=m.h.slice(0,30);}
+function mzCost(k){return Math.round(Math.max(2e9,netWorth()*.003)*k);}
+function mzCol(){return (XS().col||[]).map((c,i)=>({...c,i}));}
+function mzShown(){const m=mzS(),L=mzCol().filter(c=>!m.hide[c.t]).sort((a,b)=>b.v-a.v).slice(0,MU48.SLOT[m.lv]||0);if(m.guest&&Date.now()<m.guest.end)L.push({ic:m.guest.ic,n:m.guest.n,v:m.guest.v,guest:1});return L;}
+function mzVal(){return mzShown().reduce((s,c)=>s+c.v,0);}
+function mzTix(){return MU48.TIX.find(t=>t[0]===mzS().tix)||MU48.TIX[2];}
+function mzVisitors(){const v=mzVal();if(!v||!mzS().lv)return 0;return Math.max(1,Math.round(Math.sqrt(v/1e6)*mzTix()[4]*(1+mzS().lv*.1)));}
+function mzIncome(){return Math.round(mzVal()*mzTix()[3]*(1+mzS().lv*.05));}
+XA.xMuBuild=()=>{const m=mzS();if(m.lv>=5){showResult('Museum sudah paling besar');return;}const c=mzCost(m.lv?m.lv*2:1);if(!xPay(c))return;m.lv++;
+  mzLog('🏛️',m.lv===1?`Museum ${dyS().fam} resmi dibuka (🪙 ${fmtBig(c)}).`:`Museum diperluas ke sayap ${m.lv}, slot pajangan ${MU48.SLOT[m.lv]} (🪙 ${fmtBig(c)}).`,'up');
+  logLine('sys',null,m.lv===1?`🏛️ Museum ${dyS().fam} dibuka untuk umum.`:`🏛️ Museum diperluas ke sayap ${m.lv}.`,'win');SFX.big();mzRebuild();savePF();MUW.redraw();};
+XA.xMuTix=k=>{if(!MU48.TIX.find(t=>t[0]===k))return;mzS().tix=k;SFX.pop();savePF();MUW.redraw();};
+XA.xMuHide=t=>{const m=mzS();if(m.hide[t])delete m.hide[t];else m.hide[t]=1;SFX.pop();mzRebuild();savePF();MUW.redraw();};
+/* guest exhibitions: borrow a piece from an NPC collector for 30 minutes */
+function mzOffers(){const slot=Math.floor(Date.now()/1800000),nw=Math.max(1e9,netWorth());const r=niRnd(slot+311),L=[];const pool=LOTS.filter(l=>l[2]<=Math.max(2e9,nw*.5));
+  for(let i=0;i<3&&pool.length;i++){const l=pool[Math.floor(r()*pool.length)],o=AUC_BID[Math.floor(r()*AUC_BID.length)];L.push({k:slot+':'+i,ic:l[0],n:l[1],v:l[2],o,fee:Math.round(l[2]*.005)});}return L;}
+XA.xMuGuest=k=>{const m=mzS();if(!m.lv){showResult('Bangun museum dulu');return;}if(m.guest&&Date.now()<m.guest.end){showResult('Masih ada pameran tamu');return;}const o=mzOffers().find(x=>x.k===k);if(!o)return;if(!xPay(o.fee))return;
+  m.guest={ic:o.ic,n:o.n,v:o.v,o:o.o,end:Date.now()+1800000};mzLog(o.ic,`Pameran tamu: ${o.n}, dipinjam dari ${o.o} selama 30 menit (🪙 ${fmtBig(o.fee)}).`,'up');try{oppW({n:o.o},o.fee);}catch(e){}
+  logLine('sys',null,`🏛️ Pameran tamu dibuka: ${o.ic} ${o.n} dari koleksi ${o.o}.`,'win');SFX.big();mzRebuild();savePF();MUW.redraw();};
+/* income tick: every minute */
+setInterval(()=>{try{if(!started)return;const m=mzS();if(!m.lv)return;if(m.guest&&Date.now()>=m.guest.end){mzLog('📦',`Pameran tamu ${m.guest.n} selesai dan dikembalikan ke ${m.guest.o}.`);m.guest=null;mzRebuild();}
+  const v=mzVisitors(),inc=mzIncome();m.vis+=v;if(inc>0){S.bal+=inc;m.earn+=inc;try{incAdd('bisnis',inc,'Tiket museum');}catch(e){}}
+  if(m.tix==='gratis'&&Math.random()<.2)repS().pts+=1;savePF();MUW.redraw();}catch(e){console.error('mu',e);}},60000);
+/* 3D museum interior */
+function mzBuild(){const X=MU48.X,Z=0,W=30,D=22,m=mzS();const g=v44Shell(X,Z,W,D,0xd8cbb0,0xf4efe4,'MUSEUM '+String(dyS().fam).toUpperCase());
+  iB(g,W-2,.12,1.2,0x8a1f2a,X,.07,Z);for(let i=-2;i<=2;i++)iB(g,.25,3.4,.25,0xffffff,X+i*6,1.7,Z+D/2-3);
+  const L=mzShown(),spots=[];for(let i=0;i<6;i++)spots.push([X-12.5+i*5,Z-D/2+.5,'wall']);for(let i=0;i<9;i++)spots.push([X-12+(i%5)*6,Z-6+Math.floor(i/5)*7,'ped']);for(let i=0;i<6;i++)spots.push([X-W/2+.5,Z-8+i*3,'wl']);for(let i=0;i<3;i++)spots.push([X+W/2-.5,Z-6+i*4,'wr']);
+  L.slice(0,spots.length).forEach((c,i)=>{const [x,z,k]=spots[i],paint=c.ic==='🖼️'||c.ic==='🌌';
+    if(k==='ped'||!paint){iB(g,1.4,1,1.4,c.guest?0xc9a24a:0x3a3448,x,.5,z,true);const gl=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.1,1.2),new THREE.MeshBasicMaterial({color:0xbfe8ff,transparent:true,opacity:.25,depthWrite:false}));gl.position.set(x,1.6,z);g.add(gl);
+      const sp=emojiSprite(c.ic,.9);sp.position.set(x,1.6,z);g.add(sp);}
+    else{const ry=k==='wall'?0:k==='wl'?Math.PI/2:-Math.PI/2,dx=k==='wl'?.15:k==='wr'?-.15:0,dz=k==='wall'?.15:0;const fr=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.8,.1),mat(0xffd25f));fr.position.set(x+dx,2,z+dz);fr.rotation.y=ry;g.add(fr);
+      const cv=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.5),new THREE.MeshBasicMaterial({map:mzArt(c.n)}));cv.position.set(x+dx*1.5,2,z+dz*1.5);cv.rotation.y=ry;g.add(cv);}
+    try{const lb=labelPlane(c.n.length>26?c.n.slice(0,25)+'…':c.n,c.guest?'Pameran tamu':`Taksiran 🪙 ${fmtBig(Math.round(c.v))}`,c.guest?'#ffd25f':'#8ef0a8');lb.scale.setScalar(.45);lb.position.set(x+(k==='wl'?.8:k==='wr'?-.8:0),k==='ped'||!paint?2.7:3.15,z+(k==='wall'?.6:0));if(k==='wl')lb.rotation.y=Math.PI/2;if(k==='wr')lb.rotation.y=-Math.PI/2;g.add(lb);}catch(e){}});
+  const nv=Math.min(10,Math.ceil(mzVisitors()/4));for(let i=0;i<nv;i++)miniPerson(g,X-11+((i*7)%23),Z-3+((i*5)%9),(i%4)*Math.PI/2);
+  iB(g,3,1,1,0x5a3a20,X+10,.5,Z+D/2-3,true);
+  stationAdd('v44exit',X,Z+D/2-1.2,0,'Pintu keluar',{useDist:2.6,verb:'Keluar',btn:'KELUAR',act:()=>v44Leave(),ctx:()=>`<div class="ctx-head"><h3>🚪 Pintu keluar</h3><small>Kembali ke kota</small></div>`});
+  stationAdd('v48desk',X+10,Z+D/2-3.6,Math.PI,'Loket museum',{useDist:3,verb:'Buka',btn:'MUSEUM',act:()=>openMuWin(),ctx:()=>`<div class="ctx-head"><h3>🏛️ Loket museum</h3><small>${mzVisitors()} pengunjung/menit · 🪙 ${fmtBig(mzIncome())}/menit</small></div>`});return g;}
+function emojiSprite(e,s){const tex=canvasTex(128,128,(c,w,h)=>{c.font='96px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(e,w/2,h/2+6);});const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));sp.scale.set(s,s,s);return sp;}
+function mzArt(n){let h=7;for(const ch of n)h=(h*31+ch.charCodeAt(0))>>>0;return canvasTex(128,96,(c,w,hh)=>{const hue=h%360;const gr=c.createLinearGradient(0,0,0,hh);gr.addColorStop(0,`hsl(${hue},60%,70%)`);gr.addColorStop(1,`hsl(${(hue+60)%360},55%,35%)`);c.fillStyle=gr;c.fillRect(0,0,w,hh);
+  for(let i=0;i<5;i++){c.fillStyle=`hsla(${(hue+i*50)%360},70%,${40+i*8}%,.8)`;c.beginPath();c.arc((h>>i)%w,30+((h>>(i+3))%60),8+((h>>(i*2))%18),0,Math.PI*2);c.fill();}});}
+function mzRebuild(){try{if(!INT.built.museum)return;const inside=Math.abs(you.pos.x-MU48.X)<40;scene.remove(INT.built.museum);for(let i=stations.length-1;i>=0;i--)if(stations[i].type==='v48desk'||(stations[i].type==='v44exit'&&Math.abs(stations[i].pos.x-MU48.X)<20))stations.splice(i,1);
+  INT.built.museum=null;if(inside)INT.built.museum=mzBuild();}catch(e){console.error('mu rebuild',e);}}
+XA.xMuIn=()=>{if(!mzS().lv){showResult('Bangun museum dulu');return;}INT.X.museum=MU48.X;if(!INT.built.museum)INT.built.museum=mzBuild();if(Math.abs(you.pos.x)<2000)INT.ret={x:you.pos.x,z:you.pos.z,yaw:you.yaw};
+  if(modal)closeGame();travelFxSafe('🏛️','Museum Keluarga','Masuk ke museum',()=>{tpTo(MU48.X,8,Math.PI);try{DYF.list.forEach(f=>f.av.root.position.set(MU48.X,0,9));}catch(e){}});logLine('sys',null,`🏛️ Selamat datang di Museum ${dyS().fam}.`);};
+/* city entrance: museum wing beside Balai Lelang */
+setTimeout(function mzBoot(){if(!started){setTimeout(mzBoot,2000);return;}try{const a=stations.find(s=>s.type==='xauc');if(!a)return;const x=a.pos.x+8,z=a.pos.z-1.6;
+  const g=new THREE.Group();scene.add(g);iB(g,2.4,3.2,.3,0x5a3a20,x,1.6,z);iB(g,3,.3,.4,0xffd25f,x,3.3,z+.05);const s=neon('MUSEUM',0,0,0,0,'#ffffff','#ffd25f',3.4,.6);s.position.set(x,3.9,z+.3);g.add(s);
+  stationAdd('v48door',x,z+.9,0,'Museum Keluarga',{useDist:3,verb:'Masuk',btn:'MUSEUM',act:()=>{if(mzS().lv)XA.xMuIn();else openMuWin();},ctx:()=>`<div class="ctx-head"><h3>🏛️ Museum ${esc(dyS().fam)}</h3><small>${mzS().lv?`${mzShown().length} karya dipajang · ${mzVisitors()} pengunjung/menit`:'Belum dibangun. Ketuk untuk membangun.'}</small></div>`});}catch(e){console.error('mu door',e);}},3500);
+/* Museum window */
+const MUW={tab:'info',redraw(){if(MUW.m&&modal===MUW.m)MUW.m.refresh();}};
+function openMuWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)MUW.tab=tab;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const mm={el,st:{label:'Museum'},busy:false,refresh(){draw();}};modal=mm;MUW.m=mm;
+  const close=()=>{if(modal===mm)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns,cls)=>`<div class="mocard ${cls||''}"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const m=mzS(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
+    if(MUW.tab==='info'){if(!m.lv)body=`<p class="muted">Pajang barang hasil lelangmu di museum keluarga. Pengunjung membayar tiket tiap menit, makin berharga koleksinya makin ramai.</p>`+card('🏛️','Bangun museum',`Biaya 🪙 ${fmtBig(mzCost(1))} · 4 slot pajangan`,B('xMuBuild','','Bangun','mogo',S.bal<mzCost(1)));
+      else{const sh=mzShown(),T=mzTix();body=card('🏛️',`Museum ${esc(dyS().fam)} · sayap ${m.lv}/5`,`${sh.length}/${MU48.SLOT[m.lv]+(m.guest?1:0)} karya dipajang · nilai pajangan 🪙 ${fmtBig(Math.round(mzVal()))}`,B('xMuIn','','🚪 Masuk','mogo'))+
+        card('👥','Pengunjung',`${mzVisitors()} orang per menit · total ${fmt(m.vis)} orang`)+card('💰','Pendapatan tiket',`🪙 ${fmtBig(mzIncome())} per menit · total 🪙 ${fmtBig(m.earn)}`)+
+        `<div class="thd">Harga tiket</div>`+MU48.TIX.map(t=>card(t[1],t[2],t[0]==='gratis'?'Paling ramai, tanpa pendapatan, reputasi naik pelan-pelan':`Pengunjung ${t[4]}x · pendapatan ${(t[3]*6000).toFixed(1).replace('.',',')}% nilai pajangan per jam`,t===T?'<b class="up">Dipakai</b>':B('xMuTix',t[0],'Pakai','mogo'),t===T?'prme':'')).join('')+
+        (m.lv<5?card('🔨','Perluas museum',`Sayap ${m.lv+1}: ${MU48.SLOT[m.lv+1]} slot pajangan · 🪙 ${fmtBig(mzCost(m.lv*2))}`,B('xMuBuild','','Perluas','mogo',S.bal<mzCost(m.lv*2))):'');}}
+    else if(MUW.tab==='koleksi'){const L=mzCol(),sh=mzShown();body=L.length?`<p class="muted">Slot terisi ${sh.filter(c=>!c.guest).length}/${MU48.SLOT[m.lv]}. Yang paling berharga dipajang dulu. Ketuk Simpan untuk menyimpan karya di gudang.</p>`+L.sort((a,b)=>b.v-a.v).map(c=>{const on=sh.find(s=>!s.guest&&s.t===c.t);return card(c.ic,esc(c.n),`Taksiran 🪙 ${fmtBig(Math.round(c.v))} · ${m.hide[c.t]?'di gudang':on?'dipajang':'menunggu slot'}`,B('xMuHide',c.t,m.hide[c.t]?'Pajang':'Simpan','mog'),on?'prdone':'');}).join('')
+      :'<p class="muted">Belum ada koleksi. Menangkan barang di Balai Lelang, atau pinjam karya lewat Pameran tamu.</p>';}
+    else if(MUW.tab==='tamu'){const g=m.guest&&Date.now()<m.guest.end?m.guest:null;body=(g?card(g.ic,`Sedang dipamerkan: ${esc(g.n)}`,`Milik ${esc(g.o)} · selesai ${Math.ceil((g.end-Date.now())/60000)} menit lagi`,'','prme'):'')+
+      `<p class="muted">Pinjam satu karya dari kolektor NPC selama 30 menit. Penawaran berganti tiap 30 menit.</p>`+mzOffers().map(o=>card(o.ic,esc(o.n),`Milik ${esc(o.o)} · taksiran 🪙 ${fmtBig(o.v)} · sewa 🪙 ${fmtBig(o.fee)}`,B('xMuGuest',o.k,'Pinjam','mogo',!m.lv||!!g||S.bal<o.fee))).join('');}
+    else body=m.h.length?m.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Museum"><div class="mohead"><b>🏛️ Museum</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['info','🏛️','Museum'],['koleksi','🖼️','Koleksi'],['tamu','🤝','Pameran tamu'],['log','📜','Catatan']].map(([k,ic,n])=>`<button class="${k===MUW.tab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){MUW.tab=t.dataset.tab;SFX.pop();draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+XA.xMuOpen=()=>{closePhone();setTimeout(()=>openMuWin(),30);};
+xView('museum',{t:'Museum',s:'Museum',ic:'🏛️',bg:'linear-gradient(135deg,#f4e3b8,#8a5a2a)',r:()=>{setTimeout(()=>{if(phView==='museum'){phView='home';closePhone();openMuWin();}},20);return '<p class="muted">Membuka jendela Museum...</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
