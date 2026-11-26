@@ -315,6 +315,25 @@ em.up{color:#3ddc84;font-style:normal}em.dn{color:#ff6a6a;font-style:normal}.kki
 @media (max-width:700px){.phone.shopPh .phside{width:112px}.phone.shopPh .phside button{font-size:11.5px;padding:7px}.phone.shopPh .ph-top .phbal{display:none}}
 
 .modal>.panel:not(.moff) [style*="background:#222"],.phone.shopPh [style*="background:#222"],.modal>.panel:not(.moff) [style*="background:#3a2a4a"],.phone.shopPh [style*="background:#3a2a4a"]{background:#e8dcc2 !important;color:#2a2238}
+/* v27 HUD in shop style */
+.money{background:linear-gradient(180deg,#fffaf0,#f6efe1);border:2px solid #e8a62a;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.money b{color:#7a4a00}
+.hud-tl .sub{background:rgba(255,250,240,.94);border:2px solid #e2d3b0;color:#6d6180}.hud-tl .sub span{color:#2a2238}.hud-tl .sub .lb{color:#6d6180}
+.hud-tl .sub i .debt{color:#c62828}
+.chatbar{background:rgba(255,250,240,.94);border:2px solid #e2d3b0;color:#2a2238}.chatbar .hint{color:#2f6fd6}
+.hud-tr button{background:linear-gradient(180deg,#3b82f6,#2563d6);border:2px solid #fff;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.result{background:#fffaf0;border:3px solid #e8a62a;color:#7a4a00;box-shadow:0 6px 20px rgba(0,0,0,.35);border-radius:14px}
+.tbtn#tAct{background:linear-gradient(180deg,#ffd25f,#e8a62a);color:#3a2400;border:3px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.3);transform:scale(1.15)}
+.tbtn#tJump{background:linear-gradient(180deg,#3b82f6,#2563d6);color:#fff;border:3px solid #fff}
+.fpsPill{position:absolute;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(40px + env(safe-area-inset-bottom,0px));z-index:4;background:#fffaf0;color:#2a2238;border:2px solid #e2d3b0;border-radius:999px;padding:2px 10px;font:800 12px var(--body);pointer-events:none}
+.fpsPill.low{border-color:#e5484d;color:#c62828}
+@keyframes popIn{from{transform:scale(.94);opacity:.4}to{transform:none;opacity:1}}
+.modal>.panel,.phone.shopPh{animation:popIn .15s ease-out}
+.phone.shopPh .phsearch{flex:none;width:100%;box-sizing:border-box;border:2px solid #e2d3b0;border-radius:10px;padding:7px 9px;font:inherit;font-size:13px;background:#fff;color:#2a2238}
+.phone.shopPh .phside .pin{color:#e8a62a}
+.phone.shopPh .phside hr{border:0;border-top:2px dashed #cdbd99;margin:2px 0;width:100%}
+.phone.shopPh .ph-top #phPin{background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:10px;height:36px;padding:0 10px;font-weight:800}
+
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -1359,7 +1378,7 @@ function openSettings(){
       <label class="rng"><span>Musik</span><button class="small" id="sMus" aria-pressed="${SET.music}">${SET.music?'Nyala':'Mati'}</button></label>
       <label class="rng"><span>Volume musik</span><input type="range" id="sMv" min="0" max="100" value="${SET.mv}"><b id="sMvV">${SET.mv}%</b></label><button class="pbtn" id="sPick">🎵 Pilih lagu (bawaan / NCS / YouTube)</button></section>
       <section class="setg"><h4>Grafis</h4><p class="muted">Ringan: tanpa bayangan dan resolusi lebih hemat, jalan jadi lebih mulus di HP. Hemat baterai: 30 FPS dan resolusi lebih rendah, paling irit. Saat HP atau jendela terbuka, dunia 3D otomatis diperlambat supaya baterai awet.</p><div class="srow">${['auto','hemat','ringan','normal'].map(g=>`<button class="pbtn" data-gfx="${g}" aria-pressed="${(SET.gfx||'auto')===g}">${g==='auto'?'Otomatis':g==='hemat'?'🔋 Hemat baterai':g==='ringan'?'Ringan':'Normal'}</button>`).join('')}</div></section>
-      <section class="setg"><h4>Simpan & muat</h4><p class="muted">Progres juga tersimpan otomatis di browser ini. Slot dipakai untuk cadangan.</p>${slots}</section>
+      <section class="setg"><h4>Penghitung FPS</h4><div class="srow"><button class="pbtn" id="sFps" aria-pressed="${!!SET.fps}">${SET.fps?'Tampil':'Sembunyi'}</button></div></section><section class="setg"><h4>Simpan & muat</h4><p class="muted">Progres juga tersimpan otomatis di browser ini. Slot dipakai untuk cadangan.</p>${slots}</section>
       <section class="setg"><h4>Kode simpan</h4><p class="muted">Untuk pindah ke perangkat atau browser lain: buat kode, salin, lalu tempel di sana.</p>
         <textarea id="sCode" rows="3" placeholder="Tempel kode simpan di sini" spellcheck="false"></textarea>
         <div class="srow"><button class="pbtn" id="sExp">Buat kode</button><button class="pbtn" id="sCopy">Salin</button><button class="pbtn" id="sImp">Muat dari kode</button></div></section>
@@ -1369,7 +1388,7 @@ function openSettings(){
     $('sVol').oninput=e=>{SET.sfx=+e.target.value;$('sVolV').textContent=SET.sfx+'%';applyAudio();};
     $('sVol').onchange=()=>{audio();SFX.coin();};
     $('sMv').oninput=e=>{SET.mv=+e.target.value;$('sMvV').textContent=SET.mv+'%';applyAudio();ytVol();};$('sPick').onclick=()=>{closeGame();openMusic();};
-    body.querySelectorAll('[data-gfx]').forEach(b=>b.onclick=()=>{SET.gfx=b.dataset.gfx;saveSet();gfxApply();SFX.coin();draw();msg('Grafis: '+b.textContent+(gfxLite()?' (mode ringan aktif)':' (mode normal aktif)'));});
+    {const fb=body.querySelector('#sFps');if(fb)fb.onclick=()=>{SET.fps=!SET.fps;saveSet();SFX.pop();draw();};}body.querySelectorAll('[data-gfx]').forEach(b=>b.onclick=()=>{SET.gfx=b.dataset.gfx;saveSet();gfxApply();SFX.coin();draw();msg('Grafis: '+b.textContent+(gfxLite()?' (mode ringan aktif)':' (mode normal aktif)'));});
     $('sMus').onclick=e=>{audio();SET.music=!SET.music;e.currentTarget.setAttribute('aria-pressed',SET.music);e.currentTarget.textContent=SET.music?'Nyala':'Mati';applyAudio();};
     body.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(slotKey(b.dataset.save),JSON.stringify(snap()));SFX.coin();draw();$('sMsg').textContent=`Tersimpan di slot ${b.dataset.save}.`;}catch(e){msg('Gagal menyimpan di browser ini. Pakai kode simpan.');}});
     body.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{const d=slotInfo(b.dataset.load);if(!d)return;try{applySnap(d);SFX.big();logLine('sys',null,`Data slot ${b.dataset.load} dimuat.`);draw();$('sMsg').textContent=`Slot ${b.dataset.load} dimuat.`;}catch(e){msg('Data slot rusak.');}});
@@ -3360,7 +3379,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v26.4';
+const GAME_VER='v27';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6210,6 +6229,49 @@ phoneRender=(f=>function(){const r=f.apply(this,arguments);const ph=$('phone');i
   const cover=phOpen?500:(modal||document.querySelector('.modal'))?125:0;
   const cap=cover||(SET.gfx==='hemat'?33:(SET.gfx==='auto'&&IS_TOUCH)?22:0);
   if(cap&&now-lastT<cap-2){requestAnimationFrame(loop);return;}lastT=now;return _lp(now);};}
+/* ================= v27: mesin ringan (FPS, auto grafis, save hemat, label NPC), HUD & HP, taksi ================= */
+/* P12: batch saves (max once per 2s), always flush on leave */
+{const _sp=savePF;let t=0,due=false;const now=()=>{clearTimeout(t);due=false;_sp();};
+  savePF=function(){due=true;clearTimeout(t);t=setTimeout(now,2000);};
+  const fl=()=>{if(due)now();};document.addEventListener('visibilitychange',()=>{if(document.hidden)fl();});addEventListener('pagehide',fl);addEventListener('beforeunload',fl);window.__savePFNow=now;}
+/* P1 + P2: FPS meter and automatic quality drop */
+let autoLite=0;{const _gl=gfxLite;gfxLite=function(){return _gl()||!!autoLite;};}
+{let lastF=0,lastT=performance.now(),low=0,pill=null;
+  setInterval(()=>{const f=renderer.info.render.frame,t=performance.now(),fps=Math.round((f-lastF)*1000/(t-lastT));lastF=f;lastT=t;
+    const ph=$('phone'),covered=(ph&&!ph.classList.contains('hidden'))||modal||document.querySelector('.modal')||document.hidden;
+    if(SET.fps&&started){if(!pill){pill=document.createElement('div');pill.className='fpsPill';stage.appendChild(pill);}pill.textContent=covered?'FPS · jeda':fps+' FPS'+(gfxLite()?' · ringan':'');pill.classList.toggle('low',!covered&&fps<26);}
+    else if(pill){pill.remove();pill=null;}
+    if(!started||covered||(SET.gfx||'auto')!=='auto'||autoLite){low=0;return;}
+    low=fps<26?low+1:0;if(low>=5){autoLite=1;low=0;try{gfxApply();}catch(e){}showResult('⚙️ Grafis diturunkan otomatis supaya lancar');}},1000);}
+/* P15: show at most 10 nearest NPC name tags */
+{const _gt=gfxTick;let hid=[],n=0;gfxTick=function(){_gt();try{if(++n%10===0){const L=ents.filter(e=>e!==you&&e.tagEl&&!e.tagEl.classList.contains('off'));
+      if(L.length>10){L.sort((a,b)=>a.pos.distanceToSquared(camera.position)-b.pos.distanceToSquared(camera.position));hid=L.slice(10);}else hid=[];}
+    for(const e of hid)e.tagEl.classList.add('off');}catch(e){}};}
+/* T7: balance counts up/down smoothly */
+{const _r=render;let shown=null,anim=null;render=function(){const r=_r.apply(this,arguments);const el=$('bal');if(!el)return r;const tgt=S.bal;
+    if(shown===null){shown=tgt;return r;}if(Math.abs(tgt-shown)<1){shown=tgt;return r;}
+    const from=shown,t0=performance.now();cancelAnimationFrame(anim);el.textContent=fmtBig(Math.round(from));
+    const step=t=>{const k=Math.min(1,(t-t0)/450),v=from+(tgt-from)*(1-Math.pow(1-k,3));shown=v;el.textContent=fmtBig(Math.round(v));if(k<1)anim=requestAnimationFrame(step);else{shown=tgt;el.textContent=fmtBig(tgt);}};anim=requestAnimationFrame(step);return r;};}
+/* T5 + T6: search and pinned apps in the phone sidebar */
+PF.phPin=PF.phPin||[];let phQ='';
+phSideList=(f=>function(){let L=f();const pins=PF.phPin=PF.phPin||[];const P=L.filter(x=>pins.includes(x[0])),R=L.filter(x=>!pins.includes(x[0]));
+  if(phQ){const q=phQ.toLowerCase();return L.filter(x=>x[2].toLowerCase().includes(q));}return P.map(x=>[x[0],x[1],'★ '+x[2]]).concat(P.length?[['--']]:[],R);})(phSideList);
+phoneRender=(f=>function(){const r=f.apply(this,arguments);const ph=$('phone');if(!ph||ph.classList.contains('hidden'))return r;
+  try{const side=ph.querySelector('.phside');if(side&&!side.querySelector('.phsearch')){
+      side.querySelectorAll('[data-ps="--"]').forEach(b=>{const hr=document.createElement('hr');b.replaceWith(hr);});
+      const inp=document.createElement('input');inp.className='phsearch';inp.placeholder='🔍 Cari app';inp.value=phQ;side.prepend(inp);
+      inp.addEventListener('input',()=>{phQ=inp.value;const st=performance.now();side.querySelectorAll('[data-ps]').forEach(b=>{const t=b.textContent.toLowerCase();b.style.display=!phQ||t.includes(phQ.toLowerCase())?'':'none';});side.querySelectorAll('hr').forEach(h=>h.style.display=phQ?'none':'');});
+      ['pointerdown','touchstart','keydown'].forEach(ev=>inp.addEventListener(ev,e=>e.stopPropagation(),{passive:ev!=='keydown'}));
+      if(phQ)inp.dispatchEvent(new Event('input'));}
+    const top=ph.querySelector('.ph-top'),k=phCur();PF.phPin=PF.phPin||[];if(top&&k!=='home'&&!top.querySelector('#phPin')&&phSideList().some(x=>x[0]===k)){const pinned=PF.phPin.includes(k);
+      const b=document.createElement('button');b.id='phPin';b.textContent=pinned?'★ Disematkan':'☆ Sematkan';b.title='Sematkan app ini di atas menu';
+      b.onclick=e=>{e.stopPropagation();const i=PF.phPin.indexOf(k);if(i>=0)PF.phPin.splice(i,1);else PF.phPin.unshift(k);PF.phPin=PF.phPin.slice(0,6);savePF();SFX.pop();phKey='';phoneRender();};
+      top.insertBefore(b,top.querySelector('.phbal')||top.querySelector('#phClose'));}
+  }catch(e){console.error('ph27',e);}return r;})(phoneRender);
+/* K4 + K5: taxi app: go anywhere from the phone */
+xView('taksi',{t:'Taksi Online',s:'Taksi',ic:'🚕',bg:'linear-gradient(135deg,#ffd25f,#e8a62a)',r:()=>{let S=[];try{S=tripSections(null,-1);}catch(e){}
+  return `<div class="wallet"><small>Taksi Permata</small><b>Mau ke mana?</b><div class="row"><span>Langsung diantar ke tujuan, tanpa jalan ke stasiun.</span></div></div>`+S.map(s=>`<div class="thd">${s.h}</div><div class="tlist">${s.rows.map(o=>tRow(Object.assign({},o,{here:false}))).join('')}</div>`).join('');}});
+
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
