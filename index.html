@@ -425,6 +425,13 @@ body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.
 .phone.shopPh .bk button{min-height:48px}
 .phone [data-unit]{display:none!important}
 
+.ei-tabs button,.ei-ports button{flex:1 1 auto}
+.ei-g .small{flex:none}
+.ei-box{background:#fffaf0;border:2px solid #e2d3b0;border-radius:12px;padding:10px 12px;margin:6px 0 10px;display:flex;flex-direction:column;gap:6px}
+.ei-box .row{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.ei-box .go{margin-top:6px}
+.ei-bar{height:7px;background:#e8ddc4;border-radius:6px;overflow:hidden;margin-top:5px}.ei-bar i{display:block;height:100%;background:linear-gradient(90deg,#2f6fd6,#1fb5a8)}
+.mocard2{flex-direction:column;align-items:stretch}.mohd{display:flex;gap:12px;align-items:center}.moopt{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px dashed #e2d3b0;padding-top:8px}.moopt>span{font-weight:700;font-size:13px;color:#4a3f5a;flex:none}.moopt>div{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}@media (max-width:700px){.moopt{flex-direction:column;align-items:stretch}.moopt>div{justify-content:flex-start}}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3465,7 +3472,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v36';
+const GAME_VER='v36.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6194,8 +6201,10 @@ function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)key
     if(moTab==='stk'){const L=stkIdeas();body=L.map(x=>{const a=x.a,q1=Math.floor(Math.min(freeFloat(a),a.sh*.01)),q5=Math.floor(Math.min(freeFloat(a),a.sh*.05));
       return card('📈',`${a.id} · ${esc(a.n)}`,`"Pak, ${x.disc>.03?`harganya ${Math.round(x.disc*100)}% di bawah nilai wajar`:'saham beredarnya tinggal sedikit'}${x.sc>.6?', saham publik langka jadi harga cenderung naik':''}. Harga sekarang ${fmt(Math.round(a.p*100)/100)}."`,
         `${q1>0?`<button class="mogo" data-mo="sb:${a.id}:${q1}">1% · ${fmtBig(Math.round(q1*blkPx(a,q1)))}</button>`:''}${q5>q1?`<button class="mog" data-mo="sb:${a.id}:${q5}">5% · ${fmtBig(Math.round(q5*blkPx(a,q5)))}</button>`:''}`);}).join('')||'<p class="muted">Belum ada saham yang menarik. Manajer pantau terus.</p>';}
-    if(moTab==='sell'){body=card('🏙️','Jual properti otomatis',`Manajer menjual properti kalau tawaran pembeli untung minimal ${s.auto||0}% dari nilai.${s.auto?'':' (mati)'}`,[0,10,15,25,50].map(v=>`<button class="${s.auto===v?'mogo':'mog'}" data-mo="pa:${v}">${v?v+'%':'Mati'}</button>`).join(''))
-      +card('💹','Jual saham sebagian',`Kalau harga saham naik minimal ${st.gain}% dari harga belimu dan masuk akal, manajer menjual ${st.pct}% sedikit demi sedikit (paling sering 5 menit sekali per saham). Saham pengendali tidak pernah dijual.`,`<button class="${st.on?'mogo':'mog'}" data-mo="son">${st.on?'Aktif':'Mati'}</button>${[5,10,15].map(v=>`<button class="${st.pct===v?'mogo':'mog'}" data-mo="sp:${v}">Jual ${v}%</button>`).join('')}${[10,20,40].map(v=>`<button class="${st.gain===v?'mogo':'mog'}" data-mo="sg:${v}">Untung ≥${v}%</button>`).join('')}`)
+    if(moTab==='sell'){const B=(on,mo,t)=>`<button class="${on?'mogo':'mog'}" data-mo="${mo}">${t}</button>`,O=(l,b)=>`<div class="moopt"><span>${l}</span><div>${b}</div></div>`,C2=(ic,t,sub,rows)=>`<div class="mocard mocard2"><div class="mohd"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div></div>${rows}</div>`;
+      body=C2('🏙️','Jual properti otomatis',`Manajer menjual properti kalau tawaran pembeli untung minimal ${s.auto||0}% dari nilai.${s.auto?'':' (mati)'}`,O('Untung minimal',[0,10,15,25,50].map(v=>B(s.auto===v,'pa:'+v,v?v+'%':'Mati')).join('')))
+      +C2('💹','Jual saham otomatis',`${st.on?`Ambil untung: saat naik ≥${st.gain}% dari harga beli, manajer jual ${st.pct}% sedikit demi sedikit (maks 5 menit sekali per saham).`:'Ambil untung mati.'} ${st.loss?`Cut loss: saat turun ${st.loss}% dari harga beli, manajer langsung jual semua lembar saham itu.`:'Cut loss mati.'}`,
+        O('Ambil untung',B(st.on,'son',st.on?'Aktif':'Mati'))+O('Jual per kali',[5,10,15].map(v=>B(st.pct===v,'sp:'+v,v+'%')).join(''))+O('Saat untung',[10,20,40].map(v=>B(st.gain===v,'sg:'+v,'≥'+v+'%')).join(''))+O('Cut loss saat rugi',[0,5,10,15,20].map(v=>B((st.loss||0)===v,'sl:'+v,v?'−'+v+'%':'Mati')).join('')))
       +'<p class="muted">Crypto tidak pernah dijual manajer.</p>';}
     if(moTab==='rep')body=card('📋',`Hari bursa ke-${mDay}`,`Pemasukan bisnis ±${fmtBig(Math.round(rep.inc||0))}<br>Properti terjual: ${rep.sold||0}<br>Hasil jual saham: ${fmtBig(Math.round(rep.trim||0))}<br>Pajak properti: ${fmtBig(Math.round(rep.tax||0))}`,'')+card('🏢','Total bisnis',`Nilai ${fmtBig(Math.round(propVal()))} · pemasukan ±${fmtBig(Math.round(bizDaily()))}/hari`,'');
     if(moTab==='set'){const lv=c.mlv||1;body=card('👔',`Manajer Lv ${lv}`,`Makin tinggi level, pembeli rela bayar lebih mahal saat nego.`,lv<5?`<button class="mogo" data-mo="lv">Latih · 🪙 ${fmtBig(Math.round(5e9*Math.pow(2.2,lv-1)))}</button>`:'<small>Maks</small>')
@@ -6210,7 +6219,7 @@ function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)key
       if(k==='buy'){const M=MEGA.find(m=>m.id===v),was=M&&megaS(M).me;bizDo('gBuy',v);if(M&&megaS(M).me&&!was){ADV.list=ADV.list.filter(x=>x.M.id!==v);if(!ADV.list.length)ADV.list=advPick();}}
       if(k==='skip'){ADV.skip[v]=1;ADV.list=ADV.list.filter(x=>x.M.id!==v);}if(k==='newp')ADV.list=advPick();
       if(k==='sb'){const a=assetOf(v);if(a&&!blockBuy(a,+v2)){SFX.error();}}
-      if(k==='pa'){s.auto=+v;}if(k==='son')st.on=st.on?0:1;if(k==='sp')st.pct=+v;if(k==='sg')st.gain=+v;
+      if(k==='pa'){s.auto=+v;}if(k==='son')st.on=st.on?0:1;if(k==='sp')st.pct=+v;if(k==='sg')st.gain=+v;if(k==='sl')st.loss=+v;
       if(k==='lv')XA.xMgrLv();if(k==='ins')XA.xIns();if(k==='lease')XA.xLease();if(k==='wapp'){modal=null;el.remove();xOpen('perang');return;}
       savePF();draw();});};
   draw();}
@@ -7122,6 +7131,175 @@ xView('pajak',{t:'Pajak',s:'Pajak',ic:'🧾',bg:'linear-gradient(135deg,#e8a62a,
   <div class="thd">Tarif per kelas (dari kekayaan bersih)</div>${TAXC.map((x,i)=>`<div class="chap"><span style="font-size:20px">${['🧑‍🌾','🧑‍💼','🎩','💼','🏦','👑'][i]}</span><div><b>${x[1]} · ${Math.round(x[2]*100)}%</b><small>Kekayaan mulai 🪙 ${fmtBig(x[0])}</small></div></div>`).join('')}
   <div class="thd">Riwayat tagihan</div>${T.h.map(h=>`<div class="chap"><span style="font-size:20px">🧾</span><div><b>🪙 ${fmtBig(h.tax)}</b><small>${h.c} ${Math.round(h.r*100)}% dari penghasilan 🪙 ${fmtBig(Math.round(h.inc))}</small></div></div>`).join('')||'<p class="muted">Belum ada tagihan.</p>'}<p class="muted">Pajak dihitung dari penghasilan bisnis (sewa, toko, properti) tiap 3 menit, bukan dari total kekayaan.</p>`;}});
 
+/* ================= v36: Pelabuhan & Logistik (kapal kargo, crane, truk, forklift, ekspor-impor) ================= */
+const PL36={};
+ZB.pelabuhan=(f=>function(G,zc,k){
+  const caught=[];const sm0=shipMesh;shipMesh=function(){const g=sm0.apply(this,arguments);caught.push({g,cargo:!!arguments[5]});return g;};
+  try{f.apply(this,arguments);}finally{shipMesh=sm0;}
+  try{pl36Build(G,zc,k,caught);}catch(e){console.error('pl36',e);}
+})(ZB.pelabuhan);
+function pl36Box(g,w,h,d,c,x,y,z){const m=new THREE.Mesh(PL36.box||(PL36.box=new THREE.BoxGeometry(1,1,1)),PL36['m'+c]||(PL36['m'+c]=mat(c)));m.scale.set(w,h,d);m.position.set(x,y,z);g.add(m);return m;}
+const PL_CC=[0xd8435b,0x2f6fe0,0xf2a33a,0x2f9e5a,0xb0b4bc,0x8a4a9e,0x1fb5a8,0xe8e0d0];
+function pl36Ship(G,len,hull,name){const g=new THREE.Group();G.add(g);const w=14;
+  pl36Box(g,len,1.4,w,0x9a2a2a,0,-.3,0);pl36Box(g,len,3.6,w,hull,0,2.2,0);pl36Box(g,len-2,.3,w-1,0x5a5a5a,0,4.1,0);
+  pl36Box(g,4,3.6,10,hull,len/2+2,2.2,0);pl36Box(g,2.4,3.6,6,hull,len/2+4.6,2.2,0);
+  pl36Box(g,8,7,w-2,0xf2f2f2,-len/2+5,7.6,0);pl36Box(g,8.4,.9,w-1,0x1b1d26,-len/2+5,10.2,0);pl36Box(g,1.2,4,1.2,0x2a2a2a,-len/2+3,12.6,0);pl36Box(g,1.4,.6,1.4,hull,-len/2+3,14.8,0);
+  const cs=[];const bays=Math.floor((len-14)/4.4);for(let i=0;i<bays;i++)for(let j=0;j<3;j++)for(let l=0;l<2;l++){const c=pl36Box(g,4,2.4,4,PL_CC[(i*5+j*3+l)%PL_CC.length],-len/2+12+i*4.4,5.5+l*2.45,(j-1)*4.2);cs.push(c);}
+  if(name){const n=neon(name,0,3,w/2+.06,0,'#ffffff','#ffd25f',Math.min(18,len*.3),1.2);n.position.set(0,2.6,w/2+.06);g.add(n);}
+  g.userData.cs=cs;return g;}
+function pl36Truck(G,col){const g=new THREE.Group();G.add(g);pl36Box(g,2.6,2.4,2.4,col,3.6,1.6,0);pl36Box(g,2.62,.9,2.2,0x1b2a4a,4.2,2.2,0);pl36Box(g,9,.4,2.4,0x3a3a40,-1.6,.8,0);
+  [[4,1.25],[4,-1.25],[0,1.25],[0,-1.25],[-4,1.25],[-4,-1.25]].forEach(([x,z])=>pl36Box(g,1,1,.4,0x111111,x,.5,z));
+  const c=pl36Box(g,8.4,2.4,2.4,PL_CC[Math.floor(Math.random()*6)],-1.6,2.2,0);g.userData.c=c;return g;}
+function pl36Fork(G){const g=new THREE.Group();G.add(g);pl36Box(g,2,1.2,1.4,0xf2c12e,0,.9,0);pl36Box(g,.8,1.4,1.3,0x2a2a2a,-.5,2.1,0);pl36Box(g,.12,2.8,.12,0x333333,1.05,1.6,.5);pl36Box(g,.12,2.8,.12,0x333333,1.05,1.6,-.5);
+  const fk=pl36Box(g,1.4,.1,1,0x555555,1.8,.4,0);const b=pl36Box(g,1.3,1,1,0x8a6a44,1.8,.95,0);g.userData.b=b;g.userData.fk=fk;return g;}
+const sm36=(a,b,t)=>{t=Math.max(0,Math.min(1,t));t=t*t*(3-2*t);return a+(b-a)*t;};
+function pl36Build(G,zc,k,caught){
+  // remove old static cargo ship (it pointed into the quay)
+  caught.filter(c=>c.cargo).forEach(c=>{G.remove(c.g);});
+  // hide old static crane trolleys (re-made as moving ones)
+  const cranesX=[-70,-44,-18];const old=[];G.children.forEach(o=>{if(o.isMesh&&o.geometry&&o.geometry.parameters&&o.geometry.parameters.width===2&&o.geometry.parameters.height===1.6&&Math.abs(o.position.y-21)<.1&&Math.abs(o.position.z-(zc-14))<.1)old.push(o);});old.forEach(o=>G.remove(o));
+  const S6={zc,k};PL36.S=S6;
+  // berth ship
+  const ship=pl36Ship(G,74,0x1b2a4a,'MV SAMUDRA PERMATA');ship.position.set(-44,0,zc-14);S6.ship=ship;
+  const ship2=pl36Ship(G,60,0x2a5a3a,'MV TIANLONG STAR');ship2.position.set(-300,0,zc-62);ship2.rotation.y=Math.PI;S6.ship2=ship2;
+  const ship3=pl36Ship(G,52,0x6a2a1a,'KM NUBARA JAYA');ship3.position.set(300,0,zc-80);S6.ship3=ship3;
+  // tug boat
+  const tug=new THREE.Group();G.add(tug);pl36Box(tug,7,1.6,3.4,0xd8435b,0,.6,0);pl36Box(tug,3,2,2.6,0xf2f2f2,-.6,2.4,0);pl36Box(tug,.6,1.6,.6,0x222222,-.6,4,0);S6.tug=tug;
+  // moving crane trolleys
+  S6.cr=cranesX.map((x,i)=>{const t=pl36Box(G,2.4,1.6,2.4,0x222228,x,21.8,zc-14);const cab=pl36Box(G,.25,1,.25,0x111111,x,20,zc-14);const sp=pl36Box(G,4.4,.4,4.4,0xf2c12e,x,15,zc-14);const ct=pl36Box(G,4,2.4,4,PL_CC[i*2],x,13.6,zc-14);ct.visible=false;return {x,t,cab,sp,ct,off:i*5.3,hid:null};});
+  // apron marking + truck lane
+  gplane(G,120,8,new THREE.MeshLambertMaterial({color:0x6a6a66}),-46,zc+7,.008);for(let x=-104;x<14;x+=6)gplane(G,3,.25,new THREE.MeshBasicMaterial({color:0xf2d25a}),x,zc+7,.012);
+  gplane(G,120,7,new THREE.MeshLambertMaterial({color:0x6a6a66}),-46,zc+40,.008);
+  // trucks loop: quay lane z+7 (going +x), east leg x=8, yard road z+40 (going -x), west leg x=-106
+  const P=[[-106,zc+7],[8,zc+7],[8,zc+40],[-106,zc+40]];let L=0;const segs=[];for(let i=0;i<4;i++){const a=P[i],b=P[(i+1)%4],l=Math.hypot(b[0]-a[0],b[1]-a[1]);segs.push({a,b,l,s:L});L+=l;}S6.path={segs,L};
+  S6.trucks=[0,1,2,3,4].map(i=>({g:pl36Truck(G,[0xd8435b,0x2f6fe0,0xf2f2f2,0x2f9e5a,0xf2a33a][i]),d:i*L/5,v:7+i*.6,stop:0}));
+  // forklifts in yard aisles
+  S6.forks=[zc+17,zc+23,zc+29].map((z,i)=>({g:pl36Fork(G),z,off:i*4,x0:-100,x1:-24}));
+  // RTG gantry over the stacks
+  {const g=new THREE.Group();G.add(g);[[zc+11],[zc+35]].forEach(([z])=>{pl36Box(g,.9,13,.9,0xd8435b,-4,6.5,z);pl36Box(g,.9,13,.9,0xd8435b,4,6.5,z);pl36Box(g,9,.8,.9,0xd8435b,0,.6,z);});pl36Box(g,1,1.2,25,0xf2f2f2,-4,13,zc+23);pl36Box(g,1,1.2,25,0xf2f2f2,4,13,zc+23);const tr=pl36Box(g,9,1,3,0x222228,0,13.9,zc+23);const sp=pl36Box(g,3,.3,8,0xf2c12e,0,10,zc+23);g.position.x=-60;S6.rtg={g,tr,sp};}
+  // Kantor Ekspor-Impor
+  {const x=-70,z=zc+60;cBox(G,18,7,9,0xe8e0d0,x,3.5,z,true);cBox(G,18.4,.6,9.4,0x2f6fd6,x,7.3,z);cBox(G,16,2.4,.1,0x2a3a5a,x,4.6,z+4.56,false,true);cBox(G,2.2,3,.1,0x4a2e1c,x,1.5,z+4.56);
+    G.add(neon('KANTOR EKSPOR-IMPOR',x,8.4,z+4.8,0,'#ffffff','#ffd25f',16,1.4));
+    const bd=new THREE.Mesh(new THREE.PlaneGeometry(7,4),new THREE.MeshBasicMaterial({map:PL36.boardTex=canvasTex(256,148,()=>{})}));bd.position.set(x+13,3.4,z+3);G.add(bd);cBox(G,.3,5.4,.3,0x333333,x+9.4,2.7,z+3);cBox(G,.3,5.4,.3,0x333333,x+16.6,2.7,z+3);S6.board=bd;
+    stationAdd('xlogi',x,z+6.8,0,'Kantor Ekspor-Impor',{useDist:4,verb:'Ekspor',act:()=>xOpen('ekspor'),ctx:()=>`<div class="ctx-head"><h3>🚢 Kantor Ekspor-Impor</h3><small>Kirim kontainer ke kerajaan lain atau impor barang ke Permata. Beli kapal sendiri biar muat lebih banyak.</small></div><div class="ctx-row">${bzB('xEiOpen','','Buka meja ekspor')}</div>`,btn:'EKSPOR'});}
+  // dock workers
+  for(let i=0;i<6;i++)addWalker(G,[[-90,zc+4],[-60,zc+4],[-30,zc+4],[-10,zc+4],[-50,zc+10]]);
+  zAnim.push({k,f:pl36Tick});}
+PL36.cyc=0;
+function pl36Tick(dt){const S6=PL36.S;if(!S6)return;const now=performance.now()/1000,zc=S6.zc;
+  // berth cycle 160s: arrive 0-24, berthed 24-128, leave 128-150, gone 150-160
+  const T=160,t=now%T,cyc=Math.floor(now/T);const sh=S6.ship;
+  if(t<24){sh.visible=true;sh.position.x=sm36(-260,-44,t/24);}else if(t<128){sh.position.x=-44;}else if(t<150){sh.position.x=sm36(-44,260,(t-128)/22);}else sh.visible=false;
+  sh.visible=t<150&&Math.abs(sh.position.x)<200;
+  if(cyc!==PL36.cyc){PL36.cyc=cyc;sh.userData.cs.forEach(c=>c.visible=true);if(zoneAt(you.pos.z)===S6.k){const o=EI_PORTS[1+cyc%(EI_PORTS.length-1)];logLine('sys',null,`🚢 MV Samudra Permata masuk pelabuhan membawa ${180+cyc%7*23} TEU dari ${o[1]} ${o[2]}.`,'');}pl36Board();}
+  // tug follows ship when moving
+  const tg=S6.tug;tg.position.set(sh.position.x+42,0,zc-24);tg.visible=sh.visible&&(t<26||t>126);
+  // passing ships
+  S6.ship2.position.x=260-((now*6)%560);S6.ship3.position.x=-260+((now*4.5+200)%560);
+  S6.ship2.visible=Math.abs(S6.ship2.position.x)<190;S6.ship3.visible=Math.abs(S6.ship3.position.x)<190;
+  // cranes: work only while berthed, unloading first half then loading
+  const work=t>26&&t<124,unl=t<75;
+  S6.cr.forEach(C=>{const u=((now+C.off)%18);let tz,y,carry;const zs=zc-14,zq=zc+7;
+    if(!work){tz=zq;y=18;carry=false;}
+    else{const zA=unl?zs:zq,zB=unl?zq:zs,yA=unl?8.2:3.6,yB=unl?3.6:8.2;
+      if(u<2){tz=zA;y=sm36(18,yA,u/2);carry=false;}else if(u<3){tz=zA;y=yA;carry=u>2.5;}else if(u<5){tz=zA;y=sm36(yA,18,(u-3)/2);carry=true;}
+      else if(u<9){tz=sm36(zA,zB,(u-5)/4);y=18;carry=true;}else if(u<11){tz=zB;y=sm36(18,yB,(u-9)/2);carry=true;}else if(u<12){tz=zB;y=yB;carry=u<11.5;}
+      else if(u<14){tz=zB;y=sm36(yB,18,(u-12)/2);carry=false;}else{tz=sm36(zB,zA,(u-14)/4);y=18;carry=false;}
+      // ship deck containers under this crane: hide on pick-up (unload), show on drop (load)
+      const cs=sh.userData.cs,near=cs.filter(c=>Math.abs(c.position.x+sh.position.x-C.x)<6);
+      if(unl&&u>2.5&&u<3&&!C.pk){C.pk=1;const v=near.filter(c=>c.visible);const c=v[v.length-1];if(c){c.visible=false;C.ct.material=c.material;}}
+      if(!unl&&u>11&&u<11.5&&!C.pk){C.pk=1;const v=near.filter(c=>!c.visible);if(v[0])v[0].visible=true;}
+      if(u<2||(u>4&&u<10))C.pk=0;}
+    C.t.position.z=tz;C.sp.position.set(C.x,y,tz);C.cab.position.set(C.x,(21+y)/2,tz);C.cab.scale.y=Math.max(.2,21-y);C.ct.visible=carry;C.ct.position.set(C.x,y-1.4,tz);});
+  // trucks
+  const Pt=S6.path;S6.trucks.forEach((R,i)=>{R.d=(R.d+R.v*dt)%Pt.L;const s=Pt.segs.find(q=>R.d>=q.s&&R.d<q.s+q.l)||Pt.segs[0];const f=(R.d-s.s)/s.l;
+    const x=s.a[0]+(s.b[0]-s.a[0])*f,z=s.a[1]+(s.b[1]-s.a[1])*f;R.g.position.set(x,0,z);R.g.rotation.y=Math.atan2(-(s.b[1]-s.a[1]),s.b[0]-s.a[0]);
+    R.g.userData.c.visible=(s===Pt.segs[1]||s===Pt.segs[2])?true:(i%2===0);});
+  // forklifts shuttle along aisles
+  S6.forks.forEach(F=>{const u=(now+F.off)%20;const a=u<10?u/10:1-(u-10)/10;F.g.position.set(F.x0+(F.x1-F.x0)*sm36(0,1,a),0,F.z);F.g.rotation.y=u<10?0:Math.PI;const lift=(u>8&&u<10)||(u>18)?1:0;F.g.userData.b.visible=u<10;F.g.userData.b.position.y=.95+lift*.8;F.g.userData.fk.position.y=.4+lift*.8;});
+  // RTG gantry
+  {const R=S6.rtg,u=now%40;R.g.position.x=-92+sm36(0,1,u<20?u/20:1-(u-20)/20)*64;R.sp.position.y=10-Math.abs(Math.sin(now*.6))*5;R.tr.position.z=zc+23+Math.sin(now*.3)*6;R.sp.position.z=R.tr.position.z;}}
+/* ---------- export-import economy ---------- */
+const EI_GOODS=[['kopi','☕','Kopi',12e7],['sawit','🌴','Minyak sawit',9e7],['karet','🛞','Karet',8e7],['bara','🪨','Batu bara',4e7],['tekstil','🧵','Tekstil',15e7],['elek','💻','Elektronik',4e8],['rempah','🌶️','Rempah',2e8],['mobil','🚗','Mobil',6e8],['mesin','⚙️','Mesin industri',5e8],['ikan','🐟','Ikan beku',1e8],['timah','🔩','Timah',2.5e8],['kayu','🪵','Kayu jati',6e7]];
+// [id, flag, name, minutes, produce cheap(-), demand(+)]
+const EI_PORTS=[['home','⭐','Permata',0,['kopi','sawit','karet','bara','rempah','ikan','timah'],['elek','mobil','mesin']],
+  ['selatara','🏝️','Selatara',3,['ikan','kayu','rempah'],['elek','mesin','tekstil','mobil']],
+  ['nirwana','👑','Nirwana Agung',4,['rempah','kayu','tekstil'],['kopi','elek','mobil','bara']],
+  ['zahran','🕌','Zahran',5,['bara','tekstil'],['kopi','sawit','ikan','karet','kayu']],
+  ['hanseo','🏙️','Hanseo',5,['elek','mesin','mobil'],['bara','timah','karet','sawit','kopi']],
+  ['aurelia','🏰','Aurelia',6,['mesin','mobil','tekstil'],['kopi','rempah','kayu','timah','ikan']]];
+const EI_SHIPS=[['feeder','🛥️','KM Nusantara Feeder',40,12e8,.85],['panamax','🚢','MV Permata Panamax',150,5e9,.75],['ulcv','⛴️','MV Samudra Raya ULCV',500,2e10,.65]];
+const EI_CHARTER=10;
+function eiS(){PF.ei=PF.ei||{d:{},sh:[],own:{},h:[],pr:0,t:0};const E=PF.ei;EI_PORTS.forEach(p=>{E.d[p[0]]=E.d[p[0]]||{};EI_GOODS.forEach(g=>{if(!E.d[p[0]][g[0]])E.d[p[0]][g[0]]=.92+Math.random()*.16;});});return E;}
+function eiPrice(port,g){const P=EI_PORTS.find(p=>p[0]===port),G=EI_GOODS.find(x=>x[0]===g);if(!P||!G)return 0;let m=1;if(P[4].includes(g))m=.82;if(P[5].includes(g))m=1.2;if(port!=='home'&&atWar(port))m*=1.18;return Math.round(G[3]*m*eiS().d[port][g]/1e5)*1e5;}
+function eiRisk(to,from){const w=[to,from].some(p=>p!=='home'&&atWar(p));return w?.12:.04;}
+let EIU={mode:'ex',port:'selatara',g:null,n:1,ship:'charter',ins:true,tab:'pasar'};
+function eiCap(id){if(id==='charter')return EI_CHARTER;const s=EI_SHIPS.find(x=>x[0]===id);return s?s[3]:0;}
+function eiFree(id){if(id==='charter')return true;const E=eiS();return (E.own[id]||0)>E.sh.filter(s=>s.ship===id).length;}
+function eiVal(){const E=eiS();let v=0;EI_SHIPS.forEach(s=>v+=(E.own[s[0]]||0)*s[4]*.8);E.sh.forEach(s=>v+=s.cost);return v;}
+bizVal=(f=>function(){return f.apply(this,arguments)+(typeof eiVal==='function'?eiVal():0);})(bizVal);
+setInterval(()=>{try{if(!started)return;const E=eiS();if(Date.now()-(E.t||0)>60000){E.t=Date.now();for(const p in E.d)for(const g in E.d[p]){E.d[p][g]=Math.max(.75,Math.min(1.35,E.d[p][g]*(1+(Math.random()-.5)*.06)));}}
+  const done=E.sh.filter(s=>Date.now()>=s.t1);if(!done.length)return;done.forEach(s=>{E.sh.splice(E.sh.indexOf(s),1);const G=EI_GOODS.find(x=>x[0]===s.g),P=EI_PORTS.find(p=>p[0]===s.to);
+    let rev=eiPrice(s.to,s.g)*s.n,lost=0;if(Math.random()<s.risk){lost=.3+Math.random()*.7;const l=rev*lost;rev-=l;if(s.ins)rev+=l*.9;}
+    rev=Math.round(rev);S.bal+=rev;const pr=rev-s.cost;E.pr+=pr;if(pr>0)taxS().acc+=pr;
+    E.h.unshift({g:s.g,n:s.n,from:s.from,to:s.to,cost:s.cost,rev,lost:lost?Math.round(lost*100):0,ins:s.ins,t:Date.now()});E.h=E.h.slice(0,20);
+    logLine('sys',null,`🚢 Kiriman ${s.n} TEU ${G[1]} ${G[2]} tiba di ${P[1]} ${P[2]}${lost?` (kena badai, ${Math.round(lost*100)}% rusak${s.ins?', asuransi ganti 90%':''})`:''}: terjual 🪙 ${fmtBig(rev)}, ${pr>=0?'untung':'rugi'} 🪙 ${fmtBig(Math.abs(pr))}.`,pr>=0?'win':'lose');});
+  savePF();if(phView==='ekspor')phoneRender();}catch(e){console.error(e);}},1000);
+function pl36Board(){try{const T=PL36.boardTex;if(!T||!T.image)return;const c=T.image,q=c.getContext('2d'),W=c.width,H=c.height;q.fillStyle='#10203a';q.fillRect(0,0,W,H);q.fillStyle='#ffd25f';q.font='700 18px Fredoka, sans-serif';q.fillText('JADWAL KAPAL',10,22);q.font='600 13px Fredoka, sans-serif';
+  const cyc=PL36.cyc;for(let i=0;i<5;i++){const p=EI_PORTS[1+(cyc+i)%(EI_PORTS.length-1)];q.fillStyle=i?'#cfe0ff':'#7dff9a';q.fillText(`${i?'MV Armada '+(cyc+i)%9:'MV Samudra Permata'}`,10,46+i*20);q.fillText(`${p[2]}`,150,46+i*20);q.fillText(i?'+'+i*3+' mnt':'SANDAR',210,46+i*20);}T.needsUpdate=true;}catch(e){}}
+XA.xEiOpen=()=>xOpen('ekspor');
+XA.xEiTab=id=>{EIU.tab=id;phoneRender();};
+XA.xEiMode=id=>{EIU.mode=id;EIU.g=null;phoneRender();};
+XA.xEiPort=id=>{EIU.port=id;EIU.g=null;phoneRender();};
+XA.xEiG=id=>{EIU.g=EIU.g===id?null:id;EIU.n=1;phoneRender();};
+XA.xEiShip=id=>{EIU.ship=id;EIU.n=Math.min(EIU.n,eiCap(id));phoneRender();};
+XA.xEiIns=()=>{EIU.ins=!EIU.ins;phoneRender();};
+XA.xEiN=id=>{const cap=eiCap(EIU.ship),from=EIU.mode==='ex'?'home':EIU.port,p=eiPrice(from,EIU.g)||1;const aff=Math.max(1,Math.floor(S.bal/(p*1.05)));
+  if(id==='max')EIU.n=Math.max(1,Math.min(cap,aff));else EIU.n=Math.max(1,Math.min(cap,EIU.n+(+id)));phoneRender();};
+function eiQuote(){const from=EIU.mode==='ex'?'home':EIU.port,to=EIU.mode==='ex'?EIU.port:'home',P=EI_PORTS.find(p=>p[0]===(from==='home'?to:from));
+  const buy=eiPrice(from,EIU.g)*EIU.n,fee=EIU.ship==='charter'?Math.round(buy*.03):Math.round(buy*.005),ins=EIU.ins?Math.round(buy*.015):0,sell=eiPrice(to,EIU.g)*EIU.n;
+  const sp=EIU.ship==='charter'?1:EI_SHIPS.find(s=>s[0]===EIU.ship)[5];return {from,to,buy,fee,ins,cost:buy+fee+ins,sell,min:P[3]*sp,risk:eiRisk(to,from)};}
+XA.xEiSend=()=>{if(!EIU.g)return;if(!eiFree(EIU.ship)){showResult('Kapal itu sedang berlayar');return;}const Q=eiQuote();if(S.bal<Q.cost){showResult('Saldo koin tidak cukup');return;}
+  S.bal-=Q.cost;const E=eiS();E.sh.push({g:EIU.g,n:EIU.n,from:Q.from,to:Q.to,cost:Q.cost,ship:EIU.ship,ins:EIU.ins,risk:Q.risk,t0:Date.now(),t1:Date.now()+Q.min*60000});
+  const G=EI_GOODS.find(x=>x[0]===EIU.g),P=EI_PORTS.find(p=>p[0]===Q.to);logLine('sys',null,`🚢 ${EIU.n} TEU ${G[1]} ${G[2]} berangkat ke ${P[1]} ${P[2]}, tiba sekitar ${Math.round(Q.min*10)/10} menit lagi. Modal 🪙 ${fmtBig(Q.cost)}.`,'');
+  SFX.coin();EIU.tab='kirim';savePF();phoneRender();};
+XA.xEiBuy=id=>{const s=EI_SHIPS.find(x=>x[0]===id);if(!s)return;if(S.bal<s[4]){showResult('Saldo koin tidak cukup');return;}S.bal-=s[4];const E=eiS();E.own[id]=(E.own[id]||0)+1;logLine('sys',null,`${s[1]} Kamu membeli ${s[2]} (${s[3]} TEU) seharga 🪙 ${fmtBig(s[4])}.`,'win');SFX.coin();savePF();phoneRender();};
+XA.xEiSell=id=>{const s=EI_SHIPS.find(x=>x[0]===id),E=eiS();if(!s||!(E.own[id]>0))return;if(!eiFree(id)){showResult('Kapal itu sedang berlayar');return;}E.own[id]--;const got=Math.round(s[4]*.8);S.bal+=got;if(EIU.ship===id&&!E.own[id])EIU.ship='charter';logLine('sys',null,`${s[1]} ${s[2]} dijual 🪙 ${fmtBig(got)}.`,'');savePF();phoneRender();};
+const eiMMSS=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+xView('ekspor',{t:'Ekspor-Impor',s:'Ekspor',ic:'🚢',bg:'linear-gradient(135deg,#2f6fd6,#1fb5a8)',live:true,r:()=>{const E=eiS(),tab=EIU.tab;
+  const tb=[['pasar','📦 Pasar'],['armada','🚢 Armada'],['kirim',`🧭 Kiriman${E.sh.length?' ('+E.sh.length+')':''}`]];
+  let h=`<div class="wallet"><small>Logistik Pelabuhan Samudra Permata</small><b>${E.sh.length} kiriman di laut</b><div class="row"><span>Total untung bersih</span><span class="${E.pr>=0?'up':'dn'}">🪙 ${fmtBig(Math.round(E.pr))}</span></div><div class="row"><span>Armada</span><span>${EI_SHIPS.map(s=>E.own[s[0]]?s[1]+'×'+E.own[s[0]]:'').filter(Boolean).join(' ')||'Belum punya, pakai sewa 10 TEU'}</span></div></div>
+  <div class="srow ei-tabs">${tb.map(([id,l])=>`<button class="small${tab===id?' p':''}" data-xa="xEiTab" data-id="${id}">${l}</button>`).join('')}</div>`;
+  if(tab==='pasar'){const mode=EIU.mode,from=mode==='ex'?'home':EIU.port,to=mode==='ex'?EIU.port:'home';
+    h+=`<div class="srow"><button class="small${mode==='ex'?' p':''}" data-xa="xEiMode" data-id="ex">📤 Ekspor dari Permata</button><button class="small${mode==='im'?' p':''}" data-xa="xEiMode" data-id="im">📥 Impor ke Permata</button></div>
+    <div class="thd">${mode==='ex'?'Tujuan':'Asal barang'}</div><div class="srow ei-ports">${EI_PORTS.slice(1).map(p=>`<button class="small${EIU.port===p[0]?' p':''}" data-xa="xEiPort" data-id="${p[0]}">${p[1]} ${p[2]}${atWar(p[0])?' ⚔️':''}</button>`).join('')}</div>`;
+    const P=EI_PORTS.find(p=>p[0]===EIU.port);h+=`<p class="muted">Pelayaran ${P[3]} menit dengan sewa kapal. Risiko badai/bajak laut ${Math.round(eiRisk(to,from)*100)}%${atWar(EIU.port)?', sedang perang: harga di sana naik 18%':''}.</p><div class="thd">Harga per TEU (1 kontainer)</div>`;
+    h+=EI_GOODS.map(g=>{const b=eiPrice(from,g[0]),s=eiPrice(to,g[0]),m=(s/b-1)*100,on=EIU.g===g[0];
+      let row=`<div class="chap ei-g${on?' now':''}"><span style="font-size:22px">${g[1]}</span><div><b>${g[2]}</b><small>Beli 🪙 ${fmtBig(b)} · Jual 🪙 ${fmtBig(s)}</small></div><span class="${m>=0?'up':'dn'}" style="font-weight:700">${m>=0?'+':''}${m.toFixed(1)}%</span>${xB('xEiG',g[0],on?'Tutup':'Pilih',on?'small':'small p')}</div>`;
+      if(on){const Q=eiQuote(),cap=eiCap(EIU.ship),pr=Q.sell-Q.cost;
+        row+=`<div class="ei-box"><div class="thd">Kapal</div><div class="srow">${xB('xEiShip','charter',`📦 Sewa (${EI_CHARTER} TEU)`,EIU.ship==='charter'?'small p':'small')}${EI_SHIPS.filter(s=>E.own[s[0]]).map(s=>xB('xEiShip',s[0],`${s[1]} ${s[3]} TEU${eiFree(s[0])?'':' · berlayar'}`,EIU.ship===s[0]?'small p':'small',!eiFree(s[0]))).join('')}</div>
+          <div class="thd">Jumlah kontainer: ${EIU.n} / ${cap} TEU</div><div class="srow">${xB('xEiN','-10','−10')}${xB('xEiN','-1','−1')}${xB('xEiN','1','+1')}${xB('xEiN','10','+10')}${xB('xEiN','max','Maks')}</div>
+          <div class="srow">${xB('xEiIns','',EIU.ins?'🛡️ Asuransi aktif (1,5%)':'🛡️ Tanpa asuransi',EIU.ins?'small p':'small')}</div>
+          <div class="row"><span>Harga barang</span><span>🪙 ${fmtBig(Q.buy)}</span></div><div class="row"><span>Ongkos kapal</span><span>🪙 ${fmtBig(Q.fee)}</span></div>${Q.ins?`<div class="row"><span>Asuransi</span><span>🪙 ${fmtBig(Q.ins)}</span></div>`:''}
+          <div class="row"><span>Perkiraan jual di tujuan</span><span>🪙 ${fmtBig(Q.sell)}</span></div><div class="row"><span>Perkiraan untung</span><span class="${pr>=0?'up':'dn'}">🪙 ${fmtBig(pr)}</span></div><div class="row"><span>Waktu tiba</span><span>${Math.round(Q.min*10)/10} menit</span></div>
+          <button class="go" data-xa="xEiSend" data-id="">🚢 Kirim ${EIU.n} TEU · 🪙 ${fmtBig(Q.cost)}</button><p class="muted">Harga di tujuan bisa berubah selama pelayaran.</p></div>`;}
+      return row;}).join('');}
+  else if(tab==='armada'){h+=`<p class="muted">Kapal sendiri muat lebih banyak, lebih cepat, dan ongkosnya cuma 0,5%. Dijual lagi dapat 80%.</p>`+EI_SHIPS.map(s=>{const n=E.own[s[0]]||0,busy=E.sh.filter(x=>x.ship===s[0]).length;
+      return `<div class="chap"><span style="font-size:24px">${s[1]}</span><div><b>${s[2]}</b><small>${s[3]} TEU · ${Math.round((1-s[5])*100)}% lebih cepat · 🪙 ${fmtBig(s[4])}${n?` · punya ${n}${busy?`, ${busy} berlayar`:''}`:''}</small></div><div class="fxb">${xB('xEiBuy',s[0],'Beli','small p')}${n?xB('xEiSell',s[0],'Jual'):''}</div></div>`;}).join('');}
+  else{h+=`<div class="thd">Sedang berlayar</div>`+(E.sh.map(s=>{const G=EI_GOODS.find(x=>x[0]===s.g),A=EI_PORTS.find(p=>p[0]===s.from),B=EI_PORTS.find(p=>p[0]===s.to),pc=Math.min(100,(Date.now()-s.t0)/(s.t1-s.t0)*100);
+      return `<div class="chap"><span style="font-size:22px">${G[1]}</span><div><b>${s.n} TEU ${G[2]}</b><small>${A[1]} ${A[2]} → ${B[1]} ${B[2]} · tiba ${eiMMSS(s.t1-Date.now())}${s.ins?' · 🛡️':''}</small><div class="ei-bar"><i style="width:${pc.toFixed(1)}%"></i></div></div></div>`;}).join('')||'<p class="muted">Belum ada kiriman.</p>')
+    +`<div class="thd">Riwayat</div>`+(E.h.map(x=>{const G=EI_GOODS.find(g=>g[0]===x.g),B=EI_PORTS.find(p=>p[0]===x.to),pr=x.rev-x.cost;
+      return `<div class="chap"><span style="font-size:22px">${G[1]}</span><div><b>${x.n} TEU ${G[2]} → ${B[2]}</b><small>Modal 🪙 ${fmtBig(x.cost)} · jual 🪙 ${fmtBig(x.rev)}${x.lost?` · rusak ${x.lost}%`:''}</small></div><span class="${pr>=0?'up':'dn'}" style="font-weight:700">${pr>=0?'+':'−'}${fmtBig(Math.abs(pr))}</span></div>`;}).join('')||'<p class="muted">Belum ada.</p>');}
+  return h;}});
+
+
+/* v36.1: manager cut loss (-5..-20% from avg cost, sells all held lembar of that stock) */
+setInterval(()=>{try{if(!started||!anyMgr())return;const st=mgrStk();if(!st.loss)return;let n=0;
+  MK.forEach(a=>{if(a.t!=='saham')return;const have=PF.hold[a.id]||0;if(have<1)return;const avg=(PF.cost[a.id]||0)/have;if(!avg)return;
+    if(a.p<=avg*(1-st.loss/100)){const q=have,got=Math.round(q*a.p*.997),cost=PF.cost[a.id]||0;PF.hold[a.id]=0;PF.cost[a.id]=0;if(PF.blkQ)PF.blkQ[a.id]=0;S.bal+=got;
+      const dn=Math.min(.04,q/(a.sh*FLOAT)*.2);a.p=Math.max(minP(a),a.p*(1-dn));a.h[a.h.length-1]=a.p;addTx({id:a.id,side:'sell',q,px:a.p,amt:got});n++;
+      logLine('sys',null,`👔 Cut loss: manajer jual semua saham ${a.id} (${fmt(q)} lembar) saat rugi ${Math.round((1-a.p/avg)*100)}%: +${fmtBig(got)} (rugi ${fmtBig(Math.max(0,Math.round(cost-got)))}).`,'lose');}});
+  if(n)savePF();}catch(e){console.error(e);}},15000);
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
