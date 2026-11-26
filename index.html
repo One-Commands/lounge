@@ -438,6 +438,14 @@ body.phOpen #ctx{display:none!important}
 .festPill.hot{background:linear-gradient(180deg,#ffd25f,#e8a62a);color:#3a2400;animation:festG 1.6s ease-in-out infinite}@keyframes festG{50%{box-shadow:0 0 16px rgba(255,200,80,.9)}}
 .race39{position:relative;background:#3a3f48;border-radius:12px;padding:8px 34px 8px 8px;display:flex;flex-direction:column;gap:6px;margin-bottom:8px}.r39l{position:relative;height:30px;background:#4a505a;border-radius:6px;overflow:hidden}.r39l i{position:absolute;left:0;top:0;bottom:0;width:5px}
 .r39c{position:absolute;top:1px;font-size:24px;transform:scaleX(-1);transition:left .06s linear}.r39f{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:22px}
+.rkw{display:grid;grid-template-columns:42px 1fr auto;gap:4px 10px;align-items:center;background:#fffaf0;border:2px solid #ecdcbc;border-radius:14px;padding:10px 12px;margin:0 0 8px;color:#3a2a1a}
+.rkw.me{border-color:#f6c45a;background:#fff3d6}.rkw .pos{font-weight:900;font-size:18px;text-align:center}.rkw .nm b{display:block;font-size:15px}.rkw .nm small{color:#8a7356;font-size:12px}
+.rkw .w{text-align:right}.rkw .w b{display:block;color:#b8860b;font-size:15px}.rkw .w small{color:#8a7356;font-size:12px}
+.rkw .rkb{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.rkw .rkb button{min-height:40px;padding:0 14px}
+.rkh{background:#fffdf7;border:2px dashed #ecdcbc;border-radius:12px;padding:8px 12px;margin:-4px 0 10px;color:#3a2a1a}
+.rkpod{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:6px 0 12px}.rkpod>div{flex:1;max-width:180px;text-align:center;border-radius:14px 14px 4px 4px;padding:8px 6px;color:#3a2a1a}
+.rkpod b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkpod small{display:block;font-size:11px;color:#6a5236}.rkpod span{font-size:22px}.rkpod i{display:block;font-style:normal;font-weight:900;font-size:22px}
+.rkpod .p1{background:linear-gradient(#ffe08a,#f2b630);min-height:120px}.rkpod .p2{background:linear-gradient(#eef1f6,#c3cad6);min-height:95px}.rkpod .p3{background:linear-gradient(#f3d2b0,#d79b67);min-height:80px}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3481,7 +3489,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v43';
+const GAME_VER='v43.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7901,6 +7909,40 @@ xView('dinasti',{t:'Dinasti',s:'Dinasti',ic:'🏰',bg:'linear-gradient(135deg,#8
   if(D.anc.length)h+=`<div class="thd">Silsilah</div>`+D.anc.map(a=>`<div class="chap"><span style="font-size:20px">📜</span><div><b>${a.n}</b><small>${a.sp?'Pasangan '+esc(a.sp)+' · ':''}${a.kids.length} anak · kekayaan 🪙 ${fmtBig(a.nw)}</small></div></div>`).join('');
   if(D.h.length)h+=`<div class="thd">Catatan keluarga</div>`+D.h.slice(0,12).map(x=>`<div class="chap"><span style="font-size:20px">${x.ic}</span><div><small class="${x.c}">${x.t}</small></div></div>`).join('');
   return h;}});
+
+/* v43.1: background redraws of the phone wait until your finger is off the screen, so taps are never lost */
+phoneRender=(f=>function(){try{const ph=$('phone');if(ph&&!ph.classList.contains('hidden')&&!window.__phF&&(PHT.down||performance.now()-PHT.t<700)){
+  if(!PHT.pend){PHT.pend=1;const go=()=>{if(PHT.down||performance.now()-PHT.t<700){setTimeout(go,200);return;}PHT.pend=0;phoneRender();};setTimeout(go,200);}return;}}catch(e){}return f.apply(this,arguments);})(phoneRender);
+/* taps that start a redraw on pointerdown still count: mark user intent from pointerup too */
+document.addEventListener('pointerup',e=>{if(e.target&&e.target.closest&&e.target.closest('#phone')){window.__phF=1;setTimeout(()=>{window.__phF=0;},350);}},true);
+
+/* v43.1: Ranking gets its own full-screen window (like Kantor Manajer), separate from the phone */
+let rkWOpen=null,rkWTab='rank';
+function openRankWin(){if(modal)return;closePhone();for(const k in keys)keys[k]=false;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Ranking'},busy:false,refresh(){draw();}};modal=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);clearInterval(m.iv);};
+  const row=(r,i)=>`<div class="rkw ${r.me?'me':''}" data-n="${esc(r.n)}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${r.co&&r.co.length?' · 🏢 '+r.co.join(', '):''}${r.mg?' · 🏬 '+r.mg+' mall':''}</small></div>
+    <span class="w"><b>${fmtUSD(toUSD(r.w))}</b><small>🪙 ${fmtBig(r.w)}</small></span><div class="rkb"><button class="mog" data-h="${esc(r.n)}">${rkWOpen===r.n?'Tutup':'📋 Harta'}</button>${r.me?'':`${r.only?'':`<button class="mog" data-du="${esc(r.n)}">Duel</button>`}<button class="mogo" data-ad="${esc(r.n)}">⚔️ Aset</button>`}</div></div>
+    ${rkWOpen===r.n?`<div class="harta rkh"><h5>📋 Rincian harta ${esc(r.me?'kamu':r.n)}</h5>${r.me?hartaMe():hartaNpc(r.n)}</div>`:''}`;
+  const draw=()=>{const R=ranking(),rk=R.findIndex(r=>r.me)+1,nw=netWorth(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
+    if(rkWTab==='rank'){const top=R.slice(0,3);body=`<div class="mocard rkme"><div class="moic">🏆</div><div class="mot"><b>Peringkatmu #${rk} · ${titleOf(nw)}</b><small>Kekayaan bersih ${fmtUSD(toUSD(nw))} · 🪙 ${fmtBig(Math.round(nw))}</small></div></div>
+      <div class="rkpod">${[1,0,2].map(j=>top[j]?`<div class="p${j+1}"><span>${['🥇','🥈','🥉'][j]}</span><b>${esc(top[j].me?'Kamu':top[j].n)}</b><small>🪙 ${fmtBig(top[j].w)}</small><i>${j+1}</i></div>`:'').join('')}</div>`+R.map(row).join('');}
+    else{const best=PF.rankBest||99;body=RANK_REW.slice().reverse().map(([l,v])=>`<div class="mocard"><div class="moic">${l===1?'👑':'🎖️'}</div><div class="mot"><b>Masuk Top ${l}</b><small>Hadiah 🪙 ${fmt(v)} · ${best<=l?'✅ sudah didapat':'belum'}</small></div></div>`).join('')+`<p class="muted">Ranking dihitung dari kekayaan bersih: tunai, investasi, tabungan, barang, bisnis dan perusahaan dikurangi hutang. NPC boleh lebih kaya darimu.</p>`;}
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ranking"><div class="mohead"><b>🏆 Ranking</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['rank','🏆','Peringkat'],['rew','🎁','Hadiah']].map(([k,ic,n])=>`<button class="${k===rkWTab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;m.drawn=performance.now();};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();
+    if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){rkWTab=t.dataset.tab;SFX.pop();draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.h!=null){const n=t.dataset.h;rkWOpen=rkWOpen===n?null:n;SFX.pop();draw();return;}
+    if(t.dataset.ad!=null){const n=t.dataset.ad;close();openPakDuel(n);return;}
+    if(t.dataset.du!=null){const n=t.dataset.du;close();if(duel&&duel.stage==='live')return;if(duel&&duel.stage==='wait')cancelDuel();duel={n,stage:'pick'};SFX.pop();togglePhone(true);phView='rank';phoneRender();return;}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});
+  let touch=0,tT=0;['pointerdown','touchstart'].forEach(ev=>el.addEventListener(ev,()=>{touch=1;tT=performance.now();},{passive:true}));['pointerup','touchend','pointercancel','touchcancel'].forEach(ev=>el.addEventListener(ev,()=>{touch=0;tT=performance.now();},{passive:true}));
+  el.addEventListener('scroll',()=>{tT=performance.now();},{capture:true,passive:true});
+  draw();m.iv=setInterval(()=>{if(!el.isConnected){clearInterval(m.iv);return;}if(touch||performance.now()-tT<4000)return;draw();},10000);}
+/* every way into Ranking opens the window; the phone ranking is only used for the reme duel stake picker */
+phoneRender=(f=>function(){try{if(phView==='rank'&&!duel&&!$('phone').classList.contains('hidden')){phView='home';closePhone();setTimeout(openRankWin,30);return;}}catch(e){}return f.apply(this,arguments);})(phoneRender);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
