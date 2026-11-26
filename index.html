@@ -3561,7 +3561,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v50.1';
+const GAME_VER='v51';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8662,6 +8662,145 @@ setInterval(()=>{try{if(!started||!anyMgr())return;const m=mcry();if(!m.on&&!m.b
       if(a.p>=avg*(1+m.gain/100)){mktSell(a,have*m.pct/100,'👔 Manajer jual crypto');m.t[a.id]=now;return;}}}
     if(m.buy&&m.spent+m.amt<=m.max&&S.bal>m.amt*2){const top=Math.max(...(a.h||[a.p]).slice(-60));if(a.p<=top*(1-m.dip/100)){const q=mktBuy(a,m.amt,'👔 Manajer beli crypto');if(q>0){m.spent+=m.amt;m.t[a.id]=now;}}}});
   savePF();}catch(e){console.error('mcry',e);}finally{setTimeout(()=>{window.__quiet=0;},0);}},60000);
+
+/* ================= v51: Markas Militer: pasukan bertier, komandan gacha, pasar senjata & pesawat, ilmuwan riset ================= */
+const ML51={SPIN:1e10,TEN:9e10,PITY:50,
+  BR:[['inf','🪖','Infanteri','kompi (100 prajurit)',1,3e8],['kav','🐎','Kavaleri','skuadron berkuda',3,1e9],['arc','🏹','Pemanah','regu pemanah',2,6e8],
+    ['bal','🎯','Balista & Artileri','baterai',6,2e9],['sea','⚓','Angkatan Laut','kapal patroli',14,6e9],['air','🚁','Angkatan Udara','pesawat angkut',20,1e10]],
+  EQ:[['jet','✈️','Jet Tempur'],['tank','🛡️','Tank']],
+  TT:[['T1','Rekrut',1],['T2','Terlatih',1.6],['T3','Veteran',2.5],['T4','Elite',3.8],['T5','Legenda',5.5]],
+  ROLES:[['pang','🎖️','Panglima Besar','Komando','Semua kekuatan tempur naik'],['inf','🪖','Komandan Infanteri','Disiplin','Infanteri dan senjatanya makin kuat'],
+    ['kav','🐎','Komandan Kavaleri','Serbuan','Kavaleri makin kuat'],['arc','🏹','Komandan Pemanah','Presisi','Pemanah makin kuat'],['bal','🎯','Komandan Balista','Kalkulasi','Balista, meriam, dan rudal makin kuat'],
+    ['sea','⚓','Laksamana Laut','Navigasi','Angkatan Laut makin kuat'],['air','🚁','Marsekal Udara','Manuver','Angkatan Udara makin kuat'],['jet','✈️','Komandan Skuadron Jet','Kecepatan','Semua jet tempur makin kuat'],
+    ['tank','🛡️','Komandan Lapis Baja','Baja','Semua tank makin kuat'],['sci','🔬','Ilmuwan','Inovasi','Riset lebih cepat, kadang menemukan prototipe senjata']],
+  NAMES:['Bagaskara','Ardiansyah','Kirana Putri','Samudra Jaya','Angkasa Wira','Ryu Hanbin','Valentina Cruz','Darius Hale','Sekar Wangi','Mahesa Dirga','Dharmawangsa','Elara Voss','Rasyid Alfath','Nadia Prameswari','Tsubasa Ren','Arjuna Bahari','Banyu Geni','Isolde Brandt'],
+  SCI:['Dr. Lestari Wening','Prof. Hadi Santoso','Dr. Mira Kovac','Prof. Ilham Akbar','Dr. Yuna Seo','Prof. Albrecht Lind','Dr. Sari Kusuma','Ir. Bayu Pratama','Dr. Amara Okafor','Prof. Kenji Arata'],
+  /* id, icon, name, tier, branch, power, base price, research needed */
+  WP:[['pedang','🗡️','Pedang Baja Tempa','D','inf',2,2e8,''],['senapan','🔫','Senapan Serbu SR-7','B','inf',8,1.5e9,'mesiu'],['tombak','🔱','Tombak Kavaleri Perak','C','kav',4,5e8,''],['zirah','🐴','Zirah Kuda Baja','B','kav',9,2e9,'baja'],
+    ['busur','🏹','Busur Komposit','C','arc',3,4e8,''],['panahapi','🔥','Panah Api','A','arc',12,3e9,'mesiu'],['balista','🎯','Balista Berat','C','bal',6,1e9,''],['howitzer','💥','Meriam Howitzer H-105','A','bal',20,6e9,'mesiu'],['rudal','🚀','Rudal Jelajah Petir','S','bal',45,2.5e10,'rudal'],
+    ['fregat','⛵','Fregat Kelas Bayu','B','sea',18,8e9,'uap'],['kapalinduk','🛳️','Kapal Induk Samudra Raya','S+','sea',120,1.2e11,'radar'],['drone','🛸','Drone Pengintai Kunang','B','air',10,4e9,'drone'],['heli','🚁','Helikopter Serbu Alap-alap','A','air',25,1.2e10,'radar'],
+    ['jf1','✈️','Jet Garuda F-1','C','jet',30,2e10,'jet'],['jf7','✈️','Jet Elang Petir F-7','B','jet',45,3.5e10,'jet'],['jx9','✈️','Jet Rajawali X-9','A','jet',70,6e10,'jet'],['js12','✈️','Jet Halilintar S-12','S','jet',110,1.1e11,'siluman'],['jbs','✈️','Jet Bayangan Senja','S+','jet',170,2e11,'siluman'],['jnl','✈️','Jet Naga Langit Z','SSS','jet',280,4e11,'kuantum'],
+    ['tb1','🛡️','Tank Banteng M1','B','tank',35,2e10,'tank'],['tb3','🛡️','Tank Badak Baja M3','A','tank',60,4e10,'tank'],['ttn','🛡️','Tank Raksasa Titan','S','tank',100,8e10,'komposit']],
+  /* id, icon, name, effect text, cost, minutes, requires, bonus {branch:pct} */
+  TECH:[['baja','⚒️','Baja Tempa','Infanteri & kavaleri +10%, buka Zirah Kuda Baja',5e10,5,[],{inf:10,kav:10}],
+    ['mesiu','🧨','Mesiu','Buka Senapan Serbu, Panah Api, Meriam Howitzer',1e11,8,['baja'],{}],
+    ['uap','⚙️','Mesin Uap','Angkatan Laut +15%, buka Fregat',1e11,8,[],{sea:15}],
+    ['doktrin','📘','Doktrin Militer','Pasukan bisa naik ke tier T4 Elite',1.5e11,10,[],{}],
+    ['radar','📡','Radar','Udara & laut +15%, buka Helikopter Serbu dan Kapal Induk',2e11,12,['uap'],{air:15,sea:15}],
+    ['tank','🛡️','Tank Lapis Baja','Buka pasar tank dan Komandan Lapis Baja',3e11,15,['mesiu','uap'],{}],
+    ['jet','✈️','Mesin Jet','Buka jet tempur tier C sampai A',4e11,15,['radar'],{}],
+    ['drone','🛸','Drone Otonom','Angkatan Udara +10%, buka Drone Pengintai',2.5e11,12,['radar'],{air:10}],
+    ['rudal','🚀','Rudal Pintar','Balista & artileri +20%, buka Rudal Jelajah',5e11,18,['jet'],{bal:20}],
+    ['komposit','🧱','Lapis Komposit','Tank +25%, buka Tank Raksasa Titan',5e11,18,['tank'],{tank:25}],
+    ['akademi','🎓','Akademi Perwira','Pasukan bisa naik ke T5 Legenda, semua komandan +10%',6e11,20,['doktrin'],{}],
+    ['siluman','🌑','Teknologi Siluman','Jet +20%, buka Jet Halilintar dan Bayangan Senja',1e12,25,['jet','rudal'],{jet:20}],
+    ['satelit','🛰️','Satelit Militer','Semua kekuatan +10%',1.5e12,30,['radar','rudal'],{all:10}],
+    ['kuantum','⚛️','Komputasi Kuantum','Semua kekuatan +15%, buka Jet Naga Langit Z',3e12,40,['siluman','satelit'],{all:15}]]};
+ML51.BR.forEach(b=>b[5]*=5);ML51.WP.forEach(w=>w[6]*=5);
+function mlS(){const m=PF.ml51=PF.ml51||{};m.tr=m.tr||{};ML51.BR.forEach(b=>{m.tr[b[0]]=m.tr[b[0]]||{n:0,t:0};});m.cmd=m.cmd||[];m.asg=m.asg||{};m.lab=m.lab||[];m.wp=m.wp||{};m.px=m.px||{};m.tech=m.tech||{};m.pity=m.pity||0;m.spins=m.spins||0;m.h=m.h||[];return m;}
+function mlLog(ic,t,c){const m=mlS();m.h.unshift({ic,t,c:c||'',at:Date.now()});m.h=m.h.slice(0,40);}
+const mlRole=id=>ML51.ROLES.find(r=>r[0]===id);
+const mlWp=id=>ML51.WP.find(w=>w[0]===id);
+const mlHas=t=>!t||!!mlS().tech[t];
+function mlCmdStat(role){const m=mlS(),o=m.cmd.find(x=>x.id===m.asg[role]);return o?Math.min(140,Math.round(offStatOf(o)*(m.tech.akademi?1.1:1))):0;}
+function mlSciSum(){const m=mlS();return m.lab.map(id=>m.cmd.find(x=>x.id===id)).filter(Boolean).reduce((a,o)=>a+offStatOf(o),0);}
+function mlTechB(b){let p=0;const m=mlS();ML51.TECH.forEach(t=>{if(m.tech[t[0]]&&t[7][b])p+=t[7][b];});return p/100;}
+function mlMult(b){return 1+mlCmdStat(b)*.006+mlTechB(b);}
+function mlAllMult(){let p=0;try{p+=offStat('prt')*.002;}catch(e){}return 1+mlCmdStat('pang')*.003+mlTechB('all')+p;}
+function mlBranchPow(b){const m=mlS(),B=ML51.BR.find(x=>x[0]===b);let p=0;if(B){const T=m.tr[b];p+=T.n*B[4]*ML51.TT[T.t][2];}
+  ML51.WP.forEach(w=>{if(w[4]===b)p+=(m.wp[w[0]]||0)*w[5];});return p*mlMult(b);}
+function mlRaw(){const ids=ML51.BR.map(b=>b[0]).concat(ML51.EQ.map(e=>e[0]));return ids.reduce((a,b)=>a+mlBranchPow(b),0)*mlAllMult();}
+function mlPow(){const r=mlRaw();return r>0?Math.round(4000*Math.log(1+r/4000)):0;}
+function mlPrice(id){const w=mlWp(id),m=mlS();return Math.round(w[6]*(m.px[id]||1));}
+/* my side in a war: the kingdom I rule, the kingdom I bribed, or the side my troops joined */
+function mlMySide(v){try{const k=tkKing();if(k&&v.a===k.kd)return 'a';if(k&&v.b===k.kd)return 'b';}catch(e){}if(v.bribe)return v.bribe;return v.mine||null;}
+warPow=(f=>function(v,side){let p=f.apply(this,arguments);try{if(mlMySide(v)===side)p+=mlPow();}catch(e){}return p;})(warPow);
+/* casualties: lose a few units after each round my side fights */
+warRound=(f=>function(v){const s=mlMySide(v),ra=v.ra,rb=v.rb,P=s?mlPow():0;const r=f.apply(this,arguments);try{if(s&&P>0){const won=s==='a'?v.ra>ra:v.rb>rb;const loss=won?.01:.04,m=mlS();let lost=0;
+    ML51.BR.forEach(b=>{const T=m.tr[b[0]];const d=Math.floor(T.n*loss);if(d>0){T.n-=d;lost+=d;}});mlLog(won?'🏅':'🩹',`${won?'Menang':'Kalah'} ronde ${v.round} di ${kdN(v[s])}. ${lost?lost+' unit gugur.':'Tanpa korban berarti.'}`,won?'up':'dn');savePF();MLW.redraw();}}catch(e){}return r;})(warRound);
+/* actions */
+XA.xMlBuy=v=>{const [b,q]=String(v).split(':'),B=ML51.BR.find(x=>x[0]===b),n=+q||1;if(!B)return;const c=B[5]*n;if(!xPay(c))return;mlS().tr[b].n+=n;SFX.chip();mlLog(B[1],`Rekrut ${n} ${B[3]} ${B[2]} (🪙 ${fmtBig(c)}).`);savePF();MLW.redraw();};
+function mlTierCost(b){const B=ML51.BR.find(x=>x[0]===b),T=mlS().tr[b];return Math.round(B[5]*25*Math.pow(T.t+1,2)*Math.max(1,T.n/20));}
+XA.xMlTier=b=>{const m=mlS(),T=m.tr[b],B=ML51.BR.find(x=>x[0]===b);if(!B||T.t>=4)return;if(T.n<1){showResult('Rekrut pasukan dulu');return;}if(T.t===2&&!m.tech.doktrin){showResult('Butuh riset Doktrin Militer untuk T4');return;}if(T.t===3&&!m.tech.akademi){showResult('Butuh riset Akademi Perwira untuk T5');return;}
+  const c=mlTierCost(b);if(!xPay(c))return;T.t++;SFX.big();mlLog('⭐',`${B[2]} naik ke ${ML51.TT[T.t][0]} ${ML51.TT[T.t][1]} (🪙 ${fmtBig(c)}).`,'up');logLine('sys',null,`⭐ ${B[2]} kerajaanmu naik ke tier ${ML51.TT[T.t][1]}.`,'win');savePF();MLW.redraw();};
+XA.xMlWBuy=v=>{const [id,q]=String(v).split(':'),w=mlWp(id),n=+q||1;if(!w)return;if(!mlHas(w[7])){showResult('Butuh riset dulu');return;}const c=mlPrice(id)*n;if(!xPay(c))return;const m=mlS();m.wp[id]=(m.wp[id]||0)+n;m.px[id]=Math.min(1.5,(m.px[id]||1)*(1+.004*n));SFX.coin();mlLog(w[1],`Beli ${n} ${w[2]} (🪙 ${fmtBig(c)}).`);savePF();MLW.redraw();};
+XA.xMlWSell=v=>{const [id,q]=String(v).split(':'),w=mlWp(id),m=mlS(),have=m.wp[id]||0,n=Math.min(have,+q||1);if(!w||n<1)return;const g=Math.round(mlPrice(id)*.85*n);m.wp[id]=have-n;S.bal+=g;m.px[id]=Math.max(.6,(m.px[id]||1)*(1-.004*n));SFX.coin();mlLog('💱',`Jual ${n} ${w[2]} (+🪙 ${fmtBig(g)}).`);save();savePF();MLW.redraw();};
+XA.xMlRes=id=>{const m=mlS(),t=ML51.TECH.find(x=>x[0]===id);if(!t||m.tech[id])return;if(m.res){showResult('Lab sedang meriset proyek lain');return;}if(!m.lab.length){showResult('Tempatkan minimal 1 ilmuwan di lab');return;}if(!t[6].every(r=>m.tech[r])){showResult('Riset sebelumnya belum selesai');return;}
+  if(!xPay(t[4]))return;const ms=t[5]*60000/(1+mlSciSum()/100);m.res={id,until:Date.now()+ms,start:Date.now()};SFX.chip();mlLog('🔬',`Riset ${t[2]} dimulai (${Math.ceil(ms/60000)} menit).`);savePF();MLW.redraw();};
+XA.xMlLab=id=>{const m=mlS(),o=m.cmd.find(x=>x.id===id);if(!o||o.role!=='sci')return;if(m.lab.includes(id))m.lab=m.lab.filter(x=>x!==id);else{if(m.lab.length>=3){showResult('Lab maksimal 3 ilmuwan');return;}m.lab.push(id);}SFX.pop();savePF();MLW.redraw();};
+XA.xMlAsg=id=>{const m=mlS(),o=m.cmd.find(x=>x.id===id);if(!o)return;m.asg[o.role]=o.id;SFX.chip();savePF();MLW.redraw();};
+XA.xMlSend=v=>{const [id,s]=String(v).split(':'),war=WS().wars.find(x=>x.id===id);if(!war)return;const cur=mlMySide(war);if(cur&&cur!==s){showResult('Kamu sudah memihak sisi lain di perang ini');return;}if(mlPow()<=0){showResult('Belum punya kekuatan militer');return;}
+  war.mine=s;SFX.big();mlLog('📯',`Pasukanmu (⚔️ ${mlPow()}) bergabung dengan ${kdN(war[s])}.`,'up');logLine('sys',null,`📯 Pasukanmu bergabung dengan ${kdN(war[s])} (+${mlPow()} kekuatan).`,'win');savePF();MLW.redraw();};
+/* gacha for commanders and scientists (same tier table as officials) */
+function mlRoll(force){const m=mlS();let tr;if(force||m.pity>=ML51.PITY-1){const hi=TK50.TIERS.slice(4),tot=hi.reduce((a,t)=>a+t[1],0);let r=Math.random()*tot;tr=hi.find(t=>(r-=t[1])<0)||hi[0];}
+  else{let r=Math.random()*100;tr=TK50.TIERS.find(t=>(r-=t[1])<0)||TK50.TIERS[0];}
+  const ti=TK50.TIERS.indexOf(tr);m.pity=ti>=4?0:m.pity+1;const pool=ML51.ROLES.filter(r=>r[0]!=='tank'||m.tech.tank),R=pool[pick(pool.length)],L=R[0]==='sci'?ML51.SCI:ML51.NAMES,nm=L[pick(L.length)];
+  const st=tr[2]+Math.floor(Math.random()*(tr[3]-tr[2]+1));let o=m.cmd.find(x=>x.role===R[0]&&x.n===nm&&x.tier===tr[0]),dup=false;
+  if(o){o.lv=Math.min(5,o.lv+1);o.st=Math.max(o.st,st);dup=true;}else{o={id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),role:R[0],n:nm,tier:tr[0],st,lv:1};m.cmd.push(o);}
+  if(R[0]==='sci'){if(!m.lab.includes(o.id)&&m.lab.length<3)m.lab.push(o.id);}
+  else{const cur=m.cmd.find(x=>x.id===m.asg[R[0]]);if(!cur||offStatOf(o)>offStatOf(cur))m.asg[R[0]]=o.id;}
+  if(m.cmd.length>140){m.cmd.sort((a,b)=>offStatOf(b)-offStatOf(a));const keep=new Set(Object.values(m.asg).concat(m.lab));m.cmd=m.cmd.filter((x,i)=>i<110||keep.has(x.id));}
+  return {o,R,tr,dup};}
+XA.xMlGacha=n=>{n=+n===10?10:1;if(GA.busy)return;const c=n===10?ML51.TEN:ML51.SPIN;if(!xPay(c))return;const m=mlS();m.spins+=n;const res=[];
+  for(let i=0;i<n;i++)res.push(mlRoll(false));
+  if(n===10&&!res.some(r=>TK50.TIERS.indexOf(r.tr)>=3)){const a=TK50.TIERS[3],r=res[9];r.tr=a;r.o.tier='A';r.o.st=Math.max(r.o.st,a[2]+pick(a[3]-a[2]+1));}
+  const best=res.reduce((x,r)=>TK50.TIERS.indexOf(r.tr)>TK50.TIERS.indexOf(x.tr)?r:x,res[0]);res.filter(r=>TK50.TIERS.indexOf(r.tr)>=4).forEach(r=>mlLog('🌟',`Gacha: ${r.tr[0]} ${r.R[2]} ${r.o.n}${r.dup?' (naik level)':''}`,'up'));
+  savePF();gachaAnim(res,best);try{const g=[...stage.querySelectorAll('.gacha')].pop();if(g){const s=g.querySelector('.g-seal b');if(s)s.textContent='🎖️';}}catch(e){}};
+/* gacha close calls ISW.redraw: also refresh this window */
+{const r0=ISW.redraw;ISW.redraw=function(){try{r0.apply(ISW,arguments);}catch(e){}try{MLW.redraw();}catch(e){}};}
+/* research progress, scientist prototypes, market prices */
+setInterval(()=>{try{if(!started)return;const m=mlS(),now=Date.now();
+  if(m.res&&now>=m.res.until){const t=ML51.TECH.find(x=>x[0]===m.res.id);m.tech[m.res.id]=1;m.res=null;if(t){mlLog('💡',`Riset ${t[2]} selesai: ${t[3]}.`,'up');logLine('sys',null,`💡 Ilmuwanmu menyelesaikan riset ${t[1]} ${t[2]}.`,'win');try{SFX.big();banner(`💡 RISET SELESAI<small>${t[1]} ${t[2]}</small>`,'',2600);}catch(e){}}savePF();MLW.redraw();}}catch(e){}},5000);
+setInterval(()=>{try{if(!started)return;const m=mlS(),war=WS().wars.length>0;
+  ML51.WP.forEach(w=>{let p=m.px[w[0]]||1;p*=1+(Math.random()-.5)*.05+(war?.006:-.002)+(1-p)*.02;m.px[w[0]]=Math.max(.6,Math.min(1.5,p));});
+  const sci=mlSciSum();if(sci>0&&Math.random()<Math.min(.35,sci/600)){const ok=ML51.WP.filter(w=>mlHas(w[7]));const best=ok.sort((a,b)=>b[6]-a[6]).slice(0,5),w=best[pick(best.length)];if(w){m.wp[w[0]]=(m.wp[w[0]]||0)+1;mlLog('🧪',`Ilmuwan membuat prototipe ${w[2]} (gratis, +1).`,'up');logLine('sys',null,`🧪 Ilmuwanmu membuat prototipe ${w[1]} ${w[2]}.`,'win');}}
+  savePF();MLW.redraw();}catch(e){}},90000);
+/* window */
+const MLW={tab:'kuat',redraw(){if(MLW.m&&modal===MLW.m&&!GA.busy)MLW.m.refresh();}};
+function openMilWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)MLW.tab=tab;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Markas Militer'},busy:false,refresh(){draw();}};modal=m;MLW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns,cls)=>`<div class="mocard ${cls||''}"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const pc=x=>Math.round(x*100);
+  const draw=()=>{const s=mlS(),w=WS(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';const k=(()=>{try{return tkKing();}catch(e){return null;}})();
+    if(MLW.tab==='kuat'){const P=mlPow(),raw=Math.round(mlRaw());
+      body=`<div class="prhero"><div class="prlv" style="font-size:24px">⚔️</div><div><small>Kekuatan tempur militermu</small><b>⚔️ ${P.toLocaleString('id-ID')}</b><small>Kekuatan mentah ${raw.toLocaleString('id-ID')} · pengali komando ×${mlAllMult().toFixed(2).replace('.',',')}</small></div></div>`+
+        (k?card('👑',`Kerajaanmu: ${kdN(k.kd)}`,`Kekuatan kerajaan ${Math.round(w.k[k.kd].pow)} + militermu ${P} = <b>${Math.round(w.k[k.kd].pow)+P}</b> saat perang.`,'','prme'):'')+
+        `<p class="muted">Militermu ikut bertempur di kerajaan yang kamu pimpin, kerajaan yang kamu suap untuk menyerang, atau pihak yang kamu bela. Setiap ronde ada korban kecil (1% kalau menang, 4% kalau kalah). Perang tetap murni peluang sesuai kekuatan, tanpa hoki, dan tidak memengaruhi duel.</p>`+
+        `<div class="thd">Rincian kekuatan</div>`+ML51.BR.concat(ML51.EQ).map(b=>{const p=Math.round(mlBranchPow(b[0])),c=mlCmdStat(b[0]);const T=s.tr[b[0]];return card(b[1],`${b[2]} · ⚔️ ${p}`,`${T?`${T.n} unit · ${ML51.TT[T.t][0]} ${ML51.TT[T.t][1]} · `:''}komandan ${c?'+'+pc(c*.006)+'%':'kosong'}${mlTechB(b[0])?` · riset +${pc(mlTechB(b[0]))}%`:''}`);}).join('')+
+        (w.wars.length?`<div class="thd">Perang berjalan</div>`+w.wars.map(v=>{const my=mlMySide(v);return card('⚔️',`${kdN(v.a)} ${v.ra}-${v.rb} ${kdN(v.b)}`,my?`Pasukanmu di pihak ${kdN(v[my])}`:'Pasukanmu belum ikut',my?'':B('xMlSend',v.id+':a','Bela '+KDS.find(x=>x[0]===v.a)[1],'mogo',P<=0)+B('xMlSend',v.id+':b','Bela '+KDS.find(x=>x[0]===v.b)[1],'mogo',P<=0));}).join(''):'<p class="muted">Sedang damai. Kirim pasukan saat perang pecah.</p>');}
+    else if(MLW.tab==='pasukan'){body=`<p class="muted">Rekrut pasukan lalu naikkan tiernya. Tier makin tinggi, tiap unit makin kuat (T1 ×1 sampai T5 ×5,5). T4 butuh riset Doktrin Militer, T5 butuh Akademi Perwira.</p>`+ML51.BR.map(b=>{const T=s.tr[b[0]],tt=ML51.TT[T.t],nx=ML51.TT[T.t+1];
+        return `<div class="thd">${b[1]} ${b[2]} · ${tt[0]} ${tt[1]}</div>`+card(b[1],`${T.n.toLocaleString('id-ID')} ${b[3]}`,`⚔️ ${b[4]} per unit × ${String(tt[2]).replace('.',',')} · harga 🪙 ${fmtBig(b[5])} per unit`,[1,10,100].map(n=>B('xMlBuy',b[0]+':'+n,`+${n} · ${fmtBig(b[5]*n)}`,n===1?'mogo':'mog',S.bal<b[5]*n)).join(''))+
+          (nx?card('⭐',`Naik ke ${nx[0]} ${nx[1]}`,`🪙 ${fmtBig(mlTierCost(b[0]))} (makin banyak pasukan, makin mahal)`,B('xMlTier',b[0],'Latih','mogo',T.n<1||(T.t===2&&!s.tech.doktrin)||(T.t===3&&!s.tech.akademi))):card('🏆','Tier maksimal','Pasukan Legenda'));}).join('');}
+    else if(MLW.tab==='komandan'){body=`<div class="prhero"><div class="prlv" style="font-size:22px">🎖️</div><div><small>Rekrut komandan & ilmuwan</small><b>Gacha Militer</b><small>${s.spins} kali spin · jaminan S ke atas dalam ${ML51.PITY-s.pity} spin lagi</small></div></div>`+
+        card('🎴','1 spin',`🪙 ${fmtBig(ML51.SPIN)}`,B('xMlGacha',1,'Spin 1x','mogo',S.bal<ML51.SPIN))+card('🎁','10 spin · diskon 10%',`🪙 ${fmtBig(ML51.TEN)} · minimal 1 tier A`,B('xMlGacha',10,'Spin 10x','mogo',S.bal<ML51.TEN))+
+        `<div class="gtier">${TK50.TIERS.map(t=>`<span style="--gc:${t[4]}"><b>${t[0]}</b>${String(t[1]).replace('.',',')}%</span>`).join('')}</div>`+
+        ML51.ROLES.map(R=>{const L=s.cmd.filter(x=>x.role===R[0]).sort((a,b)=>offStatOf(b)-offStatOf(a));const isSci=R[0]==='sci';
+          return `<div class="thd">${R[1]} ${R[2]} · ${R[4]}${R[0]==='tank'&&!s.tech.tank?' (muncul setelah riset Tank)':''}</div>`+(L.length?L.slice(0,isSci?8:5).map(x=>{const t=tierOf(x.tier),on=isSci?s.lab.includes(x.id):s.asg[R[0]]===x.id;
+            return `<div class="mocard ${on?'prme':''}"><div class="moic"><span class="gbad" style="--gc:${t[4]}">${t[0]}</span></div><div class="mot"><b>${esc(x.n)}</b><small>${R[3]} ${offStatOf(x)}${x.lv>1?` · Lv ${x.lv}`:''}</small></div><div class="mob">${isSci?B('xMlLab',x.id,on?'Keluarkan dari lab':'Masuk lab',on?'mog':'mogo'):on?'<b class="up">Memimpin</b>':B('xMlAsg',x.id,'Angkat','mogo')}</div></div>`;}).join('')
+            :'<p class="muted">Belum punya. Dapatkan lewat gacha.</p>');}).join('')+`<p class="muted">Komandan dengan nama dan tier sama naik level (maks Lv 5). Komandan terbaik otomatis memimpin. Stats hanya untuk perang kerajaan, duel tetap 50:50.</p>`;}
+    else if(MLW.tab==='senjata'){const grp=ML51.BR.concat(ML51.EQ);body=`<p class="muted">Harga naik turun tiap 1,5 menit dan lebih mahal saat ada perang. Jual kembali dapat 85% harga pasar. Senjata ditambah ke cabangnya dan ikut dikuatkan komandan cabang itu.</p>`+
+      grp.map(g=>{const L=ML51.WP.filter(x=>x[4]===g[0]);if(!L.length)return '';return `<div class="thd">${g[1]} ${g[2]}</div>`+L.map(x=>{const t=tierOf(x[3]),ok=mlHas(x[7]),have=s.wp[x[0]]||0,pr=mlPrice(x[0]),ch=(s.px[x[0]]||1)-1;const rq=ML51.TECH.find(y=>y[0]===x[7]);
+        return `<div class="mocard ${have?'prme':''}"><div class="moic"><span class="gbad" style="--gc:${t[4]}">${t[0]}</span></div><div class="mot"><b>${x[1]} ${x[2]}${have?` · punya ${have}`:''}</b><small>⚔️ ${x[5]} · 🪙 ${fmtBig(pr)} <span class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'}${Math.abs(pc(ch))}%</span>${ok?'':` · 🔒 riset ${rq?rq[2]:''}`}</small></div><div class="mob">${ok?B('xMlWBuy',x[0]+':1','Beli','mogo',S.bal<pr)+B('xMlWBuy',x[0]+':10','+10','mog',S.bal<pr*10):''}${have?B('xMlWSell',x[0]+':1','Jual','mog'):''}</div></div>`;}).join('');}).join('');}
+    else if(MLW.tab==='riset'){const sci=mlSciSum(),cur=s.res&&ML51.TECH.find(x=>x[0]===s.res.id);
+      body=`<div class="prhero"><div class="prlv" style="font-size:22px">🔬</div><div><small>Laboratorium · ${s.lab.length}/3 ilmuwan</small><b>Inovasi ${sci}</b><small>Riset ${Math.round(100*(1-1/(1+sci/100)))}% lebih cepat · peluang prototipe gratis ${Math.round(Math.min(35,sci/6))}% tiap 1,5 menit</small></div></div>`+
+        (cur?card(cur[1],`Sedang meriset: ${cur[2]}`,`Selesai sekitar ${Math.max(1,Math.ceil((s.res.until-Date.now())/60000))} menit lagi`,'','prme'):'')+
+        (s.lab.length?'':'<p class="muted">Belum ada ilmuwan di lab. Dapatkan ilmuwan dari Gacha Militer.</p>')+
+        ML51.TECH.map(t=>{const done=!!s.tech[t[0]],req=t[6].every(r=>s.tech[r]),need=t[6].filter(r=>!s.tech[r]).map(r=>ML51.TECH.find(y=>y[0]===r)[2]).join(', ');
+          return card(t[1],`${t[2]}${done?' ✅':''}`,`${t[3]} · 🪙 ${fmtBig(t[4])} · ${t[5]} menit dasar${!done&&!req?` · butuh ${need}`:''}`,done?'<b class="up">Selesai</b>':B('xMlRes',t[0],'Riset','mogo',!req||!!s.res||!s.lab.length||S.bal<t[4]),done?'prme':'');}).join('');}
+    else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Markas Militer"><div class="mohead"><b>🎖️ Markas Militer</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['kuat','⚔️','Kekuatan'],['pasukan','🪖','Pasukan'],['komandan','🎖️','Komandan'],['senjata','🛒','Senjata'],['riset','🔬','Riset'],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===MLW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){MLW.tab=t.dataset.tab;SFX.pop();draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+xView('militer',{t:'Markas Militer',s:'Militer',ic:'🎖️',bg:'linear-gradient(135deg,#4a5d23,#c9a24a)',r:()=>{setTimeout(()=>{if(phView==='militer'){phView='home';closePhone();openMilWin();}},20);return '<p class="muted">Membuka Markas Militer...</p>';}});
+XA.xMilOpen=()=>{closePhone();setTimeout(()=>openMilWin(),30);};
+/* the war app and the army HQ point to the new window */
+{const pv=XV.perang;if(pv){const r0=pv.r;pv.r=function(){return `<div class="srow">${bzB('xMilOpen','','🎖️ Buka Markas Militer (pasukan, komandan, senjata, riset)')}</div>`+r0.apply(this,arguments);};}}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
