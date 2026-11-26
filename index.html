@@ -479,6 +479,45 @@ body.phOpen #ctx{display:none!important}
 @keyframes ulose{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
 @keyframes uconf{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(115vh) rotate(var(--rt))}}
 @media (max-height:420px){.ultfx .u-cut{height:72px}.ultfx .u-cut b{font-size:32px;top:8px}.ultfx .u-cut small{font-size:11px;bottom:9px}}
+.gacha{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:inherit}
+.gacha .g-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#2a1a4a 0%,#07040f 75%);opacity:0;transition:opacity .3s}
+.gacha.charge .g-bg{opacity:1}
+.gacha .g-rays{position:absolute;inset:-60%;background:repeating-conic-gradient(from 0deg,transparent 0 6deg,color-mix(in srgb,var(--gc) 55%,transparent) 6deg 9deg,transparent 9deg 15deg);-webkit-mask:radial-gradient(circle,#000 8%,transparent 52%);mask:radial-gradient(circle,#000 8%,transparent 52%);opacity:0;animation:uspin 5s linear infinite}
+.gacha.burst .g-rays,.gacha.tierin .g-rays{opacity:.9;transition:opacity .2s}
+.gacha.t6 .g-rays{background:repeating-conic-gradient(from 0deg,#ff3df0 0 5deg,#3dd8ff 5deg 10deg,#ffd25f 10deg 15deg,#3dff8a 15deg 20deg);animation-duration:1.6s}
+.gacha .g-seal{position:relative;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#ffe9a8,#c9862a 70%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px var(--gc);transform:scale(0);transition:transform .35s cubic-bezier(.2,1.6,.4,1)}
+.gacha .g-seal b{font-size:56px}.gacha .g-seal i{position:absolute;inset:-14px;border-radius:50%;border:4px dashed var(--gc);animation:uspin 1.2s linear infinite}
+.gacha.charge .g-seal{transform:scale(1);animation:gshake .12s linear infinite}
+.gacha.burst .g-seal{transform:scale(3);opacity:0;transition:transform .3s ease-in,opacity .3s}
+.gacha .g-pillar{position:absolute;left:50%;top:-10%;bottom:-10%;width:40px;margin-left:-20px;background:linear-gradient(90deg,transparent,var(--gc),#fff,var(--gc),transparent);opacity:0;filter:blur(2px)}
+.gacha.burst .g-pillar{animation:gpillar 1s ease-out forwards}
+.gacha .g-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.gacha.burst .g-flash{animation:gflash .5s ease-out}
+.gacha .g-tier{position:absolute;top:18%;left:0;right:0;text-align:center;font-size:96px;font-weight:900;font-style:italic;color:#fff;text-shadow:0 0 24px var(--gc),4px 4px 0 #000;opacity:0;transform:scale(3);letter-spacing:4px}
+.gacha.tierin .g-tier{opacity:1;transform:scale(1);transition:transform .35s cubic-bezier(.2,1.6,.4,1),opacity .2s}
+.gacha.t6 .g-tier{background:linear-gradient(90deg,#ff3df0,#ffd25f,#3dd8ff,#3dff8a,#ff3df0);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:grain 1s linear infinite}
+.gacha.reveal .g-tier{top:4%;font-size:40px;transition:all .4s}
+.gacha .g-sub{position:absolute;top:44%;left:0;right:0;text-align:center;color:#ffe9a8;font-weight:700;letter-spacing:2px}
+.gacha .g-cards{position:relative;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:min(960px,96vw);padding:60px 10px 50px;max-height:100%;overflow:auto}
+.g-card{width:clamp(108px,17vw,150px);height:clamp(150px,24vw,205px);perspective:600px;position:relative}
+.g-card>div{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .5s cubic-bezier(.3,1.3,.5,1)}
+.g-card .g-back{background:linear-gradient(135deg,#3a2a6a,#1a1030);border:3px solid #c9a24a;display:flex;align-items:center;justify-content:center;font-size:40px}
+.g-card .g-front{transform:rotateY(180deg);background:linear-gradient(170deg,#fff8e8,color-mix(in srgb,var(--gc) 35%,#fff8e8));border:3px solid var(--gc);box-shadow:0 0 18px var(--gc);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px;text-align:center;color:#2a1a10}
+.g-card.flip .g-back{transform:rotateY(-180deg)}.g-card.flip .g-front{transform:rotateY(0)}
+.g-card .g-badge{position:absolute;top:6px;left:6px;background:var(--gc);color:#fff;font-weight:900;font-style:italic;padding:2px 8px;border-radius:8px;text-shadow:1px 1px 0 #000;font-size:15px}
+.g-card .g-face{font-size:44px;line-height:1}.g-card b{font-size:13px;line-height:1.15}.g-card small{font-size:11px;color:#6a4a2a}.g-card em{font-style:normal;font-weight:800;font-size:12px;color:#8a3a10}
+.g-card .g-dup{position:absolute;bottom:6px;font-style:normal;font-size:10px;font-weight:800;background:#3ddc84;color:#fff;padding:1px 6px;border-radius:6px}
+.g-card.t4.flip,.g-card.t5.flip,.g-card.t6.flip{animation:gglow 1.2s ease-in-out infinite alternate}
+.g-card.t6 .g-front{background:linear-gradient(135deg,#ffe0fb,#fff3c4,#d6f6ff,#dcffe8)}
+.gacha .g-skip{position:absolute;right:14px;bottom:14px;z-index:2;background:#fff;border:2px solid #c9a24a;border-radius:12px;padding:10px 16px;font-weight:800;color:#3a2a1a;min-height:44px}
+.gtier{display:flex;flex-wrap:wrap;gap:6px}.gtier span{flex:1;min-width:64px;text-align:center;background:#fff;border:2px solid var(--gc);border-radius:10px;padding:6px 4px;font-size:12px}.gtier b{display:block;color:var(--gc);font-size:16px;font-style:italic}
+.gbad{display:inline-block;min-width:38px;text-align:center;background:var(--gc);color:#fff;font-weight:900;font-style:italic;border-radius:8px;padding:4px 6px;font-size:15px;text-shadow:1px 1px 0 #000}
+@keyframes gshake{0%{translate:0 0}25%{translate:2px -2px}50%{translate:-2px 2px}75%{translate:2px 2px}}
+@keyframes gpillar{0%{opacity:0;transform:scaleX(.2)}20%{opacity:1;transform:scaleX(1.6)}100%{opacity:0;transform:scaleX(4)}}
+@keyframes gflash{0%{opacity:.95}100%{opacity:0}}
+@keyframes grain{to{background-position:200% 0}}
+@keyframes gglow{from{filter:drop-shadow(0 0 4px var(--gc))}to{filter:drop-shadow(0 0 16px var(--gc))}}
+@media (max-height:460px){.gacha .g-tier{font-size:64px}.gacha .g-cards{padding-top:48px}.g-card{width:92px;height:128px}.g-card .g-face{font-size:30px}.g-card b{font-size:11px}}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3522,7 +3561,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v49.1';
+const GAME_VER='v50';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8405,7 +8444,188 @@ cineOff=(f=>function(){const r=f.apply(this,arguments);try{ultBeamOff();if(ULT.e
 setTimeout(function noAnimBoot(){const st=document.getElementById('stage')||(typeof stage!=='undefined'&&stage);if(!st){setTimeout(noAnimBoot,500);return;}try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('modal'))setTimeout(()=>n.classList.add('noanim'),260);}));}).observe(st,{childList:true});}catch(e){console.error('noanim',e);}},500);
 /* v49.1: smoother wealth ladder: NPCs below #2 slowly catch up to a curve under the leader (0.72x per place), cash only, cap tables untouched */
 setInterval(()=>{try{if(!started)return;const R=ranking();if(R.length<3)return;const lead=Math.max(R[0].w,R[1]?R[1].w:0);if(!(lead>0)||!isFinite(lead))return;
-  R.slice(0,24).forEach((r,i)=>{if(r.me||i<1)return;const tgt=lead*Math.pow(.72,i);if(!(r.w<tgt))return;const d=Math.round((tgt-r.w)*.06);if(d>0&&isFinite(d))oppW({n:r.n},d);});}catch(e){console.error('ladder',e);}},30000);
+  R.slice(0,24).forEach((r,i)=>{if(r.me||i<1)return;const tgt=lead*Math.pow(.72,i);if(!(r.w<tgt))return;const d=Math.round((tgt-r.w)*.1);if(d>0&&isFinite(d))oppW({n:r.n},d);});}catch(e){console.error('ladder',e);}},10000);
+/* ================= v50: Istana: suap kerajaan, kudeta jadi raja, gacha pejabat D–SSS ================= */
+const TK50={SPIN:1e10,TEN:9e10,PITY:50,
+  TIERS:[['D',40,1,5,'#9aa0a6'],['C',28,6,12,'#3ddc84'],['B',17,13,22,'#3b8cff'],['A',9.4,23,35,'#b46bff'],['S',4.2,36,55,'#ffc83d'],['S+',1.2,56,75,'#ff7a3d'],['SSS',.2,76,99,'#ff3df0']],
+  ROLES:[['keu','🧑‍💼','Menteri Keuangan','Pajak','Pendapatan bisnis dan kas kerajaan naik'],['dag','🧑‍🌾','Menteri Perdagangan','Niaga','Pendapatan bisnis naik'],
+    ['prt','🧑‍✈️','Panglima Perang','Strategi','Kekuatan kerajaan yang kamu suap atau pimpin naik'],['pgw','💂','Kepala Pengawal','Kesetiaan','Peluang kudeta naik, takhta lebih aman'],
+    ['utu','🕊️','Utusan Agung','Diplomasi','Suap lebih murah dan lebih sering berhasil'],['pns','🧙','Penasihat Agung','Kebijaksanaan','Pengaruh di kerajaan lain naik lebih cepat'],['mat','🕵️','Kepala Telik Sandi','Intel','Peluang suap dan kudeta naik sedikit']],
+  NAMES:['Raden Wiratama','Nyai Kencana','Ki Ageng Lintang','Dewi Anggraini','Tumenggung Baskara','Ratu Sekar Arum','Patih Gajendra','Empu Sastra','Nona Valencia','Tuan Aldric','Syeikh Hamdan','Laksamana Rangga','Mpu Darsana','Putri Kirana','Senopati Jaya','Madame Oriel','Kapten Dirga','Bu Sri Wulan','Pak Harjono','Lady Seraphine','Han Ji-woo','Dato Malik','Arya Prakasa','Sinta Maharani']};
+function tkS(){const t=PF.tk50=PF.tk50||{};t.inf=t.inf||{};t.off=t.off||[];t.asg=t.asg||{};t.pity=t.pity||0;t.spins=t.spins||0;t.h=t.h||[];t.cd=t.cd||{};return t;}
+function tkLog(ic,t,c){const s=tkS();s.h.unshift({ic,t,c:c||'',at:Date.now()});s.h=s.h.slice(0,40);}
+function tierOf(k){return TK50.TIERS.find(x=>x[0]===k)||TK50.TIERS[0];}
+function offStat(role){const s=tkS(),id=s.asg[role],o=s.off.find(x=>x.id===id);return o?Math.min(130,Math.round(o.st*(1+(o.lv-1)*.08))):0;}
+function tkInf(kd){return Math.max(0,Math.min(100,tkS().inf[kd]||0));}
+function tkAddInf(kd,v){const s=tkS();s.inf[kd]=Math.max(0,Math.min(100,(s.inf[kd]||0)+v*(v>0?1+offStat('pns')/100:1)));}
+function tkKing(){const k=tkS().king;return k&&KDS.find(x=>x[0]===k.kd)?k:null;}
+/* effects */
+dyBonus=(f=>function(){return f.apply(this,arguments)+offStat('keu')*.0010+offStat('dag')*.0012;})(dyBonus);
+warPow=(f=>function(v,side){let p=f.apply(this,arguments);try{const kd=v[side],k=tkKing();if((v.bribe===side)||(k&&k.kd===kd))p+=offStat('prt')*8;}catch(e){}return p;})(warPow);
+function bribeCost(a){const w=WS(),s=w.k[a]||{pow:1000};return Math.round(Math.max(5e9,netWorth()*.008)*(s.pow/1200)*(1-Math.min(.45,offStat('utu')*.0035)));}
+function bribeChance(){return Math.min(.92,.55+offStat('utu')*.003+offStat('mat')*.001);}
+function coupCost(kd){const s=WS().k[kd]||{pow:1000,wil:6};return Math.round(Math.max(5e10,netWorth()*.05)*(s.pow/1200)*(1+s.wil/12));}
+function coupChance(kd){return Math.min(.9,tkInf(kd)/100*.55+offStat('pgw')*.004+offStat('mat')*.0015);}
+function tribCost(){return Math.round(Math.max(2e9,netWorth()*.003));}
+function kingIncome(){const k=tkKing();if(!k)return 0;const s=WS().k[k.kd];return Math.round(((s.pow||1000)*5e6+(s.wil||6)*2e8)*(1+offStat('keu')/100));}
+/* bribe a kingdom to attack another */
+XA.xTkBribe=v=>{const [a,b]=String(v).split(':'),w=WS();if(!a||!b||a===b)return;if(atWar(a)||atWar(b)){showResult('Salah satu kerajaan sedang berperang');return;}if(w.wars.length>=2){showResult('Sudah ada 2 perang, tunggu salah satu selesai');return;}
+  const k=tkKing(),mine=k&&k.kd===a,c=mine?Math.round(bribeCost(a)*.3):bribeCost(a);if(!xPay(c))return;
+  if(!mine&&Math.random()>bribeChance()){tkAddInf(a,-8);tkLog('🙅',`${kdN(a)} menolak suapmu (🪙 ${fmtBig(c)} hangus). Pengaruh turun.`,'dn');logLine('sys',null,`🙅 ${kdN(a)} menolak suapmu untuk menyerang ${kdN(b)}.`,'lose');SFX.error();savePF();ISW.redraw();return;}
+  warStart(a,b);const war=w.wars.find(x=>x.a===a&&x.b===b);if(!war){S.bal+=c;showResult('Perang tidak jadi dimulai, uang dikembalikan');return;}
+  war.bribe='a';war.fund.a+=Math.round(c*.5);war.merc.a+=Math.round(Math.sqrt(c/1e9)*20);tkAddInf(a,mine?5:15);
+  tkLog('💰',mine?`Kamu memerintahkan ${kdN(a)} menyerang ${kdN(b)} (🪙 ${fmtBig(c)}).`:`Suap diterima! ${kdN(a)} menyerang ${kdN(b)} (🪙 ${fmtBig(c)}).`,'up');logLine('sys',null,`💰 ${mine?'Atas perintahmu':'Dengan suapmu'}, ${kdN(a)} menyatakan perang pada ${kdN(b)}.`,'win');SFX.big();savePF();ISW.redraw();};
+XA.xTkTrib=kd=>{const s=tkS();if(Date.now()-(s.cd['t'+kd]||0)<300000){showResult('Upeti ke kerajaan ini bisa lagi '+Math.ceil((300000-(Date.now()-(s.cd['t'+kd]||0)))/60000)+' menit lagi');return;}const c=tribCost();if(!xPay(c))return;s.cd['t'+kd]=Date.now();tkAddInf(kd,8);
+  tkLog('🎁',`Upeti untuk ${kdN(kd)} (🪙 ${fmtBig(c)}). Pengaruh ${Math.round(tkInf(kd))}.`);SFX.coin();savePF();ISW.redraw();};
+XA.xTkCoup=kd=>{const s=tkS();if(tkKing()){showResult('Kamu sudah jadi raja. Turun takhta dulu kalau mau pindah.');return;}if(tkInf(kd)<60){showResult('Butuh pengaruh minimal 60 di kerajaan ini');return;}if(atWar(kd)){showResult('Kerajaan sedang berperang');return;}
+  const c=coupCost(kd),ch=coupChance(kd);if(!xPay(c))return;
+  tkCine(`👑 KUDETA ${kdN(kd).toUpperCase()}`,'Pengawal bergerak ke istana...',()=>{if(Math.random()<ch){s.king={kd,since:Date.now()};s.inf[kd]=100;tkLog('👑',`Kudeta berhasil! Kamu jadi Raja ${kdN(kd)}.`,'up');logLine('sys',null,`👑 KUDETA BERHASIL! ${dyS().fam} kini memimpin ${kdN(kd)}. Republik Nusantara Raya tetap netral.`,'win');
+      banner(`👑 RAJA BARU<small>${kdN(kd)}</small>`,'',3500);try{SFX.big();for(let i=0;i<8;i++)setTimeout(()=>firework(you.pos.x+(Math.random()-.5)*20,15+Math.random()*8,you.pos.z+(Math.random()-.5)*20),i*300);}catch(e){}}
+    else{tkAddInf(kd,-35);tkLog('⛓️',`Kudeta di ${kdN(kd)} gagal. Dana 🪙 ${fmtBig(c)} hilang, pengaruh turun 35.`,'dn');logLine('sys',null,`⛓️ Kudeta di ${kdN(kd)} gagal.`,'lose');banner(`⛓️ KUDETA GAGAL<small>${kdN(kd)}</small>`,'',2600);try{SFX.error();}catch(e){}}savePF();ISW.redraw();});};
+XA.xTkAbd=()=>{const k=tkKing();if(!k)return;tkS().king=null;tkLog('🏳️',`Kamu turun takhta dari ${kdN(k.kd)}.`);savePF();ISW.redraw();};
+/* keep or lose the throne when the kingdom loses; reward influence for bribed wins */
+warEnd=(f=>function(v,ws,peace){const k=tkKing(),before=k?WS().k[k.kd].raja:null;const r=f.apply(this,arguments);try{
+  if(!peace&&v.bribe==='a'&&ws==='a')tkAddInf(v.a,10);
+  if(k&&WS().k[k.kd].raja!==before){if(Math.random()<offStat('pgw')*.006){WS().k[k.kd].raja=before;tkLog('💂',`Rakyat ${kdN(k.kd)} menuntut raja turun, tapi Kepala Pengawal menjaga takhtamu.`,'up');logLine('sys',null,`💂 Takhtamu di ${kdN(k.kd)} selamat berkat Kepala Pengawal.`,'win');}
+    else{tkS().king=null;tkS().inf[k.kd]=30;tkLog('🏳️',`Kalah perang terus, kamu dilengserkan dari takhta ${kdN(k.kd)}.`,'dn');logLine('sys',null,`🏳️ Kamu dilengserkan dari takhta ${kdN(k.kd)}.`,'lose');}}savePF();}catch(e){}return r;})(warEnd);
+setInterval(()=>{try{if(!started)return;const inc=kingIncome();if(inc>0){S.bal+=inc;try{incAdd('bisnis',inc,'Kas kerajaan');}catch(e){}}const s=tkS();for(const kd in s.inf)if(!(tkKing()&&tkKing().kd===kd)&&Math.random()<.1)s.inf[kd]=Math.max(0,s.inf[kd]-1);ISW.redraw();}catch(e){}},60000);
+/* gacha */
+function gachaRoll(force){const s=tkS();let tr;if(force||s.pity>=TK50.PITY-1){const hi=TK50.TIERS.slice(4);const tot=hi.reduce((a,t)=>a+t[1],0);let r=Math.random()*tot;tr=hi.find(t=>(r-=t[1])<0)||hi[0];}
+  else{let r=Math.random()*100;tr=TK50.TIERS.find(t=>(r-=t[1])<0)||TK50.TIERS[0];}
+  const ti=TK50.TIERS.indexOf(tr);s.pity=ti>=4?0:s.pity+1;const R=TK50.ROLES[pick(TK50.ROLES.length)],nm=TK50.NAMES[pick(TK50.NAMES.length)];
+  const st=tr[2]+Math.floor(Math.random()*(tr[3]-tr[2]+1));let o=s.off.find(x=>x.role===R[0]&&x.n===nm&&x.tier===tr[0]),dup=false;
+  if(o){o.lv=Math.min(5,o.lv+1);o.st=Math.max(o.st,st);dup=true;}else{o={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),role:R[0],n:nm,tier:tr[0],st,lv:1};s.off.push(o);}
+  const cur=s.off.find(x=>x.id===s.asg[R[0]]);if(!cur||offStatOf(o)>offStatOf(cur))s.asg[R[0]]=o.id;
+  if(s.off.length>120){s.off.sort((a,b)=>offStatOf(b)-offStatOf(a));const keep=new Set(Object.values(s.asg));s.off=s.off.filter((x,i)=>i<100||keep.has(x.id));}
+  return {o,R,tr,dup};}
+function offStatOf(o){return o?Math.round(o.st*(1+(o.lv-1)*.08)):0;}
+XA.xGacha=n=>{n=+n===10?10:1;if(GA.busy)return;const c=n===10?TK50.TEN:TK50.SPIN;if(!xPay(c))return;const s=tkS();s.spins+=n;const res=[];const before=s.pity;
+  for(let i=0;i<n;i++)res.push(gachaRoll(n===10&&i===9&&!res.some(r=>TK50.TIERS.indexOf(r.tr)>=3)?null:false));
+  if(n===10&&!res.some(r=>TK50.TIERS.indexOf(r.tr)>=3)){/* 10-pull guarantees at least A */const a=TK50.TIERS[3];const r=res[9];r.tr=a;r.o.tier='A';r.o.st=Math.max(r.o.st,a[2]+pick(a[3]-a[2]+1));}
+  const best=res.reduce((m,r)=>TK50.TIERS.indexOf(r.tr)>TK50.TIERS.indexOf(m.tr)?r:m,res[0]);res.filter(r=>TK50.TIERS.indexOf(r.tr)>=4).forEach(r=>tkLog('🌟',`Gacha: ${r.tr[0]} ${r.R[2]} ${r.o.n}${r.dup?' (naik level)':''}`,'up'));
+  savePF();gachaAnim(res,best);};
+/* gacha animation */
+const GA={busy:false};
+function gachaAnim(res,best){GA.busy=true;const bi=TK50.TIERS.indexOf(best.tr),col=best.tr[4];const d=document.createElement('div');d.className='gacha t'+bi;d.style.setProperty('--gc',col);
+  d.innerHTML=`<div class="g-bg"></div><div class="g-rays"></div><div class="g-seal"><i></i><b>📜</b></div><div class="g-pillar"></div><div class="g-flash"></div><div class="g-tier">${best.tr[0]}${bi>=5?'!!':bi>=4?'!':''}</div><div class="g-cards"></div><button class="g-skip">Lewati ⏩</button>`;
+  stage.appendChild(d);const cards=d.querySelector('.g-cards');let done=false,timers=[];const T=(fn,ms)=>timers.push(setTimeout(fn,ms));
+  const finish=()=>{if(done)return;done=true;timers.forEach(clearTimeout);d.classList.add('reveal','end');cards.innerHTML=res.map(cardHtml).join('');cards.querySelectorAll('.g-card').forEach(c=>c.classList.add('flip'));
+    const b=d.querySelector('.g-skip');b.textContent='Tutup';b.onclick=e=>{e.stopPropagation();d.remove();GA.busy=false;ISW.redraw();};};
+  d.querySelector('.g-skip').onclick=e=>{e.stopPropagation();finish();};
+  try{SFX.riser();}catch(e){}T(()=>d.classList.add('charge'),60);
+  T(()=>{d.classList.add('burst');try{SFX.boom();if(bi>=4)shakeFx();}catch(e){}},bi>=4?1700:1200);
+  T(()=>{d.classList.add('tierin');try{if(bi>=4)SFX.big();else SFX.coin();}catch(e){}},bi>=4?2100:1450);
+  T(()=>{d.classList.add('reveal');cards.innerHTML=res.map(cardHtml).join('');const cs=[...cards.querySelectorAll('.g-card')];cs.forEach((c,i)=>T(()=>{c.classList.add('flip');try{const ti=+c.dataset.t;if(ti>=4)SFX.big();else SFX.pop();}catch(e){}},i*(res.length>1?260:0)+150));
+    T(finish,cs.length*260+1200);},bi>=4?3200:2200);}
+function cardHtml(r){const ti=TK50.TIERS.indexOf(r.tr);return `<div class="g-card t${ti}" data-t="${ti}" style="--gc:${r.tr[4]}"><div class="g-back">🏛️</div><div class="g-front"><span class="g-badge">${r.tr[0]}</span><div class="g-face">${r.R[1]}</div><b>${esc(r.o.n)}</b><small>${r.R[2]}</small><em>${r.R[3]} ${offStatOf(r.o)}${r.o.lv>1?` · Lv ${r.o.lv}`:''}</em>${r.dup?'<i class="g-dup">NAIK LEVEL</i>':''}</div></div>`;}
+function tkCine(title,sub,cb){const d=document.createElement('div');d.className='gacha t4 coup';d.style.setProperty('--gc','#ffc83d');d.innerHTML=`<div class="g-bg"></div><div class="g-rays"></div><div class="g-tier" style="font-size:34px">${esc(title)}</div><div class="g-sub">${esc(sub)}</div>`;stage.appendChild(d);
+  try{SFX.riser();}catch(e){}setTimeout(()=>d.classList.add('charge','tierin'),50);setTimeout(()=>{d.remove();try{cb();}catch(e){console.error(e);}},2300);}
+/* Istana window */
+const ISW={tab:'takhta',sel:null,redraw(){if(ISW.m&&modal===ISW.m&&!GA.busy)ISW.m.refresh();}};
+function openIstana(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)ISW.tab=tab;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Istana'},busy:false,refresh(){draw();}};modal=m;ISW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns,cls)=>`<div class="mocard ${cls||''}"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const s=tkS(),w=WS(),k=tkKing(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
+    if(ISW.tab==='takhta'){body=(k?card('👑',`Kamu Raja ${kdN(k.kd)}`,`Kas kerajaan 🪙 ${fmtBig(kingIncome())}/menit · kekuatan ${Math.round(w.k[k.kd].pow)} · ${w.k[k.kd].wil} wilayah. Perintah serang hanya 30% biaya suap.`,B('xTkAbd','','Turun takhta'),'prme')
+        :`<p class="muted">Suap kerajaan supaya menyerang kerajaan lain. Kalau menang, pengaruhmu naik. Dengan pengaruh 60+ kamu bisa mencoba kudeta dan jadi raja. Republik Nusantara Raya tetap netral dan tidak ikut perang.</p>`)+
+      `<div class="thd">Kerajaan</div>`+KDS.map(([id,ic,nm])=>{const st=w.k[id],war=atWar(id),inf=Math.round(tkInf(id)),mine=k&&k.kd===id;
+        return card(ic,`${nm}${mine?' · 👑 milikmu':''}`,`${mine?'Raja: kamu':esc(kdRaja(id))} · kekuatan ${Math.round(st.pow)} · ${st.wil} wilayah · pengaruhmu ${inf}/100${war?' · ⚔️ sedang perang':''}`,
+          (ISW.sel===id?'':B('xTkSel',id,mine?'⚔️ Perintah':'💰 Suap','mogo',war))+B('xTkTrib',id,'🎁 Upeti','mog',mine)+(!k&&!mine?B('xTkCoup',id,`👑 Kudeta ${Math.round(coupChance(id)*100)}%`,'mogo',inf<60||war):''),mine?'prme':'')+
+          (ISW.sel===id?`<div class="mocard"><div class="moic">🎯</div><div class="mot"><b>${kdN(id)} menyerang siapa?</b><small>Biaya 🪙 ${fmtBig(mine?Math.round(bribeCost(id)*.3):bribeCost(id))} · peluang diterima ${mine?100:Math.round(bribeChance()*100)}%</small></div><div class="mob">${KDS.filter(x=>x[0]!==id).map(x=>B('xTkBribe',id+':'+x[0],x[1]+' '+x[2],'mog',atWar(x[0]))).join('')}${B('xTkSel','','Batal')}</div></div>`:'');}).join('')+
+      `<p class="muted">Biaya: upeti 🪙 ${fmtBig(tribCost())} (+8 pengaruh, tiap 5 menit). Kudeta mahal dan bisa gagal. Kalau kerajaanmu kalah perang terus, kamu bisa dilengserkan.</p>`;}
+    else if(ISW.tab==='tugas'){body=taskTab();}
+    else if(ISW.tab==='gacha'){body=`<div class="prhero"><div class="prlv" style="font-size:22px">🎴</div><div><small>Rekrut pejabat istana</small><b>Gacha Pejabat</b><small>${s.spins} kali spin · jaminan S ke atas dalam ${TK50.PITY-s.pity} spin lagi</small></div></div>`+
+      card('🎴','1 spin',`🪙 ${fmtBig(TK50.SPIN)}`,B('xGacha',1,'Spin 1x','mogo',S.bal<TK50.SPIN))+card('🎁','10 spin · diskon 10%',`🪙 ${fmtBig(TK50.TEN)} (harga normal ${fmtBig(TK50.SPIN*10)}) · minimal 1 tier A`,B('xGacha',10,'Spin 10x','mogo',S.bal<TK50.TEN))+
+      `<div class="thd">Peluang</div><div class="gtier">${TK50.TIERS.map(t=>`<span style="--gc:${t[4]}"><b>${t[0]}</b>${String(t[1]).replace('.',',')}%</span>`).join('')}</div>`+
+      `<p class="muted">Pejabat dengan nama dan tier yang sama naik level (maks Lv 5, +8% stats per level). Pejabat terbaik tiap jabatan otomatis diangkat. Stats tidak memengaruhi duel, duel tetap 50:50.</p>`;}
+    else if(ISW.tab==='pejabat'){body=TK50.ROLES.map(R=>{const id=s.asg[R[0]],o=s.off.find(x=>x.id===id),L=s.off.filter(x=>x.role===R[0]).sort((a,b)=>offStatOf(b)-offStatOf(a));
+      return `<div class="thd">${R[1]} ${R[2]} · ${R[4]}</div>`+(L.length?L.slice(0,6).map(x=>{const t=tierOf(x.tier);return `<div class="mocard ${x.id===id?'prme':''}"><div class="moic"><span class="gbad" style="--gc:${t[4]}">${t[0]}</span></div><div class="mot"><b>${esc(x.n)}</b><small>${R[3]} ${offStatOf(x)}${x.lv>1?` · Lv ${x.lv}`:''}</small></div><div class="mob">${x.id===id?'<b class="up">Menjabat</b>':B('xTkAsg',x.id,'Angkat','mogo')}</div></div>`;}).join('')
+        :'<p class="muted">Belum punya. Dapatkan lewat Gacha.</p>');}).join('')+
+      `<p class="muted">Efek sekarang: bisnis +${(offStat('keu')*.1+offStat('dag')*.12).toFixed(1).replace('.',',')}% · kekuatan perang +${offStat('prt')*8} · suap ${Math.round(bribeChance()*100)}% · takhta aman ${Math.round(offStat('pgw')*.6)}%</p>`;}
+    else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Istana"><div class="mohead"><b>🏯 Istana</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['takhta','👑','Takhta'],['tugas','📋','Tugas'],['gacha','🎴','Gacha'],['pejabat','🧑‍💼','Pejabat'],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===ISW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){ISW.tab=t.dataset.tab;ISW.sel=null;SFX.pop();draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+/* ================= v50: tugas pejabat (inspired by royal court roles: Bendahara, Syahbandar, Temenggung, Laksamana, Patih, telik sandi) ================= */
+function tkK(){const s=tkS();s.kst=s.kst||{stab:60,rak:50};s.buf=s.buf||{};s.task=s.task||{};return s.kst;}
+function tkBuf(k){const b=tkS().buf&&tkS().buf[k];return b&&b.until>Date.now()?b.v:0;}
+function tkSetBuf(k,v,min){tkS().buf=tkS().buf||{};const b=tkS().buf[k];tkS().buf[k]={v:Math.max(v,b&&b.until>Date.now()?b.v:0),until:Date.now()+min*60000};}
+/* [id, role, icon, name, desc, minutes, needKing, needKingdomTarget] */
+const TASKS=[
+ ['pajak','keu','💰','Pungut pajak kerajaan','Bendahara menagih pajak ke seluruh wilayah. Hasil sekaligus, rakyat sedikit kurang senang.',4,1,0],
+ ['audit','keu','📒','Audit kas bisnis','Periksa pembukuan semua usahamu. Pendapatan bisnis naik selama 30 menit.',3,0,0],
+ ['dagang','dag','🤝','Kerja sama dagang','Syahbandar meneken kerja sama dagang dengan kerajaan pilihan. Pengaruh naik, bisnis naik 20 menit.',4,0,1],
+ ['rempah','dag','🚢','Buka jalur rempah','Kirim armada dagang. Pulang membawa keuntungan.',6,0,0],
+ ['latih','prt','🪖','Latih pasukan','Latihan perang. Kekuatan kerajaanmu (atau pasukan bayaranmu) bertambah.',5,0,0],
+ ['tanah','prt','🗺️','Perluas wilayah','Rebut sebidang tanah sengketa dari kerajaan pilihan. Bisa gagal.',8,1,1],
+ ['jaga','pgw','🛡️','Jaga istana','Pengawal siaga. Takhta lebih aman dan kestabilan naik.',4,1,0],
+ ['kafilah','pgw','🐪','Kawal kafilah','Kawal kafilah dagangmu. Pendapatan bisnis naik 20 menit.',3,0,0],
+ ['diplo','utu','🕊️','Misi diplomasi','Utusan berkunjung ke istana kerajaan pilihan. Pengaruh naik besar.',4,0,1],
+ ['damai','utu','📜','Rundingkan damai','Hentikan salah satu perang yang sedang berlangsung. Festival perdamaian dimulai.',5,0,0],
+ ['nikah','utu','💍','Pernikahan politik','Atur pernikahan bangsawan dengan kerajaan pilihan. Pengaruh naik sangat besar.',10,0,1],
+ ['rakyat','pns','🌾','Urus kesejahteraan rakyat','Bagikan beras, perbaiki pasar. Kesejahteraan rakyat naik.',5,1,0],
+ ['irigasi','pns','💧','Bangun irigasi dan sawah','Tanah lebih subur. Kekuatan dan kas kerajaan naik pelan-pelan.',8,1,0],
+ ['hukum','pns','⚖️','Reformasi hukum','Rapikan hukum kerajaan. Kestabilan naik.',6,1,0],
+ ['rahasia','mat','🔍','Cari rahasia istana','Telik sandi menggali rahasia kerajaan pilihan. Pengaruh naik dan biaya kudeta di sana turun.',5,0,1],
+ ['sabot','mat','💣','Sabotase gudang senjata','Lemahkan kekuatan kerajaan pilihan.',6,0,1],
+ ['bongkar','mat','🕸️','Bongkar komplotan','Cegah pemberontakan. Kestabilan kerajaanmu naik.',4,1,0]];
+function taskCh(role){return Math.min(.96,.45+offStat(role)*.006);}
+function taskPow(role){return 1+offStat(role)/40;}
+XA.xTkTask=v=>{const [id,arg]=String(v).split(':'),T=TASKS.find(x=>x[0]===id),s=tkS();tkK();if(!T)return;const role=T[1];if(!s.asg[role]){showResult('Angkat pejabat untuk jabatan ini dulu (Gacha)');return;}
+  if(s.task[role]&&s.task[role].end>Date.now()){showResult('Pejabat ini masih bertugas');return;}if(T[6]&&!tkKing()){showResult('Tugas ini hanya bisa saat kamu jadi raja');return;}
+  if(T[7]&&!arg){ISW.tsel=id;ISW.redraw();return;}if(id==='damai'&&!WS().wars.length){showResult('Tidak ada perang yang sedang berlangsung');return;}
+  const min=Math.max(1,Math.round(T[5]*(1-Math.min(.5,offStat(role)/200))));s.task[role]={id,arg:arg||null,start:Date.now(),end:Date.now()+min*60000};ISW.tsel=null;
+  const o=s.off.find(x=>x.id===s.asg[role]);tkLog(T[2],`${o?o.n:'Pejabat'} mulai tugas: ${T[3]}${arg?' ('+kdN(arg)+')':''}. Selesai ${min} menit lagi.`);SFX.chip();savePF();ISW.redraw();};
+function taskDone(role){const s=tkS(),t=s.task[role];if(!t)return;delete s.task[role];const T=TASKS.find(x=>x[0]===t.id);if(!T)return;const o=s.off.find(x=>x.id===s.asg[role]),nm=o?o.n:'Pejabat',K=tkK(),k=tkKing(),P=taskPow(role),a=t.arg;
+  const ok=Math.random()<taskCh(role);let msg='';const nw=Math.max(1e9,netWorth());
+  if(!ok){msg=`${nm} gagal menjalankan ${T[3]}${a?' di '+kdN(a):''}.`;if(a&&(t.id==='sabot'||t.id==='rahasia'||t.id==='tanah'))tkAddInf(a,-6);tkLog('❌',msg,'dn');logLine('sys',null,'❌ '+msg,'lose');savePF();return;}
+  switch(t.id){
+   case 'pajak':{const v=Math.round(kingIncome()*8*P);S.bal+=v;K.rak=Math.max(0,K.rak-4);msg=`Pajak terkumpul 🪙 ${fmtBig(v)}. Kesejahteraan rakyat −4.`;break;}
+   case 'audit':{const b=Math.min(.12,.03*P);tkSetBuf('biz',b,30);msg=`Pembukuan rapi. Bisnis +${(b*100).toFixed(1).replace('.',',')}% selama 30 menit.`;break;}
+   case 'dagang':{tkAddInf(a,6*P);const b=Math.min(.1,.025*P);tkSetBuf('biz',b,20);msg=`Kerja sama dagang dengan ${kdN(a)} diteken. Pengaruh naik, bisnis +${(b*100).toFixed(1).replace('.',',')}% 20 menit.`;break;}
+   case 'rempah':{const v=Math.round(nw*.002*P);S.bal+=v;msg=`Armada rempah pulang membawa 🪙 ${fmtBig(v)}.`;break;}
+   case 'latih':{const add=Math.round(40*P);if(k)WS().k[k.kd].pow+=add;else WS().army=(WS().army||0)+Math.round(add/2);msg=k?`Pasukan ${kdN(k.kd)} makin kuat (+${add} kekuatan).`:`Pasukan bayaranmu makin terlatih (+${Math.round(add/2)}).`;break;}
+   case 'tanah':{const w=WS();if(w.k[a].wil>1){w.k[a].wil--;w.k[k.kd].wil++;tkAddInf(a,-10);K.stab=Math.min(100,K.stab+3);msg=`Tanah sengketa direbut dari ${kdN(a)}. ${kdN(k.kd)} sekarang punya ${w.k[k.kd].wil} wilayah.`;}else msg=`${kdN(a)} tinggal punya 1 wilayah, panglima memilih mundur.`;break;}
+   case 'jaga':{K.stab=Math.min(100,K.stab+Math.round(6*P));tkSetBuf('guard',.25,60);msg=`Istana dijaga ketat. Kestabilan ${K.stab}, takhta lebih aman 60 menit.`;break;}
+   case 'kafilah':{const b=Math.min(.08,.02*P);tkSetBuf('biz',b,20);msg=`Kafilah sampai dengan selamat. Bisnis +${(b*100).toFixed(1).replace('.',',')}% 20 menit.`;break;}
+   case 'diplo':{tkAddInf(a,10*P);msg=`Misi diplomasi ke ${kdN(a)} sukses. Pengaruh ${Math.round(tkInf(a))}.`;break;}
+   case 'damai':{const v=WS().wars[0];if(v){warEnd(v,'a',true);msg=`Perundingan berhasil, ${kdN(v.a)} dan ${kdN(v.b)} berdamai.`;}else msg='Perang sudah selesai sebelum utusan tiba.';break;}
+   case 'nikah':{tkAddInf(a,22*P);msg=`Pernikahan politik dengan keluarga raja ${kdN(a)}. Pengaruh ${Math.round(tkInf(a))}.`;break;}
+   case 'rakyat':{K.rak=Math.min(100,K.rak+Math.round(8*P));K.stab=Math.min(100,K.stab+2);msg=`Rakyat senang. Kesejahteraan ${K.rak}.`;break;}
+   case 'irigasi':{WS().k[k.kd].pow+=Math.round(25*P);K.rak=Math.min(100,K.rak+3);tkSetBuf('treas',.15,60);msg=`Sawah baru menghijau. Kas kerajaan +15% selama 60 menit.`;break;}
+   case 'hukum':{K.stab=Math.min(100,K.stab+Math.round(9*P));msg=`Hukum baru disahkan. Kestabilan ${K.stab}.`;break;}
+   case 'rahasia':{tkAddInf(a,7*P);s.secret=s.secret||{};s.secret[a]=Date.now()+3600000;msg=`Rahasia istana ${kdN(a)} terbongkar. Biaya kudeta di sana −25% selama 60 menit.`;break;}
+   case 'sabot':{const d=Math.round(60*P);WS().k[a].pow=Math.max(300,WS().k[a].pow-d);msg=`Gudang senjata ${kdN(a)} terbakar. Kekuatan mereka −${d}.`;break;}
+   case 'bongkar':{K.stab=Math.min(100,K.stab+Math.round(7*P));msg=`Komplotan pemberontak dibongkar. Kestabilan ${K.stab}.`;break;}}
+  tkLog(T[2],`${nm}: ${msg}`,'up');logLine('sys',null,`${T[2]} ${nm}: ${msg}`,'win');try{SFX.coin();}catch(e){}savePF();ISW.redraw();}
+setInterval(()=>{try{if(!started)return;const s=tkS();tkK();for(const r in s.task)if(s.task[r].end<=Date.now())taskDone(r);
+  const K=s.kst;if(tkKing()&&Math.random()<.2){K.rak=Math.max(0,K.rak-1);if(K.rak<25)K.stab=Math.max(0,K.stab-1);}
+  if(tkKing()&&K.stab<15&&Math.random()<.05){const k=tkKing();if(Math.random()>offStat('pgw')*.006+tkBuf('guard')){s.king=null;s.inf[k.kd]=25;K.stab=60;tkLog('🔥',`Rakyat ${kdN(k.kd)} memberontak karena kerajaan tidak stabil. Kamu dilengserkan.`,'dn');logLine('sys',null,`🔥 Pemberontakan di ${kdN(k.kd)}! Kamu dilengserkan.`,'lose');}}}catch(e){console.error('task',e);}},5000);
+/* hook the effects */
+dyBonus=(f=>function(){return f.apply(this,arguments)+tkBuf('biz');})(dyBonus);
+kingIncome=(f=>function(){const v=f.apply(this,arguments);if(!v)return 0;const K=tkK();return Math.round(v*(.5+K.stab/200+K.rak/200)*(1+tkBuf('treas')));})(kingIncome);
+coupCost=(f=>function(kd){const v=f.apply(this,arguments),s=tkS();return s.secret&&s.secret[kd]>Date.now()?Math.round(v*.75):v;})(coupCost);
+function taskTab(){const s=tkS(),K=tkK(),k=tkKing();const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  let h=(k?`<div class="mocard prme"><div class="moic">👑</div><div class="mot"><b>${kdN(k.kd)}</b><small>Kestabilan ${K.stab}/100 · kesejahteraan rakyat ${K.rak}/100 · kas 🪙 ${fmtBig(kingIncome())}/menit</small></div></div>`:'<p class="muted">Sebagian tugas (pajak, tanah, rakyat, hukum) baru terbuka setelah kamu jadi raja lewat kudeta.</p>');
+  if(ISW.tsel){const T=TASKS.find(x=>x[0]===ISW.tsel);h+=`<div class="mocard"><div class="moic">${T[2]}</div><div class="mot"><b>${T[3]}: pilih kerajaan</b><small>${T[4]}</small></div><div class="mob">${KDS.filter(x=>!(k&&k.kd===x[0])).map(x=>B('xTkTask',T[0]+':'+x[0],x[1]+' '+x[2])).join('')}${B('xTkTsel','','Batal')}</div></div>`;}
+  TK50.ROLES.forEach(R=>{const o=s.off.find(x=>x.id===s.asg[R[0]]),t=s.task[R[0]];h+=`<div class="thd">${R[1]} ${R[2]}${o?` · ${esc(o.n)} (${o.tier}, ${R[3]} ${offStatOf(o)})`:' · belum ada'}</div>`;
+    if(!o){h+='<p class="muted">Dapatkan lewat Gacha.</p>';return;}
+    if(t&&t.end>Date.now()){const T=TASKS.find(x=>x[0]===t.id),pc=Math.min(100,(Date.now()-t.start)/(t.end-t.start)*100);h+=`<div class="mocard"><div class="moic">${T[2]}</div><div class="mot"><b>${T[3]}${t.arg?' · '+kdN(t.arg):''}</b><div class="prbar"><i style="width:${pc.toFixed(0)}%"></i></div><small>Selesai ${Math.max(1,Math.ceil((t.end-Date.now())/60000))} menit lagi · peluang berhasil ${Math.round(taskCh(R[0])*100)}%</small></div></div>`;return;}
+    TASKS.filter(T=>T[1]===R[0]).forEach(T=>{const lock=T[6]&&!k;h+=`<div class="mocard"><div class="moic">${T[2]}</div><div class="mot"><b>${T[3]}</b><small>${T[4]} · ${Math.max(1,Math.round(T[5]*(1-Math.min(.5,offStat(R[0])/200))))} menit · berhasil ${Math.round(taskCh(R[0])*100)}%${lock?' · 🔒 khusus raja':''}</small></div><div class="mob">${B('xTkTask',T[0],'Tugaskan','mogo',lock)}</div></div>`;});});
+  return h;}
+XA.xTkTsel=()=>{ISW.tsel=null;ISW.redraw();};
+
+XA.xTkSel=id=>{ISW.sel=id||null;SFX.pop();ISW.redraw();};
+XA.xTkAsg=id=>{const s=tkS(),o=s.off.find(x=>x.id===id);if(!o)return;s.asg[o.role]=o.id;SFX.chip();savePF();ISW.redraw();};
+XA.xIstOpen=()=>{closePhone();setTimeout(()=>openIstana(),30);};
+xView('istana',{t:'Istana',s:'Istana',ic:'🏯',bg:'linear-gradient(135deg,#ffd25f,#b8322a)',r:()=>{setTimeout(()=>{if(phView==='istana'){phView='home';closePhone();openIstana();}},20);return '<p class="muted">Membuka jendela Istana...</p>';}});
+
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
