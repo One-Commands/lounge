@@ -3307,7 +3307,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v26';
+const GAME_VER='v26.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6089,6 +6089,45 @@ function npcBrain(){const ns=TYCOONS.slice(),n=ns[pick(ns.length)],cash=npcCash(
   const own=MEGA.filter(M=>megaS(M).o===n&&!megaS(M).me&&(megaS(M).lv||1)<5);const M=own[pick(own.length||1)];if(!M)return;const s=megaS(M),cost=Math.round(s.v*.15);if(cost>cash*.3)return;s.lv=(s.lv||1)+1;s.v*=1.12;oppW({n},-cost);
   const m=`🧠 ${n} merenovasi ${M.n} ke Lv ${s.lv}. Nilainya naik 12%.`;news.unshift(m);news=news.slice(0,6);}
 setInterval(()=>{if(started)try{npcBrain();}catch(e){console.error(e);}},40000);
+
+/* ================= v26.1: automatic government expansion every 10 minutes ================= */
+const GXZ=[['gx1','🏗️ Kota Baru Permata · Fase 1'],['gx2','🏗️ Kota Baru Permata · Fase 2'],['gx3','🏗️ Kota Baru Permata · Fase 3']];
+const GX_SLOTX=[-90,-60,-30,30,60,90],GX_SLOTZ=[35,-25,-85];
+GXZ.forEach(([id,n])=>{ZN.push({id,n,sp:[0,70,Math.PI]});const k=ZN.length-1;
+  ZB[id]=(G,zc)=>{zGround(G,zc,0x2e4a30);roadSeg(G,-108,zc+60,108,zc+60,10);roadSeg(G,-108,zc,108,zc,8);roadSeg(G,-108,zc-60,108,zc-60,8);roadSeg(G,0,zc+98,0,zc-98,10);addTraffic(G,-106,zc+60,106,zc+60,5);
+    for(let x=-102;x<=102;x+=15){if(Math.abs(x)<8)continue;tree(G,x,zc+68,1);}G.add(neon(n.replace(/^\S+\s/,'').toUpperCase(),0,9,zc+92,Math.PI,'#ffffff','#7df3ff',22,2));
+    stationAdd('xgate',0,zc+80,Math.PI,'Halte '+n.replace(/^\S+\s/,''),{useDist:3.5,verb:'Pergi',zk:k,act:()=>{},ctx:()=>gateCtx(k),btn:'PERGI'});};});
+tripSections=(f=>function(){const S=f.apply(this,arguments);const a=S.find(s=>s.h==='Antarkota');const g=gxS();if(a)GXZ.forEach(([id,n],i)=>{if(g.list.some(b=>b.z===i))a.rows.push({col:'#7df3ff',n:n,sub:`${g.list.filter(b=>b.z===i).length} gedung proyek pemerintah`,fee:XS().vip?'Gratis':'🪙 '+fmtBig(5000),a:'xFly',id});});return S;})(tripSections);
+function gxS(){const x=XS();x.gx=x.gx||{list:[],t:Date.now(),n:0};return x.gx;}
+const GX_TYPES=[['ruko','🏪','Ruko',[10,10,10],'studio',[12e9,30e9],.02,'pembeli','sewa ruko'],['villa','🏡','Cluster Villa',[16,8,12],'resort',[60e9,150e9],.016,'penghuni','sewa villa'],
+  ['apt','🏙️','Apartemen',[18,56,18],'apt',[1.6e12,3.4e12],.012,'penghuni','sewa unit'],['pent','🏙️','Residence',[18,70,18],'pent',[2.5e12,4.5e12],.012,'penghuni','sewa unit'],
+  ['office','🏢','Menara Kantor',[18,64,18],'office',[2e12,4e12],.011,'karyawan','sewa kantor'],['mall','🏬','Mall',[22,16,20],'glass',[1e12,2.2e12],.02,'pengunjung','sewa tenant'],
+  ['hotel','🏨','Hotel',[18,34,16],'hgrand',[600e9,1.4e12],.02,'tamu','okupansi kamar'],['rs','🏥','Rumah Sakit Swasta',[20,22,18],'office',[800e9,1.6e12],.017,'pasien','layanan medis'],
+  ['kampus','🎓','Kampus',[22,18,20],'royal',[500e9,1.1e12],.015,'mahasiswa','biaya kuliah'],['gudang','📦','Pergudangan',[22,9,18],'ware',[200e9,500e9],.024,'kontainer','sewa gudang']];
+const GX_NAMES=['Cendrawasih','Anggrek','Merak','Teratai','Rajawali','Kenari','Mawar','Kasuari','Melati','Elang','Kencana','Bougenville','Garuda','Nirmala','Sakura','Lotus','Cempaka','Sriwedari'];
+const GX_PROJ=['Proyek Kota Baru','Proyek Kawasan Bisnis Terpadu','Proyek Hunian Rakyat Mewah','Proyek Distrik Wisata','Proyek Koridor Ekonomi','Proyek Kota Mandiri'];
+function gxSpawn(d){if(MEGA.find(m=>m.id===d.id))return;const T=GX_TYPES.find(t=>t[0]===d.t);if(!T)return;const zk=ZN.findIndex(z=>z.id===GXZ[d.z][0]);if(zk<0)return;
+  const M={id:d.id,n:d.n,k:'bld',key:T[4],b:T[3],x:GX_SLOTX[d.s%6],z:zoneZ(zk)+GX_SLOTZ[Math.floor(d.s/6)],o:GOV,p:d.p,ic:T[1],r:T[6],u:T[7],vis:Math.max(40,Math.round(d.p/2e9)),lab:T[8],c:'#2a3450',w:'#ffd58a',gx:1};
+  MEGA.push(M);megaS(M);try{const G=zoneGrps[zk];if(G)propBld(G,M);}catch(e){console.error('gx',e);}}
+function gxProject(){const g=gxS(),used=new Set(g.list.map(b=>b.z*18+b.s)),free=[];for(let z=0;z<GXZ.length;z++)for(let s=0;s<18;s++)if(!used.has(z*18+s))free.push([z,s]);
+  g.n++;const pn=GX_PROJ[pick(GX_PROJ.length)];
+  if(!free.length){const L=MEGA.filter(M=>M.gx);for(let i=0;i<3&&L.length;i++){const M=L[pick(L.length)],s=megaS(M);s.v*=1.15;s.lv=Math.min(5,(s.lv||1)+1);}
+    const m=`🏛️ ${GOV}: program peremajaan Kota Baru tahap ${g.n}. Nilai beberapa gedung naik 15%.`;news.unshift(m);logLine('sys',null,m,'win');savePF();return;}
+  const z0=free[0][0],cnt=Math.min(free.length,2+pick(3)),made=[];
+  for(let i=0;i<cnt;i++){const [z,s]=free[i],T=GX_TYPES[pick(GX_TYPES.length)],nm=`${T[2]} ${GX_NAMES[pick(GX_NAMES.length)]} ${g.n}${'ABCD'[i]||''}`,p=Math.round((T[5][0]+Math.random()*(T[5][1]-T[5][0]))*.85/1e9)*1e9;
+    const d={id:'gx'+g.n+'_'+i,t:T[0],n:nm,z,s,p};g.list.push(d);gxSpawn(d);made.push(`${T[1]} ${nm} (${fmtBig(p)})`);}
+  const m=`🏛️ ${GOV} meluncurkan ${pn} tahap ${g.n} di ${GXZ[z0][1].replace(/^\S+\s/,'')}: ${made.join(', ')}. Dijual dengan harga perdana.`;news.unshift(m);news=news.slice(0,6);logLine('sys',null,m,'win');
+  try{banner(`🏛️ PROYEK BARU<small>${pn} tahap ${g.n} · ${made.length} gedung dijual</small>`,'',2800);SFX.riser();}catch(e){}savePF();}
+setTimeout(function gxBoot(){if(!started||!zoneGrps.length){setTimeout(gxBoot,2500);return;}const g=gxS();g.list.forEach(gxSpawn);
+  setInterval(()=>{if(!started)return;const g=gxS();if(Date.now()-g.t>=600000){g.t=Date.now();gxProject();}},15000);
+  if(!g.list.length){g.t=Date.now();setTimeout(gxProject,20000);}},3000);
+/* fresh project buildings appreciate faster for 30 minutes (launch price) */
+setInterval(()=>{if(!started)return;const now=Date.now(),g=gxS();g.list.forEach(d=>{const M=MEGA.find(m=>m.id===d.id);if(!M)return;const n=+d.id.split('_')[0].slice(2);const age=(g.n-n);if(age<=3)megaS(M).v*=1.003;});},60000);
+
+/* NPCs actively buy government launch properties */
+setInterval(()=>{if(!started)return;const L=MEGA.filter(M=>{const s=megaS(M);return !s.me&&s.o===GOV;});L.forEach(M=>{if(Math.random()>.1)return;const s=megaS(M),price=Math.round(s.v);
+  const buyers=npcNames().filter(n=>npcCash(n)>price*1.5);if(!buyers.length)return;const n=buyers[pick(buyers.length)];oppW({n},-price);s.o=n;
+  const m=`🏷️ ${n} membeli ${M.n} dari ${GOV} seharga ${fmtBig(price)}.`;news.unshift(m);news=news.slice(0,6);logLine('sys',null,m);});},60000);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
