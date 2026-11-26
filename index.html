@@ -3396,7 +3396,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v33.2';
+const GAME_VER='v33.3';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -5972,7 +5972,7 @@ const CONFLICTS=[
       [[q>0?`Bertahan 🪙 ${fmtBig(cost)}`:'Bertahan',()=>{if(q>0&&blockBuy(a,q))logLine('sys',null,`🛡️ Kamu bertahan, ${n} gagal merebut ${a.id}.`,'win');else cfTakeover(a,n);}],['Ambil risiko',()=>cfTakeover(a,n)]]);},
   ()=>{const own=MEGA.filter(M=>megaS(M).me);if(!own.length)return false;const M=own[pick(own.length)],loss=Math.round(megaInc(M)),fix=Math.round(loss*.3);
     return cfPop(`⚡ Sabotase di ${esc(M.n)}!`,`Listrik padam dan pengunjung kabur. ${insured()?'Asuransimu menanggung kerugian.':`Perbaiki sekarang atau rugi pemasukan 1 hari (±${fmtBig(loss)}).`}`,[[insured()?'Klaim asuransi':`Perbaiki 🪙 ${fmtBig(fix)}`,()=>{if(insured()){logLine('sys',null,'🛡️ Asuransi menanggung sabotase.','win');return;}if(!xPay(fix)){S.bal=Math.max(0,S.bal-loss);}}],['Abaikan',()=>{if(!insured())S.bal=Math.max(0,S.bal-loss);}]],0);},
-  ()=>{if(ownBiz()<3)return false;const n=TYCOONS[pick(TYCOONS.length)],amt=Math.round(Math.min(5e12,netWorth()*.01));
+  ()=>{if(ownBiz()<3)return false;const c0=CF();if(Date.now()-(c0.law||0)<3600000)return false;c0.law=Date.now();const n=TYCOONS[pick(TYCOONS.length)],amt=Math.round(Math.min(5e12,netWorth()*.01));if(insured()){logLine('sys',null,`🛡️ ${n} sempat menggugat batas tanahmu, tapi tim hukum asuransi menyelesaikannya tanpa biaya.`,'win');return true;}
     return cfPop(`⚖️ Gugatan dari ${esc(n)}`,`${esc(n)} menggugat soal batas tanah propertimu senilai 🪙 ${fmtBig(amt)}. Damai bayar ${fmtBig(Math.round(amt*.4))}, atau sidang murni 50:50 (menang dapat ${fmtBig(amt)}, kalah bayar ${fmtBig(amt)}).`,
       [[`Damai 🪙 ${fmtBig(Math.round(amt*.4))}`,()=>{if(!xPay(Math.round(amt*.4)))S.bal=Math.max(0,S.bal-Math.round(amt*.4));}],['Sidang 50:50',()=>{if(Math.random()<.5){S.bal+=amt;oppW({n},-amt);logLine('sys',null,`⚖️ Kamu menang sidang melawan ${n}! +${fmtBig(amt)}.`,'win');}else{S.bal=Math.max(0,S.bal-amt);oppW({n},amt);logLine('sys',null,`⚖️ Kamu kalah sidang. -${fmtBig(amt)}.`,'lose');}}]],0);},
   ()=>{const n=TYCOONS[pick(TYCOONS.length)],fee=Math.round(Math.max(2e9,bizDaily()*.5));if(ownBiz()<2)return false;
@@ -5989,8 +5989,8 @@ function cfMarket(){const sh=MK.filter(a=>a.t==='saham');if(Math.random()<.5){co
     const ca=sh.filter(a=>corpS(a).o===A),cb=sh.filter(a=>corpS(a).o===B);ca.forEach(a=>{a.p*=1.04;a.h[a.h.length-1]=a.p;});cb.forEach(a=>{a.p*=.96;a.h[a.h.length-1]=a.p;});
     const msg=`🔥 Persaingan panas: ${A} vs ${B}. Saham ${A} naik 4%, saham ${B} turun 4%.`;news.unshift(msg);news=news.slice(0,6);logLine('sys',null,msg);}
   else{const a=sh[pick(sh.length)];a.p=Math.max(minP(a),a.p*.75);a.h[a.h.length-1]=a.p;const msg=`📰 Skandal di ${a.n||a.id}! Saham ${a.id} anjlok 25%. Nilai wajarnya tetap, bisa jadi kesempatan beli murah.`;news.unshift(msg);news=news.slice(0,6);logLine('sys',null,msg);}}
-setInterval(()=>{if(!started||busy)return;const c=CF(),now=Date.now();if(now-c.t<200000)return;if(Math.random()<.4){c.t=now;cfMarket();return;}
-  const L=CONFLICTS.slice().sort(()=>Math.random()-.5);for(const f of L){if(f()){c.t=now;break;}}},20000);
+setInterval(()=>{if(!started||busy)return;const c=CF(),now=Date.now();if(now-c.t<200000)return;if(Math.random()<.4){c.t=now;cfMarket();return;}if(now-(c.pop||0)<900000)return;
+  const L=CONFLICTS.slice().sort(()=>Math.random()-.5);for(const f of L){if(f()){c.t=now;c.pop=now;break;}}},20000);
 /* effect on business income */
 bizArea=(f=>function(ar){let v=f.apply(this,arguments);if(ar==='kios'&&cfFx('kios'))v*=.7;if((ar==='rumah'||ar==='apart')&&cfFx('strike'))v=0;if(cfFx('mafia'))v*=.8;if(cfFx('ally'))v*=1.15;return v;})(bizArea);
 /* 21: jealous NPC challenges you when your rank rises */
@@ -6000,7 +6000,7 @@ XA.xRenov=id=>{const M=MEGA.find(m=>m.id===id),s=M&&megaS(M);if(!s||!s.me)return
 megaCtx=(f=>function(st){let h=f.apply(this,arguments);const M=MEGA.find(m=>m.id===st.mg),s=megaS(M);if(s.me){const lv=s.lv||1;h=h.replace(/<\/div>$/,`${lv<5?bzB('xRenov',M.id,`🏗️ Renovasi Lv ${lv+1} · 🪙 ${fmtBig(Math.round(s.v*.15))}`,1):'<small>Renovasi maks Lv 5</small>'}</div>`);}return h;})(megaCtx);
 /* 24: insurance, 26: manager level, 27: long lease, 30: property tax, 25: report */
 const propVal=()=>{try{return bizVal();}catch(e){return 0;}};
-XA.xIns=()=>{const prem=Math.round(propVal()*.003+1e8);if(!xPay(prem))return;CF().ins=Math.max(Date.now(),CF().ins||0)+3600000;logLine('sys',null,`🛡️ Asuransi properti aktif 1 jam (premi ${fmtBig(prem)}). Melindungi dari sabotase dan preman.`,'win');savePF();advRender();};
+XA.xIns=()=>{const prem=Math.round(propVal()*.003+1e8);if(!xPay(prem))return;CF().ins=Math.max(Date.now(),CF().ins||0)+3600000;logLine('sys',null,`🛡️ Asuransi properti aktif 1 jam (premi ${fmtBig(prem)}). Melindungi dari sabotase, preman, dan gugatan.`,'win');savePF();advRender();};
 XA.xMgrLv=()=>{const c=CF(),cost=Math.round(5e9*Math.pow(2.2,c.mlv-1));if(c.mlv>=5){xMsg('Manajer sudah level maksimal.');return;}if(!xPay(cost))return;c.mlv++;logLine('sys',null,`👔 Manajer naik ke Lv ${c.mlv}: lebih jago nego (pembeli rela bayar lebih).`,'win');savePF();advRender();};
 XA.xLease=()=>{const c=CF();c.lease=c.lease?0:1;logLine('sys',null,c.lease?'📜 Kontrak sewa jangka panjang aktif: sewa 10% lebih murah, tapi unit kosong langsung terisi.':'📜 Kontrak jangka panjang dimatikan.');savePF();advRender();};
 negStart=(f=>function(m,mgr){f.apply(this,arguments);if(m.neg&&mgr){const lv=CF().mlv||1;m.neg.w*=1+.03*(lv-1);}})(negStart);
@@ -6130,7 +6130,7 @@ function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)key
       +'<p class="muted">Crypto tidak pernah dijual manajer.</p>';}
     if(moTab==='rep')body=card('📋',`Hari bursa ke-${mDay}`,`Pemasukan bisnis ±${fmtBig(Math.round(rep.inc||0))}<br>Properti terjual: ${rep.sold||0}<br>Hasil jual saham: ${fmtBig(Math.round(rep.trim||0))}<br>Pajak properti: ${fmtBig(Math.round(rep.tax||0))}`,'')+card('🏢','Total bisnis',`Nilai ${fmtBig(Math.round(propVal()))} · pemasukan ±${fmtBig(Math.round(bizDaily()))}/hari`,'');
     if(moTab==='set'){const lv=c.mlv||1;body=card('👔',`Manajer Lv ${lv}`,`Makin tinggi level, pembeli rela bayar lebih mahal saat nego.`,lv<5?`<button class="mogo" data-mo="lv">Latih · 🪙 ${fmtBig(Math.round(5e9*Math.pow(2.2,lv-1)))}</button>`:'<small>Maks</small>')
-      +card('🛡️','Asuransi properti',insured()?`Aktif sampai ${new Date(c.ins).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}. Melindungi dari sabotase dan preman.`:'Lindungi dari sabotase dan preman selama 1 jam.',`<button class="mogo" data-mo="ins">${insured()?'Perpanjang':'Aktifkan'} · 🪙 ${fmtBig(Math.round(propVal()*.003+1e8))}</button>`)
+      +card('🛡️','Asuransi properti',insured()?`Aktif sampai ${new Date(c.ins).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}. Melindungi dari sabotase, preman, dan gugatan.`:'Lindungi dari sabotase dan preman selama 1 jam.',`<button class="mogo" data-mo="ins">${insured()?'Perpanjang':'Aktifkan'} · 🪙 ${fmtBig(Math.round(propVal()*.003+1e8))}</button>`)
       +card('📜','Kontrak sewa jangka panjang','Sewa 10% lebih murah, tapi unit apartemen kosong langsung terisi.',`<button class="${c.lease?'mogo':'mog'}" data-mo="lease">${c.lease?'Aktif':'Mati'}</button>`);}
     if(moTab==='war'){const L=WS();body=(L.wars.map(v=>card('⚔️',`${kdN(v.a)} ${v.ra}-${v.rb} ${kdN(v.b)}`,`Kekuatan ${Math.round(warPow(v,'a'))} vs ${Math.round(warPow(v,'b'))}`,`<button class="mogo" data-mo="wapp">Buka app Perang</button>`)).join('')||'<p class="muted">Sedang damai.</p>');}
     el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Kantor Manajer"><div class="mohead"><b>${anyMgr()?'👔 Kantor Manajer':'📣 Info perang'}</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
