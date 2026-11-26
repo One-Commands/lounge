@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v57';
+const GAME_VER='v58';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9421,6 +9421,125 @@ XA.xPlOpen=()=>{closePhone();setTimeout(()=>openPlWin(),30);};
 /* a station in the palace grounds: the royal court of nobles */
 gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{stationAdd('gkpol',GK.X+24,GK.Z-12,0,'Balai Bangsawan',{useDist:4,verb:'Politik',btn:'POLITIK',act:()=>openPlWin('kong'),ctx:()=>`<div class="ctx-head"><h3>🎩 Balai Bangsawan</h3><small>Konglomerat baik dan jahat bermain politik</small></div>`});}catch(e){}return g;})(gkBuild);
 /* war cards mention a tycoon who started the war */
+
+/* ================= v58: suasana kerajaan — festival, parade, penobatan, pasar malam, musik istana, burung & kunang-kunang ================= */
+const GF58={deco:null,par:null,fw:0,mt:0,step:0,amb:0,gain:null,musPrev:null,crowd:null};
+function gfS(){const s=PF.gf58=PF.gf58||{};s.fest=s.fest||0;s.n=s.n||0;s.h=s.h||[];s.cd=s.cd||{};if(s.mus==null)s.mus=1;return s;}
+function gfLog(ic,t,c){const s=gfS();s.h.unshift({ic,t,c:c||'',at:Date.now()});s.h=s.h.slice(0,40);}
+function gfIn(){return !!(GK.built&&you&&Math.abs(you.pos.x-GK.X)<260&&Math.abs(you.pos.z-GK.Z-40)<230);}
+function gfFestOn(){return Date.now()<gfS().fest;}
+function gfNight(){try{return gameClock().night;}catch(e){return false;}}
+/* decorations: built into the palace grounds group, so they are removed with it */
+function gfDeco(g){const {X,Z}=GK,D=new THREE.Group();g.add(D);const MC={},MB=c=>MC[c]||(MC[c]=new THREE.MeshBasicMaterial({color:c}));
+  const cols=[0xd8435b,0xffd25f,0x2f6fe0,0x3ddc84,0xff7ab0,0xffffff,0x9a5aff];
+  /* festival layer: bunting, hanging lanterns, confetti, dancers and musicians */
+  const F=new THREE.Group();D.add(F);
+  const flagPts=[],lanPts=[];const line=(x0,z0,x1,z1,y)=>{const L=Math.hypot(x1-x0,z1-z0),m=new THREE.Mesh(new THREE.BoxGeometry(.05,.05,L),MB(0x5a3a10));m.position.set(X+(x0+x1)/2,y,Z+(z0+z1)/2);m.rotation.y=Math.atan2(x1-x0,z1-z0);F.add(m);
+    const n=Math.floor(L/1.1);for(let i=1;i<n;i++){const t=i/n,sag=Math.sin(t*Math.PI)*.8;flagPts.push([x0+(x1-x0)*t,y-sag-.35,z0+(z1-z0)*t,Math.atan2(x1-x0,z1-z0)]);if(i%4===2)lanPts.push([x0+(x1-x0)*t,y-sag-1.1,z0+(z1-z0)*t]);}};
+  for(let z=92;z>-20;z-=14)line(-10,z,10,z,8);for(let z=134;z<=166;z+=8)line(-30,z,30,z,6.5);line(-10,92,-10,-20,8.4);line(10,92,10,-20,8.4);
+  {const im=new THREE.InstancedMesh(new THREE.ConeGeometry(.38,.75,3),new THREE.MeshBasicMaterial({color:0xffffff}),flagPts.length),o=new THREE.Object3D(),c=new THREE.Color();
+    flagPts.forEach((p,i)=>{o.position.set(X+p[0],p[1],Z+p[2]);o.rotation.set(Math.PI,p[3],0);o.updateMatrix();im.setMatrixAt(i,o.matrix);im.setColorAt(i,c.setHex(cols[i%cols.length]));});F.add(im);}
+  {const im=new THREE.InstancedMesh(new THREE.SphereGeometry(.42,8,6),new THREE.MeshBasicMaterial({color:0xff8a3d}),lanPts.length),o=new THREE.Object3D();lanPts.forEach((p,i)=>{o.position.set(X+p[0],p[1],Z+p[2]);o.scale.set(1,1.25,1);o.updateMatrix();im.setMatrixAt(i,o.matrix);});F.add(im);}
+  /* confetti */
+  const CN=500,cg=new THREE.BufferGeometry(),cp=new Float32Array(CN*3),cc=new Float32Array(CN*3),col=new THREE.Color();
+  for(let i=0;i<CN;i++){cp[i*3]=X+(Math.random()-.5)*60;cp[i*3+1]=Math.random()*14;cp[i*3+2]=Z+(Math.random()<.5?150+(Math.random()-.5)*34:Math.random()*110-20);col.setHex(cols[i%cols.length]);cc[i*3]=col.r;cc[i*3+1]=col.g;cc[i*3+2]=col.b;}
+  cg.setAttribute('position',new THREE.BufferAttribute(cp,3));cg.setAttribute('color',new THREE.BufferAttribute(cc,3));const conf=new THREE.Points(cg,new THREE.PointsMaterial({size:.32,vertexColors:true}));F.add(conf);
+  const dancers=[];for(let i=0;i<10;i++){const a=i/10*Math.PI*2,p=miniPerson(F,X+Math.cos(a)*5.2,Z+152+Math.sin(a)*5.2,0,cols[i%cols.length]);dancers.push({p,a});}
+  const musicians=[];[[-6,163,0xd8435b],[0,165,0xffd25f],[6,163,0x2f6fe0]].forEach(([x,z,c],i)=>{const p=miniPerson(F,X+x,Z+z,Math.PI,c);const ins=new THREE.Mesh(i===1?new THREE.CylinderGeometry(.45,.45,.55,10):new THREE.BoxGeometry(.25,.9,.12),new THREE.MeshLambertMaterial({color:i===1?0xc9a24a:0x8a5a2a}));ins.position.set(0,1.3,.45);ins.rotation.x=i===1?Math.PI/2:.5;p.add(ins);musicians.push(p);});
+  F.visible=false;
+  /* night market: lantern strings over the stalls and a warm light */
+  const N=new THREE.Group();D.add(N);const nl=[];for(let z=136;z<=164;z+=4)for(let x=-28;x<=28;x+=3.5)if(Math.abs(x)>4)nl.push([x,4.6+Math.sin(x*.7)*.3,z]);
+  {const im=new THREE.InstancedMesh(new THREE.SphereGeometry(.22,6,5),new THREE.MeshBasicMaterial({color:0xffd27a}),nl.length),o=new THREE.Object3D();nl.forEach((p,i)=>{o.position.set(X+p[0],p[1],Z+p[2]);o.updateMatrix();im.setMatrixAt(i,o.matrix);});N.add(im);}
+  const pl=new THREE.PointLight(0xffb060,1.6,60,1.6);pl.position.set(X,6,Z+150);N.add(pl);
+  const fg=new THREE.BufferGeometry(),FN=160,fp=new Float32Array(FN*3),fb=[];for(let i=0;i<FN;i++){const x=(Math.random()-.5)*200,z=Math.random()*180-60;fb.push([x,z,Math.random()*6]);fp[i*3]=X+x;fp[i*3+1]=1;fp[i*3+2]=Z+z;}
+  fg.setAttribute('position',new THREE.BufferAttribute(fp,3));const ff=new THREE.Points(fg,new THREE.PointsMaterial({size:.28,color:0xeaff6a,transparent:true,opacity:.9}));N.add(ff);N.visible=false;
+  /* birds circling the palace by day */
+  const birds=[];const bm=MB(0x2a2a2a);for(let i=0;i<14;i++){const b=new THREE.Group();for(const s of [-1,1]){const w=new THREE.Mesh(new THREE.BoxGeometry(.9,.04,.3),bm);w.position.x=s*.45;b.add(w);}b.add(new THREE.Mesh(new THREE.BoxGeometry(.18,.14,.5),bm));D.add(b);birds.push({b,r:30+Math.random()*40,a:Math.random()*6.28,h:38+Math.random()*16,sp:.18+Math.random()*.12});}
+  GF58.deco={D,F,N,conf,cp,dancers,musicians,ff,fp,fb,birds,pl};}
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{gfDeco(g);stationAdd('gkfest',GK.X-14,GK.Z+131,0,'Panggung Perayaan',{useDist:4,verb:'Rayakan',btn:'PERAYAAN',act:()=>openGfWin(),ctx:()=>`<div class="ctx-head"><h3>🎉 Panggung Perayaan</h3><small>${gfFestOn()?'Festival sedang berlangsung':'Adakan festival, parade, dan penobatan'}</small></div>`});}catch(e){console.error('gf58',e);}return g;})(gkBuild);
+{const d0=gkDrop;gkDrop=function(){GF58.deco=null;GF58.par=null;return d0.apply(this,arguments);};}
+/* parade: soldiers, banner bearers and a drummer march up the avenue to the palace and back */
+function gfParade(){if(!GK.built)return;const {X,Z}=GK;if(GF58.par&&GF58.par.g.parent)GF58.par.g.parent.remove(GF58.par.g);const g=new THREE.Group();let K=null;try{K=gpKd(GK.kd);}catch(e){}const fc=K&&K.flag?K.flag.map(gpHex):[0xd8435b,0xffd25f];
+  for(let r=0;r<9;r++)for(const s of [-1,1]){const p=miniPerson(g,s*1.4,r*1.8,0,r===0?0xffd25f:fc[0]);if(r===0){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,5,6),mat(0x8a5a2a));pole.position.set(.5,2.5,0);p.add(pole);const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1),new THREE.MeshBasicMaterial({color:fc[1]||0xffd25f,side:THREE.DoubleSide}));fl.position.set(1.3,4.4,0);p.add(fl);}
+    else{const sp=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,3,5),mat(0xcccccc));sp.position.set(.5,1.6,0);p.add(sp);const hm=new THREE.Mesh(new THREE.BoxGeometry(.66,.3,.66),mat(0x9aa0a6));hm.position.y=2.6;p.add(hm);}}
+  const dr=miniPerson(g,0,-1.8,0,0xffffff);const drum=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.5,10),mat(0xd8435b));drum.rotation.x=Math.PI/2;drum.position.set(0,1.3,.5);dr.add(drum);
+  g.position.set(X,0,Z+175);GK.built.add(g);GF58.par={g,path:[[0,175],[0,100],[0,-22],[0,100],[0,180]],i:1,t:0};gfLog('🥁','Parade pasukan kerajaan berbaris dari pasar menuju istana.');}
+/* coronation */
+function gfCrown(kd,re){gfLog('👑',`${re?'Upacara penobatan ulang':'Penobatan'} di ${kdN(kd)}. Lonceng berbunyi, rakyat bersorak.`,'up');try{const K=tkK();K.stab=Math.min(100,K.stab+(re?3:6));K.rak=Math.min(100,K.rak+(re?3:6));}catch(e){}
+  try{banner(`👑 PENOBATAN<small>${dyS().fam} memimpin ${kdN(kd)}</small>`,'',3200);}catch(e){try{banner(`👑 PENOBATAN<small>${kdN(kd)}</small>`,'',3200);}catch(e2){}}
+  gfBells();try{for(let i=0;i<10;i++)setTimeout(()=>firework(you.pos.x+(Math.random()-.5)*24,16+Math.random()*10,you.pos.z+(Math.random()-.5)*24),600+i*280);}catch(e){}if(gfIn())gfParade();savePF();}
+setInterval(()=>{try{if(!started)return;const s=gfS(),k=tkKing(),kd=k?k.kd:null;if(s.crown===undefined){s.crown=kd;return;}if(kd!==s.crown){s.crown=kd;if(kd)setTimeout(()=>gfCrown(kd),3800);savePF();}}catch(e){}},2000);
+/* sound: a royal theme, bells, drums, birds, crickets and crowd */
+function gfTone(f,t,d,type,v,out){const o=AC.createOscillator(),gn=AC.createGain();o.type=type||'triangle';o.frequency.value=f;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(v,t+.012);gn.gain.exponentialRampToValueAtTime(.0008,t+d);o.connect(gn);gn.connect(out);o.start(t);o.stop(t+d+.05);}
+function gfNoise(t,d,v,fr,out){const n=Math.floor(AC.sampleRate*d),b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=b;f.type='lowpass';f.frequency.value=fr;g.gain.value=v;s.connect(f);f.connect(g);g.connect(out);s.start(t);}
+const mtf=m=>440*Math.pow(2,(m-69)/12);
+function gfOut(){if(!AC)return null;if(!GF58.gain){GF58.gain=AC.createGain();GF58.gain.connect(AC.destination);}GF58.gain.gain.value=(SET.mv/100)*.55;return GF58.gain;}
+function gfBells(){try{audio();if(!AC||!sfxOn)return;const t=AC.currentTime+.05;[74,71,67,62,74,71,67,62].forEach((m,i)=>{gfTone(mtf(m),t+i*.38,2.2,'sine',.09,master);gfTone(mtf(m)*2.76,t+i*.38,1.2,'sine',.02,master);});}catch(e){}}
+const GF_PROG=[[50,62,65,69],[48,60,64,67],[46,58,62,65],[48,60,64,67]],GF_SC=[62,64,65,67,69,71,72,74,76];
+function gfMusicTick(){const s=gfS(),on=gfIn()&&s.mus&&SET.mv>0&&AC;
+  if(mus){if(on&&GF58.musPrev==null){GF58.musPrev=mus.gain.value;mus.gain.value=0;}else if(!on&&GF58.musPrev!=null){mus.gain.value=SET.mv/100;GF58.musPrev=null;}}
+  if(!on){if(GF58.crowd){try{GF58.crowd.stop();}catch(e){}GF58.crowd=null;}return;}
+  const out=gfOut(),fest=gfFestOn()||!!GF58.par,bpm=fest?132:96,sd=60/bpm/2;if(!GF58.mt||GF58.mt<AC.currentTime)GF58.mt=AC.currentTime+.05;
+  while(GF58.mt<AC.currentTime+.6){const i=GF58.step%16,ch=GF_PROG[Math.floor(GF58.step/16)%4],t=GF58.mt;
+    if(i===0){gfTone(mtf(ch[0]),t,sd*15,'sine',.07,out);gfTone(mtf(ch[0]+7),t,sd*15,'sine',.03,out);}
+    if(i%4===0||(i%4===2&&Math.random()<.5))gfTone(mtf(ch[1+((i/2)%3)|0]),t,sd*3,'triangle',.05,out);
+    if(Math.random()<(fest?.8:.6)){const pool=GF_SC.filter(m=>ch.some(c=>(m-c)%12===0)||Math.random()<.35);const m=pool[Math.floor(Math.random()*pool.length)]||74;gfTone(mtf(m),t,sd*(1.5+Math.random()),'triangle',.06,out);if(fest&&Math.random()<.3)gfTone(mtf(m+12),t,sd,'square',.012,out);}
+    if(fest){if(i%4===0)gfNoise(t,.18,.35,160,out);if(i%2===1)gfNoise(t,.05,.12,3000,out);}
+    GF58.mt+=sd;GF58.step++;}
+  if(fest&&!GF58.crowd){try{const n=AC.sampleRate*2,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=Math.random()*2-1;const sr=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();sr.buffer=b;sr.loop=true;f.type='bandpass';f.frequency.value=500;f.Q.value=.7;g.gain.value=.035;sr.connect(f);f.connect(g);g.connect(master);sr.start();GF58.crowd=sr;}catch(e){}}
+  else if(!fest&&GF58.crowd){try{GF58.crowd.stop();}catch(e){}GF58.crowd=null;}
+  if(sfxOn&&Date.now()>GF58.amb){const t=AC.currentTime+.05;if(gfNight()){for(let k=0;k<3;k++)gfTone(4300,t+k*.07,.05,'square',.006,master);GF58.amb=Date.now()+700+Math.random()*900;}
+    else{const f0=2600+Math.random()*1400;for(let k=0;k<2+Math.floor(Math.random()*3);k++){const o=AC.createOscillator(),gn=AC.createGain(),tt=t+k*.13;o.type='sine';o.frequency.setValueAtTime(f0,tt);o.frequency.exponentialRampToValueAtTime(f0*1.45,tt+.08);gn.gain.setValueAtTime(0,tt);gn.gain.linearRampToValueAtTime(.02,tt+.01);gn.gain.exponentialRampToValueAtTime(.0005,tt+.1);o.connect(gn);gn.connect(master);o.start(tt);o.stop(tt+.12);}GF58.amb=Date.now()+1800+Math.random()*3500;}}}
+setInterval(()=>{try{if(started)gfMusicTick();}catch(e){}},250);
+/* animation */
+xTick=(f=>function(dt){const r=f.apply(this,arguments);try{const d=GF58.deco;if(d&&GK.built&&you&&Math.abs(you.pos.x-GK.X)<300){const dd=Math.min(dt||.016,.1),now=performance.now()/1000,fest=gfFestOn(),night=gfNight();
+    d.F.visible=fest;d.N.visible=night;d.birds.forEach(B=>{B.b.visible=!night;});
+    if(fest){const p=d.cp;for(let i=0;i<p.length;i+=3){p[i+1]-=dd*(1.2+(i%7)*.15);p[i]+=Math.sin(now*2+i)*dd*.4;if(p[i+1]<.05)p[i+1]=12+Math.random()*3;}d.conf.geometry.attributes.position.needsUpdate=true;
+      d.dancers.forEach((D,i)=>{const a=D.a+now*.6;D.p.position.x=GK.X+Math.cos(a)*5.2;D.p.position.z=GK.Z+152+Math.sin(a)*5.2;D.p.rotation.y=-a;D.p.position.y=Math.abs(Math.sin(now*6+i))*.45;});
+      d.musicians.forEach((m,i)=>{m.position.y=Math.abs(Math.sin(now*4+i*1.3))*.12;m.rotation.z=Math.sin(now*3+i)*.06;});
+      if(Date.now()>GF58.fw){GF58.fw=Date.now()+2200+Math.random()*1800;try{firework(GK.X+(Math.random()-.5)*70,30+Math.random()*14,GK.Z-58+(Math.random()-.5)*50);}catch(e){}}}
+    if(night){const p=d.fp;d.fb.forEach((b,i)=>{p[i*3]=GK.X+b[0]+Math.sin(now*.5+b[2])*1.5;p[i*3+1]=.8+Math.sin(now*.9+b[2]*2)*.6+.6;p[i*3+2]=GK.Z+b[1]+Math.cos(now*.4+b[2])*1.5;});d.ff.geometry.attributes.position.needsUpdate=true;d.ff.material.opacity=.55+Math.sin(now*3)*.35;}
+    else d.birds.forEach(B=>{B.a+=B.sp*dd;B.b.position.set(GK.X+Math.cos(B.a)*B.r,B.h+Math.sin(B.a*3)*2,GK.Z-58+Math.sin(B.a)*B.r*.8);B.b.rotation.y=-B.a;B.b.children[0].rotation.z=Math.sin(now*12+B.r)*.5;B.b.children[1].rotation.z=-Math.sin(now*12+B.r)*.5;});
+    const P=GF58.par;if(P){const tg=P.path[P.i],tx=GK.X+tg[0],tz=GK.Z+tg[1],dx=tx-P.g.position.x,dz=tz-P.g.position.z,L=Math.hypot(dx,dz);
+      if(L<.4){P.i++;if(P.i>=P.path.length){P.g.parent&&P.g.parent.remove(P.g);GF58.par=null;}}else{const s=Math.min(L,2.2*dd);P.g.position.x+=dx/L*s;P.g.position.z+=dz/L*s;P.g.rotation.y=Math.atan2(dx,dz);P.t+=dd*9;P.g.children.forEach((c,i)=>{c.position.y=Math.abs(Math.sin(P.t+(i%2)*Math.PI/2))*.1;});}}}}catch(e){}return r;})(xTick);
+/* the HUD says where you are */
+xHud=(f=>function(){const r=f.apply(this,arguments);try{if(gfIn()&&hudPill){const K=gpKd(GK.kd),a='📍 '+NEGARA.kota;if(hudPill.innerHTML.includes(a))hudPill.innerHTML=hudPill.innerHTML.replace(a,`🏰 Istana ${K.n}${gfFestOn()?' · 🎉 Festival':''}`);}}catch(e){}return r;})(xHud);
+/* economy effects of a festival */
+kgProd=(f=>function(){return f.apply(this,arguments)*(gfFestOn()?1.25:1);})(kgProd);
+/* actions */
+function gfFestCost(){return Math.round(Math.max(5e10,netWorth()*.004));}
+XA.xGfFest=()=>{const s=gfS();if(gfFestOn()){showResult('Festival masih berlangsung');return;}const c=gfFestCost();let kg=null;try{kg=kgS();}catch(e){}const res=kg&&kg.r.food>=20000&&kg.r.gold>=2000;const cc=res?c:Math.round(c*1.5);if(!xPay(cc))return;
+  if(res){kg.r.food-=20000;kg.r.gold-=2000;}s.fest=Date.now()+5*60000;s.n++;try{const K=tkK();K.rak=Math.min(100,K.rak+12);K.stab=Math.min(100,K.stab+6);}catch(e){}try{if(GK.kd&&(!tkKing()||tkKing().kd!==GK.kd))tkAddInf(GK.kd,5);}catch(e){}
+  gfLog('🎉',`Festival kerajaan ke-${s.n} dimulai selama 5 menit (🪙 ${fmtBig(cc)}${res?', 🍞 20.000, 🪙 emas 2.000':''}). Rakyat +12, kestabilan +6, produksi sumber daya +25%.`,'up');
+  try{banner(`🎉 FESTIVAL KERAJAAN<small>Bendera, lampion, tari, dan kembang api</small>`,'',2800);SFX.big();}catch(e){}if(gfIn())gfParade();savePF();GFW.redraw();};
+XA.xGfParade=()=>{const s=gfS();if(!gfIn()){showResult('Datang ke Kompleks Istana dulu untuk menonton parade');return;}if(GF58.par){showResult('Parade sedang berlangsung');return;}const c=Math.round(Math.max(1e10,netWorth()*.0008));if(!xPay(c))return;
+  try{const K=tkK();K.stab=Math.min(100,K.stab+3);}catch(e){}gfParade();try{SFX.chip();}catch(e){}savePF();GFW.redraw();if(modal===GFW.m){const el=GFW.m.el;el.parentNode&&el.parentNode.removeChild(el);modal=null;}};
+XA.xGfCrown=()=>{const k=tkKing();if(!k){showResult('Kamu harus jadi raja dulu');return;}const s=gfS();if(Date.now()-(s.cd.crown||0)<600000){showResult('Upacara bisa lagi '+Math.ceil((600000-(Date.now()-(s.cd.crown||0)))/60000)+' menit lagi');return;}
+  const c=Math.round(Math.max(2e10,netWorth()*.0015));if(!xPay(c))return;s.cd.crown=Date.now();if(modal===GFW.m){const el=GFW.m.el;el.parentNode&&el.parentNode.removeChild(el);modal=null;}gfCrown(k.kd,1);};
+XA.xGfMus=()=>{const s=gfS();s.mus=s.mus?0:1;try{SFX.pop();}catch(e){}savePF();GFW.redraw();};
+XA.xGfGo=()=>{if(modal===GFW.m){const el=GFW.m.el;el.parentNode&&el.parentNode.removeChild(el);modal=null;}let kd=null;try{const k=tkKing();kd=k?k.kd:(GK.kd||'aurelia');}catch(e){kd='aurelia';}gkEnter(kd);};
+const GFW={tab:'acara',redraw(){if(GFW.m&&modal===GFW.m&&!GA.busy)GFW.m.refresh();}};
+function openGfWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)GFW.tab=tab;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Perayaan'},busy:false,refresh(){draw();}};modal=m;GFW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns,cls)=>`<div class="mocard ${cls||''}"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const s=gfS(),k=tkKing(),fest=gfFestOn(),inG=gfIn(),night=gfNight();let body='';
+    if(GFW.tab==='acara'){body=`<div class="prhero"><div class="prlv" style="font-size:24px">${fest?'🎉':night?'🏮':'🏰'}</div><div><small>${inG?'Kamu di Kompleks Istana '+esc(gpKd(GK.kd).n):'Kamu sedang di luar kompleks istana'}</small><b>${fest?'Festival berlangsung · '+Math.ceil((s.fest-Date.now())/60000)+' menit lagi':night?'Malam hari · pasar malam buka':'Siang hari · burung beterbangan'}</b><small>Festival yang sudah diadakan: ${s.n}</small></div></div>`+
+      (inG?'':card('🧭','Pergi ke Kompleks Istana','Suasana, parade, dan musik istana hanya terlihat dan terdengar di halaman istana.',B('xGfGo','','Pergi','mogo')))+
+      card('🎉','Festival Kerajaan',`5 menit bendera warna-warni, lampion, confetti, penari di sumur pasar, pemusik, kembang api, dan suara keramaian. Rakyat +12, kestabilan +6, produksi sumber daya +25%. Biaya 🪙 ${fmtBig(gfFestCost())} + 🍞 20.000 + emas 2.000 dari Kerajaanku (tanpa sumber daya biaya koin ×1,5).`,B('xGfFest','',fest?'Berlangsung':'Adakan','mogo',fest))+
+      card('🥁','Parade Pasukan','18 prajurit, pembawa bendera, dan penabuh genderang berbaris dari pasar ke tangga istana lalu kembali. Kestabilan +3.',B('xGfParade','',GF58.par?'Berbaris...':'Mulai parade','mogo',!!GF58.par||!inG))+
+      card('👑','Upacara Penobatan',k?`Ulang upacara penobatanmu di ${esc(kdN(k.kd))}: lonceng, kembang api, parade. Rakyat dan kestabilan naik.`:'Penobatan otomatis terjadi saat kamu jadi raja lewat kudeta.',B('xGfCrown','','Upacara','mogo',!k))+
+      card('🎵',`Musik istana ${s.mus?'· aktif':'· mati'}`,'Lagu istana bernada kuno yang dibuat langsung oleh game, makin meriah dengan genderang saat festival atau parade. Siang ada kicau burung, malam ada jangkrik. Volumenya ikut pengaturan musik.',B('xGfMus','',s.mus?'Aktif':'Mati',s.mus?'mogo':'mog'))+
+      card('🏮','Pasar Malam','Saat malam, lampion menyala di atas lapak pasar, cahaya hangat menerangi sumur, dan kunang-kunang muncul di taman.','');}
+    else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Perayaan Kerajaan"><div class="mohead"><b>🎉 Perayaan Kerajaan</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['acara','🎉','Perayaan'],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===GFW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){GFW.tab=t.dataset.tab;try{SFX.pop();}catch(e){}draw();return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+xView('gf58',{t:'Perayaan',s:'Perayaan',ic:'🎉',bg:'linear-gradient(135deg,#d8435b,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='gf58'){phView='home';closePhone();openGfWin();}},20);return '<p class="muted">Membuka Perayaan Kerajaan...</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
