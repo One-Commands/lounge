@@ -384,6 +384,16 @@ body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.
 .ntfAgo{font-style:normal;font-size:11px;color:#9a8fa6;align-self:flex-end}
 .ntfHint{margin:0;color:#6a5f78;font-size:13px}.ntfEmpty{background:#fff;border:2px dashed #eadfca;border-radius:16px;padding:26px;text-align:center;color:#7a6f86;font-weight:700}
 
+/* v35: chat window in shop style, above everything, no forced scrolling */
+.chatpanel{top:calc(10px + env(safe-area-inset-top,0px))!important;left:10px!important;right:10px;bottom:10px;transform:none!important;width:auto!important;max-height:none!important;z-index:40!important;background:#f6efe2!important;border:3px solid #2f6fd6!important;border-radius:18px!important;padding:0 0 12px!important;gap:10px!important;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden}
+.chatpanel .cp-head{background:linear-gradient(180deg,#4f8df0,#2f6fd6);color:#fff;padding:10px 12px 10px 18px;font-size:20px;font-weight:700}
+.chatpanel .cp-head .xbtn{background:#e5484d;color:#fff;border:0;border-radius:12px;width:42px;height:42px;font-size:20px}
+.chatpanel .chat{margin:0 12px;background:#fff!important;border:2px solid #eadfca;border-radius:14px;color:#2a2238;font-size:14px;padding:10px 12px}
+.chatpanel .chat p{padding:4px 0;border-bottom:1px solid #f1eadc}.chatpanel .chat .n-npc{color:#1f8a52}.chatpanel .chat .n-host{color:#b7791f}.chatpanel .chat .n-you{color:#2f6fd6}.chatpanel .chat .n-sys{color:#8a7f94}
+.chatpanel .chat .win{color:#1f8a52}.chatpanel .chat .lose{color:#c53030}
+.chatpanel h4{margin:0 14px!important;color:#7a6f86!important}.chatpanel .hist{padding:0 12px;max-height:70px;overflow-y:auto}.chatpanel .hist i{background:#ece3cf!important;color:#4a3f5a}.chatpanel .hist i.w{color:#1f8a52}.chatpanel .hist i.l{color:#c53030}
+.chatpanel .mpchat{margin:0 12px}.chatpanel .mpchat input{background:#fff!important;color:#2a2238!important;border:2px solid #eadfca!important}
+#chatNew{position:absolute;left:50%;transform:translateX(-50%);bottom:110px;z-index:41;border:0;border-radius:14px;background:#2f6fd6;color:#fff;font-weight:800;padding:8px 14px;box-shadow:0 4px 0 #1d4ea8;display:none}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -1173,7 +1183,7 @@ function logLine(kind,name,text,cls){
   const p=document.createElement('p');
   const tag=kind==='host'?`<span class="n-host">[${esc(name||HOST)}]</span> `:kind==='you'?`<span class="n-you">[Kamu]</span> `:kind==='npc'?`<span class="n-npc">[${esc(name)}]</span> `:`<span class="n-sys">*</span> `;
   p.innerHTML=tag+(cls?`<span class="${cls}">${esc(text)}</span>`:esc(text));
-  const c=$('chat');c.appendChild(p);while(c.children.length>150)c.firstChild.remove();c.scrollTop=c.scrollHeight;
+  const c=$('chat');const nb=c.scrollHeight-c.scrollTop-c.clientHeight<60;c.appendChild(p);while(c.children.length>150)c.firstChild.remove();if(nb)c.scrollTop=c.scrollHeight;
   const cl=$('chatLast');if(cl)cl.innerHTML=p.innerHTML;
 }
 function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
@@ -3424,7 +3434,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v34.1';
+const GAME_VER='v35';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6919,6 +6929,80 @@ function ntfOpen(){if(modal)return;const m=xModal('🔔 Tantangan & Info',(body)
   if(m){m.ntf=1;NTF.m=m;}}
 closeGame=(f=>function(){if(NTF.m&&modal===NTF.m)ntfBack();return f.apply(this,arguments);})(closeGame);
 setTimeout(function nb(){if(typeof stage==='undefined'||!stage){setTimeout(nb,1000);return;}ntfInit();},500);
+
+/* ================= v35: Kerajaan Hidup · Permukiman Swarnapura + Denah Kerajaan ================= */
+ZN.push({id:'swarna',n:'🏘️ Permukiman Swarnapura',sp:[0,84,Math.PI],cur:'Kampung warga Kerajaan Nirwana Agung'});
+const SW={k:()=>ZN.findIndex(z=>z.id==='swarna')};
+const SWG={};
+function swHouse(G,x,z,ry,v){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;G.add(g);
+  const wallC=[0xe9dcc0,0xd8c3a0,0xc9a87a,0xf0e6d2][v%4],roofC=[0x8a3a24,0x6a2a1a,0x5a4030,0x7a3a2a][v%4];
+  const B=(w,h,d,c,px,py,pz)=>{const m=new THREE.Mesh(SWG.box||(SWG.box=new THREE.BoxGeometry(1,1,1)),SWG['m'+c]||(SWG['m'+c]=mat(c)));m.scale.set(w,h,d);m.position.set(px,py,pz);g.add(m);return m;};
+  B(9,.5,8,0x7a6a58,0,.25,0);B(8,3,6.4,wallC,0,2,0);[[-3.6,-2.8],[3.6,-2.8],[-3.6,2.8],[3.6,2.8]].forEach(([a,b])=>B(.35,3.2,.35,0x5a3a24,a,2,b));
+  const roof=new THREE.Mesh(SWG.roof||(SWG.roof=new THREE.ConeGeometry(1,1,4)),SWG['r'+roofC]||(SWG['r'+roofC]=mat(roofC)));roof.scale.set(7.4,3.4,6.6);roof.rotation.y=Math.PI/4;roof.position.y=5.2;g.add(roof);
+  const top=new THREE.Mesh(SWG.roof,SWG['r'+roofC]);top.scale.set(3,1.6,2.6);top.rotation.y=Math.PI/4;top.position.y=7.2;g.add(top);
+  B(1.4,2.2,.1,0x4a2e1c,0,1.6,3.22);[-2.4,2.4].forEach(a=>{B(1.2,1,.08,0x2a3a4a,a,2.3,3.22);B(1.4,.12,.12,0x5a3a24,a,2.86,3.25);});
+  B(1.6,.25,1,0x7a6a58,0,.12,4.4);if(v%3===0){B(.7,.8,.7,0x3a3a3a,3.8,.4,4.2);const p=new THREE.Mesh(SWG.ico||(SWG.ico=new THREE.IcosahedronGeometry(.6,0)),SWG.leaf||(SWG.leaf=mat(0x3f7a4a)));p.position.set(3.8,1.2,4.2);g.add(p);}
+  if(v%4===1)for(let i=-4;i<=4;i+=1)B(.12,.8,.12,0x8a6a44,i,.4,5.4);
+  const c=Math.cos(ry),s=Math.sin(ry),hw=Math.abs(c)*4.5+Math.abs(s)*4,hd=Math.abs(s)*4.5+Math.abs(c)*4;colliders.push({x0:x-hw,x1:x+hw,z0:z-hd,z1:z+hd,top:7});}
+ZB.swarna=(G,zc,k)=>{const T=kTex();G.userData.noDress=1;zGround(G,zc,0,T.grass);
+  const cob=(w,d,x,z,rx,ry)=>gplane(G,w,d,new THREE.MeshLambertMaterial({map:kTexR(T.cob,rx,ry)}),x,zc+z,.012);
+  cob(10,190,0,0,3,48);[-42,2,46].forEach(z=>cob(200,7,0,z,50,2));cob(26,26,0,2,6,6);
+  /* rice terraces NW */for(let i=0;i<5;i++){const y=.3+i*.55;cBox(G,56-i*6,y*2,7,0x5a4a32,-70+i*1.5,y,zc-90+i*7,true);gplane(G,54-i*6,6.2,new THREE.MeshLambertMaterial({color:i%2?0x6fae4a:0x5c9e8a}),-70+i*1.5,zc-90+i*7,y*2+.02);
+    for(let r=0;r<10;r++)cBox(G,.18,.6,.18,0x8ac850,-94+i*4+r*5,y*2+.3,zc-90+i*7,false,true);}
+  /* houses */let v=0;const H=[];for(const z of [-60,-22,24,64])for(const x of [-92,-76,-60,-44,-26,26,44,60,76,92]){if(z===-60&&x<-20)continue;H.push([x,z]);}
+  H.forEach(([x,z])=>{const face=z<0?(z===-60?0:Math.PI):(z===24?0:Math.PI);const zz=z+(face===0?-1:1)*0;swHouse(G,x,zc+zz,face===0?0:Math.PI,v++);});
+  /* candi (temple) NE */{const tx=72,tz=zc-88;for(let i=0;i<6;i++){const w=20-i*3;cBox(G,w,1.6,w,i%2?0x8a8270:0x7a7262,tx,.8+i*1.6,tz,i===0);}const st=new THREE.Mesh(new THREE.ConeGeometry(1.6,4,8),mat(0x7a7262));st.position.set(tx,11.6,tz);G.add(st);
+    for(let s=-1;s<=1;s+=2)for(let i=0;i<4;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(.8,2,8),mat(0x8a8270));sp.position.set(tx+s*(8-i*1.5),2.6+i*1.6,tz+8-i*1.5);G.add(sp);}
+    for(let i=0;i<8;i++)cBox(G,4,.3,1,0x9a9280,tx,.15+i*.3,tz+11+i*.9,false);}
+  /* banyan + market plaza */{const tr=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.8,6,10),mat(0x5a4030));tr.position.set(0,3,zc+2);G.add(tr);colliders.push({x0:-1.8,x1:1.8,z0:zc+.2,z1:zc+3.8,top:6});
+    [[0,8,0,5],[3,7,2,3.4],[-3,7.2,-1,3.6],[1,9.4,-2,3]].forEach(([dx,y,dz,r])=>{const l=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),mat(0x2f6a3a));l.position.set(dx,y,zc+2+dz);G.add(l);});
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2;cBox(G,.06,4,.06,0x3a2a1a,Math.cos(a)*4,2.5,zc+2+Math.sin(a)*4);}
+    const aw=[0xd8435b,0xf2a33a,0x2f9e5a,0x2f6fe0,0x8a4a9e,0xd8a648];for(let i=0;i<6;i++){const x=i<3?-9:9,z=zc-6+(i%3)*8;cBox(G,4,1,2,0x8a6a44,x,.5,z,true);cBox(G,4.6,.15,2.8,aw[i],x,2.6,z);[-1.9,1.9].forEach(d=>cBox(G,.12,2.6,.12,0x5a4030,x+d,1.3,z-1.2));for(let f=0;f<5;f++)cBox(G,.4,.3,.4,[0xffb84a,0xe5484d,0x6fae4a,0xf2e04a,0xc87a3a][f],x-1.6+f*.8,1.15,z);}}
+  /* wells + balai desa (pendopo) */[[-30,2],[30,46],[40,-42]].forEach(([x,z])=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,1,12),mat(0x8a8270));w.position.set(x,.5,zc+z+5);G.add(w);colliders.push({x0:x-1.1,x1:x+1.1,z0:zc+z+3.9,z1:zc+z+6.1,top:1});cBox(G,.15,2.2,.15,0x5a4030,x-1,1.6,zc+z+5);cBox(G,.15,2.2,.15,0x5a4030,x+1,1.6,zc+z+5);cBox(G,2.6,.5,1.4,0x7a3a2a,x,2.8,zc+z+5);});
+  {const px=-60,pz=zc+44;cBox(G,16,.6,12,0x7a6a58,px,.3,pz,true);for(const a of [-6.5,-2.2,2.2,6.5])for(const b of [-4.5,4.5])cBox(G,.5,4,.5,0x5a3a24,px+a,2.6,pz+b);const r=new THREE.Mesh(new THREE.ConeGeometry(1,1,4),mat(0x5a2a1a));r.scale.set(13,4,10);r.rotation.y=Math.PI/4;r.position.set(px,6.6,pz);G.add(r);
+    G.add(neon('BALAI DESA SWARNAPURA',px,8.8,pz+5.5,0,'#ffffff','#ffd24a',8,1));stationAdd('swbalai',px,pz+7,0,'Balai Desa',{useDist:3.5,verb:'Masuk',act:()=>swBalai(),btn:'BALAI',ctx:()=>`<div class="ctx-head"><h3>🏛️ Balai Desa Swarnapura</h3><small>Kabar warga dan denah kerajaan</small></div><div class="ctx-row"><button class="go" id="ctxGo">Masuk (E)</button></div>`});}
+  /* lanterns */for(let z=-90;z<=90;z+=15){[-6,6].forEach(x=>{cBox(G,.14,2.6,.14,0x3a2a1a,x,1.3,zc+z);cBox(G,.5,.6,.5,0xffd58a,x,2.8,zc+z,false,true);});}
+  for(let x=-100;x<=100;x+=25){if(Math.abs(x)<10)continue;tree(G,x,zc+95,1.3);tree(G,x+8,zc-98,1.2);}
+  /* stations */stationAdd('swpasar',9,zc+10,Math.PI,'Pasar Pagi',{useDist:3.5,verb:'Belanja',act:()=>{const B=cityB();B.resto=Math.max(Date.now(),B.resto||0)+600000;if(xPay(250000)){savePF();showResult('🍢 Jajanan pasar pagi! Gaji kerja +15% selama 10 menit');SFX.coin();}},btn:'PASAR',ctx:()=>`<div class="ctx-head"><h3>🧺 Pasar Pagi Swarnapura</h3><small>Jajanan khas desa · 🪙 250.000 · gaji kerja +15% selama 10 menit</small></div><div class="ctx-row"><button class="go" id="ctxGo">Belanja (E)</button></div>`});
+  stationAdd('swkuil',72,zc-74,Math.PI,'Candi Swarnapura',{useDist:4,verb:'Berdoa',act:()=>{const x=XS();if(Date.now()-(x.swk||0)<600000){showResult('🙏 Kamu sudah berdoa. Kembali lagi nanti.');return;}x.swk=Date.now();try{xpAdd(80,'Berdoa di candi');}catch(e){}showResult('🙏 Hati tenang. +80 XP');savePF();},btn:'CANDI',ctx:()=>`<div class="ctx-head"><h3>🛕 Candi Swarnapura</h3><small>Candi tua kebanggaan warga · +80 XP tiap 10 menit</small></div><div class="ctx-row"><button class="go" id="ctxGo">Berdoa (E)</button></div>`});
+  stationAdd('swsawah',-70,zc-58,Math.PI,'Sawah Terasering',{useDist:4,verb:'Bantu panen',act:()=>{const x=XS();if(Date.now()-(x.sws||0)<300000){showResult('🌾 Padi belum siap panen lagi.');return;}x.sws=Date.now();const g=Math.round(5e8+Math.random()*1.5e9);S.bal+=g;showResult(`🌾 Kamu bantu warga panen. Upah 🪙 ${fmtBig(g)}`);SFX.coin();savePF();},btn:'SAWAH',ctx:()=>`<div class="ctx-head"><h3>🌾 Sawah Terasering</h3><small>Bantu petani panen tiap 5 menit, dapat upah</small></div><div class="ctx-row"><button class="go" id="ctxGo">Bantu panen (E)</button></div>`});
+  stationAdd('swgate',0,zc+92,Math.PI,'Gerbang Swarnapura',{useDist:3.5,verb:'Pergi',act:()=>{},ctx:()=>`<div class="ctx-head"><h3>🚶 Gerbang Permukiman</h3><small>Kembali ke pusat kerajaan atau buka denah</small></div><div class="ctx-row"><button class="go" data-xa="xSwGo" data-id="nir">Ke pusat kerajaan</button><button class="go alt" data-xa="xDenah" data-id="">🗺️ Denah</button></div>`,btn:'GERBANG'});
+  G.add(neon('PERMUKIMAN SWARNAPURA',0,6,zc+97,Math.PI,'#ffffff','#ffd24a',14,1.6));cBox(G,.8,6,.8,0x5a3a24,-8,3,zc+96,true);cBox(G,.8,6,.8,0x5a3a24,8,3,zc+96,true);
+  /* villagers */const P=[];const shirts=[0x8a3a24,0x2f6a3a,0xd8a648,0x2a3a6a,0xf0e6d2,0x6a2a5a];
+  for(let i=0;i<22;i++){const lane=i%4,m=miniPerson(G,0,zc,0,shirts[i%6]);if(i%5===0){const bk=new THREE.Mesh(new THREE.CylinderGeometry(.35,.25,.35,8),mat(0xb08a4a));bk.position.set(0,2.75,0);m.add(bk);}
+    P.push({m,lane,o:Math.random()*200,s:(2+Math.random()*2)*(Math.random()<.5?1:-1)});}
+  const farmers=[];for(let i=0;i<6;i++){const m=miniPerson(G,-90+i*8,zc-90+(i%5)*7,0,0x5a7a3a);const hat=new THREE.Mesh(new THREE.ConeGeometry(.6,.4,10),mat(0xd8c08a));hat.position.y=2.7;m.add(hat);m.position.y=.3+(i%5)*1.1+.6;farmers.push({m,b:m.position.y,o:i});}
+  const kids=[];for(let i=0;i<4;i++){const m=miniPerson(G,0,zc+2,0,[0xe5484d,0x2f6fe0,0xf2e04a,0x3ddc84][i]);m.scale.setScalar(.65);kids.push({m,o:i*Math.PI/2});}
+  const guards=[0,1].map(i=>{const m=miniPerson(G,i?3:-3,zc,0,0x2a3450);cBox(m,.08,3.2,.08,0x9a9aa0,.5,1.6,0);const hl=new THREE.Mesh(new THREE.ConeGeometry(.35,.4,8),mat(0xd8a648));hl.position.y=2.6;m.add(hl);return {m,i};});
+  const chick=[];for(let i=0;i<8;i++){const c=new THREE.Group();cBox(c,.4,.35,.5,0xf2f2f2,0,.3,0);cBox(c,.15,.15,.15,0xe5484d,0,.55,.22);c.position.set(-40+i*10,0,zc+34+(i%3)*2);G.add(c);chick.push({c,x:c.position.x,z:c.position.z,o:i});}
+  zAnim.push({k,f:dt=>{const t=performance.now()/1000;
+    P.forEach(p=>{const L=180,u=((t*p.s+p.o)%L+L)%L,dir=p.s>0?1:-1;if(p.lane===0){p.m.position.set(1.6*dir,0,zc-90+u);p.m.rotation.y=dir>0?0:Math.PI;}else{const zz=[-42,2,46][p.lane-1];p.m.position.set(-90+u,0,zc+zz+1.5*dir);p.m.rotation.y=dir>0?Math.PI/2:-Math.PI/2;}p.m.position.y=Math.abs(Math.sin(t*8+p.o))*.08;});
+    farmers.forEach(f=>{f.m.rotation.x=Math.max(0,Math.sin(t*1.4+f.o))*.6;});
+    kids.forEach(q=>{const a=t*1.6+q.o;q.m.position.set(Math.cos(a)*6,Math.abs(Math.sin(t*6+q.o))*.3,zc+2+Math.sin(a)*6);q.m.rotation.y=-a;});
+    guards.forEach(g=>{const u=Math.sin(t*.12+g.i*Math.PI);g.m.position.set(g.i?3:-3,0,zc+u*80);g.m.rotation.y=Math.cos(t*.12+g.i*Math.PI)>0?0:Math.PI;});
+    chick.forEach(c=>{c.c.position.set(c.x+Math.sin(t*.7+c.o)*2,0,c.z+Math.cos(t*.5+c.o)*1.5);c.c.rotation.x=Math.max(0,Math.sin(t*5+c.o))*.5;});}});};
+function swGo(){const k=SW.k();if(k<0)return;zoneGo(k,'Kampung warga Kerajaan Nirwana Agung');}
+XA.xSwGo=id=>{if(id==='nir'){const k=KZ.nir();zoneGo(k,'Pusat Kerajaan');}else if(id==='ist'){const k=KZ.ist();if(k>=0)zoneGo(k,'Istana Swarnapura');}else{const k=SW.k(),p=SWP[id];if(!p)return swGo();tpTo(p[0],zoneZ(k)+p[1],p[2]);banner(`🏘️ ${p[3]}<small>Permukiman Swarnapura</small>`,'',1800);}if(modal)closeGame();if(typeof closePhone==='function')closePhone();};
+const SWP={gate:[0,84,Math.PI,'Gerbang Permukiman'],pasar:[0,14,Math.PI,'Pasar Pagi & Beringin'],balai:[-60,54,Math.PI,'Balai Desa'],candi:[72,-68,Math.PI,'Candi Swarnapura'],sawah:[-70,-52,Math.PI,'Sawah Terasering']};
+/* kingdom map */
+function denahDraw(c){const g=c.getContext('2d'),W=c.width,H=c.height;g.fillStyle='#e9f2dc';g.fillRect(0,0,W,H);const X=x=>(x+110)/220*W,Y=z=>(z+100)/200*H;
+  g.fillStyle='#cdb98e';g.fillRect(X(-5),Y(-95),X(5)-X(-5),Y(95)-Y(-95));[-42,2,46].forEach(z=>g.fillRect(X(-100),Y(z-3.5),X(100)-X(-100),7*H/200));
+  g.fillStyle='#8fc46a';for(let i=0;i<5;i++)g.fillRect(X(-98+i*1.5),Y(-93+i*7),(56-i*6)/220*W,6/200*H);
+  g.fillStyle='#b05a3a';for(const z of [-60,-22,24,64])for(const x of [-92,-76,-60,-44,-26,26,44,60,76,92]){if(z===-60&&x<-20)continue;g.fillRect(X(x-4),Y(z-3.5),8/220*W,7/200*H);}
+  g.fillStyle='#8a8270';g.fillRect(X(62),Y(-98),20/220*W,20/200*H);g.fillStyle='#2f6a3a';g.beginPath();g.arc(X(0),Y(2),6/220*W,0,7);g.fill();g.fillStyle='#7a5a3a';g.fillRect(X(-68),Y(38),16/220*W,12/200*H);
+  g.font='bold 12px Nunito,sans-serif';g.fillStyle='#2a2238';g.textAlign='center';[['Sawah',-70,-70],['Candi',72,-74],['Pasar & Beringin',0,16],['Balai Desa',-60,58],['Gerbang',0,94],['Rumah warga',60,30]].forEach(([n,x,z])=>{g.fillText(n,X(x),Y(z));});}
+XA.xDenah=()=>{if(modal)closeGame();if(typeof closePhone==='function')closePhone();xModal('🗺️ Denah Kerajaan Nirwana Agung',(b)=>{if(b.dataset.ok)return;b.dataset.ok=1;
+  b.innerHTML=`<p class="muted" style="margin:0 0 8px">Kerajaan Nirwana Agung di ibu kota Swarnapura terdiri dari pusat kerajaan (dermaga, pasar rempah, Balai Dewan, bursa, bank, barak, kastil), Istana, dan permukiman warga.</p>
+  <div class="srow">${xB('xSwGo','nir','🏯 Pusat kerajaan','go')}${xB('xSwGo','ist','👑 Istana','go alt')}</div>
+  <div class="thd">Permukiman Swarnapura</div><canvas id="denahC" width="660" height="600" style="width:100%;max-width:520px;display:block;margin:6px auto;border-radius:14px;border:2px solid #eadfca"></canvas>
+  <div class="srow">${Object.keys(SWP).map(k=>xB('xSwGo',k,'📍 '+SWP[k][3],'small')).join('')}</div>`;denahDraw(b.querySelector('#denahC'));});};
+function swBalai(){if(modal)closeGame();xModal('🏛️ Balai Desa Swarnapura',(b)=>{const x=XS();const lines=['Panen padi musim ini melimpah, harga beras di pasar turun.','Warga gotong royong memperbaiki sumur di dekat lapangan.','Anak-anak latihan tari untuk festival kerajaan.','Prajurit kerajaan menambah patroli malam di gang permukiman.','Pedagang rempah dari Zahran datang ke pasar pagi.','Candi Swarnapura ramai peziarah menjelang hari raya.'];
+  b.innerHTML=`<div class="wallet"><small>Permukiman Swarnapura</small><b>36 rumah · ±${180+Math.floor((Date.now()/6e5)%40)} warga</b><div class="row"><span>Kepala desa</span><span>Ki Demang Suryo</span></div><div class="row"><span>Hasil utama</span><span>Padi, rempah, kerajinan</span></div></div><div class="thd">Kabar warga</div>${lines.slice(0,4).map(l=>`<div class="chap"><span style="font-size:20px">📣</span><div><small>${l}</small></div></div>`).join('')}<div class="srow">${xB('xDenah','','🗺️ Buka denah kerajaan','go')}</div>`;});}
+xView('denah',{t:'Denah Kerajaan',s:'Denah',ic:'🗺️',bg:'linear-gradient(135deg,#8fc46a,#b05a3a)',r:()=>`<div class="wallet"><small>Kerajaan Nirwana Agung</small><b>Swarnapura</b><div class="row"><span>Lokasi</span><span>Pusat kerajaan, Istana, Permukiman warga</span></div></div><div class="srow">${xB('xDenah','','🗺️ Buka denah','go')}${xB('xSwGo','gate','🏘️ Ke permukiman','go alt')}</div>`});
+/* entry from the kingdom: station next to the kingdom spawn + trip list */
+ZB.nirwana=(f=>function(G,zc,k){f.apply(this,arguments);try{stationAdd('swentry',96,zc+58,Math.PI,'Jalan ke Permukiman',{useDist:3.5,verb:'Pergi',act:()=>swGo(),btn:'PERMUKIMAN',ctx:()=>`<div class="ctx-head"><h3>🏘️ Jalan ke Permukiman Swarnapura</h3><small>Kampung warga: rumah adat, pasar pagi, sawah, candi</small></div><div class="ctx-row"><button class="go" id="ctxGo">Pergi (E)</button><button class="go alt" data-xa="xDenah" data-id="">🗺️ Denah</button></div>`});
+  cBox(G,.6,4,.6,0x5a3a24,94,2,zc+58);cBox(G,.6,4,.6,0x5a3a24,98,2,zc+58);cBox(G,5,.8,.6,0x8a3a24,96,4.2,zc+58);}catch(e){console.error(e);}})(ZB.nirwana);
+tripSections=(f=>function(){const S=f.apply(this,arguments);const a=S.find(s=>s.h==='Antarkota');if(a&&XS().vis&&XS().vis.nirwana)a.rows.push({col:'#8fc46a',n:'🏘️ Permukiman Swarnapura',sub:'Kampung warga Kerajaan Nirwana Agung',fee:'🪙 '+fmtBig(5000),a:'xFly',id:'swarna'});return S;})(tripSections);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
