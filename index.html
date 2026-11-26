@@ -597,6 +597,7 @@ body.phOpen #ctx{display:none!important}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+try{const p=sessionStorage.getItem('acct-pending');if(p){const o=JSON.parse(p);for(const k in o)localStorage.setItem(k,o[k]);sessionStorage.removeItem('acct-pending');}}catch(e){}
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
@@ -1462,6 +1463,8 @@ const slotKey=i=>'lounge-vegas-slot-'+i;
 function slotInfo(i){try{const d=JSON.parse(localStorage.getItem(slotKey(i))||'null');if(!d)return null;return d;}catch(e){return null;}}
 const encSnap=d=>'LV1:'+btoa(unescape(encodeURIComponent(JSON.stringify(d))));
 const decSnap=c=>JSON.parse(decodeURIComponent(escape(atob(c.trim().replace(/^LV1:/,'')))));
+async function encSnap2(d){try{if(typeof CompressionStream==='undefined')return encSnap(d);const s=new Blob([JSON.stringify(d)]).stream().pipeThrough(new CompressionStream('deflate-raw'));const u=new Uint8Array(await new Response(s).arrayBuffer());let b='';for(let i=0;i<u.length;i+=8192)b+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return 'LV2:'+btoa(b).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}catch(e){return encSnap(d);}}
+async function decSnap2(c){c=c.trim().replace(/\s+/g,'');if(!/^LV2:/.test(c))return decSnap(c);const b=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/'));const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);const s=new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw'));return JSON.parse(await new Response(s).text());}
 function openSettings(){
   if(modal||!started)return;for(const k in keys)keys[k]=false;closePhone();
   const el=document.createElement('div');el.className='modal';
@@ -1472,7 +1475,7 @@ function openSettings(){
   const body=el.querySelector('.setb');
   const draw=()=>{
     const slots=[1,2,3].map(i=>{const d=slotInfo(i);return `<div class="slotr"><div><b>Slot ${i}</b><small>${d?new Date(d.t).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+' · '+fmt(Math.round(d.S.bal))+' koin':'Kosong'}</small></div><button class="pbtn" data-save="${i}">Simpan</button><button class="pbtn" data-load="${i}" ${d?'':'disabled'}>Muat</button></div>`;}).join('');
-    body.innerHTML=`<section class="setg"><h4>Suara</h4>
+    body.innerHTML=`${accHTML()}<section class="setg"><h4>Suara</h4>
       <label class="rng"><span>Efek suara</span><input type="range" id="sVol" min="0" max="100" value="${SET.sfx}"><b id="sVolV">${SET.sfx}%</b></label>
       <label class="rng"><span>Musik</span><button class="small" id="sMus" aria-pressed="${SET.music}">${SET.music?'Nyala':'Mati'}</button></label>
       <label class="rng"><span>Volume musik</span><input type="range" id="sMv" min="0" max="100" value="${SET.mv}"><b id="sMvV">${SET.mv}%</b></label><button class="pbtn" id="sPick">🎵 Pilih lagu (bawaan / NCS / YouTube)</button></section>
@@ -1491,9 +1494,9 @@ function openSettings(){
     $('sMus').onclick=e=>{audio();SET.music=!SET.music;e.currentTarget.setAttribute('aria-pressed',SET.music);e.currentTarget.textContent=SET.music?'Nyala':'Mati';applyAudio();};
     body.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{try{localStorage.setItem(slotKey(b.dataset.save),JSON.stringify(snap()));SFX.coin();draw();$('sMsg').textContent=`Tersimpan di slot ${b.dataset.save}.`;}catch(e){msg('Gagal menyimpan di browser ini. Pakai kode simpan.');}});
     body.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{const d=slotInfo(b.dataset.load);if(!d)return;try{applySnap(d);SFX.big();logLine('sys',null,`Data slot ${b.dataset.load} dimuat.`);draw();$('sMsg').textContent=`Slot ${b.dataset.load} dimuat.`;}catch(e){msg('Data slot rusak.');}});
-    $('sExp').onclick=()=>{$('sCode').value=encSnap(snap());$('sCode').select();msg('Kode dibuat. Salin dan simpan baik-baik.');};
-    $('sCopy').onclick=()=>{const t=$('sCode');if(!t.value)t.value=encSnap(snap());t.select();const ok=()=>msg('Kode tersalin.');try{navigator.clipboard.writeText(t.value).then(ok,()=>{document.execCommand('copy');ok();});}catch(e){try{document.execCommand('copy');ok();}catch(_){msg('Salin manual dari kotak di atas.');}}};
-    $('sImp').onclick=()=>{const c=$('sCode').value;if(!c.trim()){msg('Tempel kode simpan dulu.');return;}try{applySnap(decSnap(c));SFX.big();logLine('sys',null,'Data dari kode simpan dimuat.');draw();$('sMsg').textContent='Berhasil dimuat dari kode.';}catch(e){SFX.error();msg('Kode tidak valid.');}};
+    try{accBind(body);}catch(e){}$('sExp').onclick=async()=>{$('sCode').value=await encSnap2(snap());$('sCode').select();msg('Kode dibuat. Salin dan simpan baik-baik.');};
+    $('sCopy').onclick=async()=>{const t=$('sCode');if(!t.value)t.value=await encSnap2(snap());t.select();const ok=()=>msg('Kode tersalin.');try{navigator.clipboard.writeText(t.value).then(ok,()=>{document.execCommand('copy');ok();});}catch(e){try{document.execCommand('copy');ok();}catch(_){msg('Salin manual dari kotak di atas.');}}};
+    $('sImp').onclick=async()=>{const c=$('sCode').value;if(!c.trim()){msg('Tempel kode simpan dulu.');return;}try{applySnap(await decSnap2(c));SFX.big();logLine('sys',null,'Data dari kode simpan dimuat.');draw();$('sMsg').textContent='Berhasil dimuat dari kode.';}catch(e){if(e&&e.acc)return;SFX.error();msg('Kode tidak valid.');}};
     $('sReset').onclick=e=>{const b=e.currentTarget;if(!b.dataset.ok){b.dataset.ok=1;b.textContent='Yakin? Semua progres hilang. Klik lagi';SFX.error();return;}
       applySnap({S:{bal:1000,wins:0,losses:0,hist:[]},PF:{hold:{},cost:{},bank:{save:0,loan:0,score:650,paid:0},items:{},tx:[],rivals:RIVAL_BASE.map(([n,w])=>({n,w,tr:0,d:0})),aidT:0,rankBest:99}});logLine('sys',null,'Game dimulai ulang dari awal.');draw();$('sMsg').textContent='Game dimulai ulang.';};
   };
@@ -3478,7 +3481,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v41.1';
+const GAME_VER='v42';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7322,9 +7325,10 @@ setTimeout(()=>{try{const ph=$('phone');const sync=()=>document.body.classList.t
 setTimeout(function fx364(){if(!started||!PF.eco36){setTimeout(fx364,3000);return;}if(PF.eco364)return;PF.eco364=1;let n=0;
   MK.forEach(a=>{if(a.t!=='saham')return;const h=PF.hold[a.id]||0;if(h<=0)return;const c=PF.cost[a.id]||0;if(c>h*a.p*1.05){PF.cost[a.id]=h*a.p;n++;}});
   if(n){logLine('sys',null,`📈 Harga beli ${n} sahammu disesuaikan ke harga sekarang, karena minus kemarin terjadi akibat penyesuaian ekonomi, bukan pasar.`,'win');}savePF();},4000);
-setInterval(()=>{try{if(!started)return;PF.tyW=PF.tyW||{};TYCOONS.forEach(n=>{const base=tyBase(n)+(PF.tyW[n]||0);PF.tyW[n]=(PF.tyW[n]||0)+Math.max(0,base)*.006;});
-  const H=npcH();for(const n in H){let v=0;for(const id in H[n]){const a=assetOf(id);if(a)v+=H[n][id]*a.p;}if(v>0)oppW({n},v*.002);}
-  (PF.rivals||[]).forEach(r=>{if(!TYCOONS.includes(r.n))r.w=Math.round(r.w*1.004);});}catch(e){}},60000);
+setInterval(()=>{try{if(!started)return;PF.tyW=PF.tyW||{};const ceil=b0=>Math.max(b0*200,netWorth()*1.2);/* v42: growth stops at a ceiling tied to your wealth, no endless compounding */
+  TYCOONS.forEach(n=>{const b0=tyBase(n),cur=npcCash(n);if(cur>=ceil(b0))return;PF.tyW[n]=(PF.tyW[n]||0)+Math.max(b0*.006,cur*.002);});
+  const H=npcH();for(const n in H){if(npcCash(n)>=ceil(TYCOONS.includes(n)?tyBase(n):1e10))continue;let v=0;for(const id in H[n]){const a=assetOf(id);if(a&&H[n][id]>0)v+=H[n][id]*a.p;}if(v>0)oppW({n},v*.001);}
+  (PF.rivals||[]).forEach(r=>{if(!TYCOONS.includes(r.n)&&r.w<ceil(1e10))r.w=Math.round(r.w*1.003);});}catch(e){}},60000);
 /* ================= v37: Kerajaan Baru (Bahari Samudra, Tianlong, Nubara, Andara, Nordheim) ================= */
 const K37=[
   {id:'bahari',ic:'🌊',n:'Kesultanan Bahari Samudra',short:'Bahari Samudra',cap:'Bandar Seri Bahari',flag:['#f2c12e','#1f5fa8','#ffffff'],tix:3e6,cur:'Istana panggung, masjid tepi laut dan kampung air',raja:['Sultan Iskandar Bahari','Sultan Hamzah Laksamana','Sultan Mahmud Samudra'],min:4,pro:['ikan','kayu','sawit'],dem:['elek','mesin','mobil']},
@@ -7767,6 +7771,55 @@ XA.xIncOpen=()=>{phView='pendapatan';phoneRender();};
 if(XV.rekap){const r0=XV.rekap.r;XV.rekap.r=()=>r0()+`<div class="srow">${xB('xIncOpen','','🧾 Lihat rincian pendapatan','small p')}</div>`;}
 setInterval(()=>{try{if(phView==='pendapatan'&&!$('phone').classList.contains('hidden'))phoneRender();}catch(e){}},3000);
 setInterval(()=>{try{if(started)savePF();}catch(e){}},30000);
+
+/* ================= v42: Akun (username + password) via Firebase; full-state save code ================= */
+const FB_CFG=null; /* paste firebaseConfig here */
+const ACC_KEYS=['lounge-reme-3d','lounge-vegas-hp','lounge-vegas-set'];
+const ACC={st:'off',user:null,last:0,busy:0};
+function accBlob(){try{save();savePF();}catch(e){}const o={};ACC_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)o[k]=v;});return o;}
+function accLocalT(){try{return +localStorage.getItem('lounge-acc-t')||0;}catch(e){return 0;}}
+function accApplyBlob(o,why){try{sessionStorage.setItem('acct-pending',JSON.stringify(o));localStorage.setItem('lounge-acc-t',String(Date.now()));}catch(e){showResult('Gagal memuat data');return;}window.__noSave=1;banner('☁️ Memuat progres<small>'+(why||'')+'</small>','',1500);setTimeout(()=>location.reload(),900);}
+save=(f=>function(){if(window.__noSave)return;return f.apply(this,arguments);})(save);
+savePF=(f=>function(){if(window.__noSave)return;return f.apply(this,arguments);})(savePF);
+async function zipStr(s){if(typeof CompressionStream==='undefined')return 'J'+s;const u=new Uint8Array(await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());let b='';for(let i=0;i<u.length;i+=8192)b+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return 'Z'+btoa(b);}
+async function unzipStr(z){if(z[0]==='J')return z.slice(1);const b=atob(z.slice(1)),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();}
+/* full-state save code (LV3) */
+encSnap2=async function(){const z=await zipStr(JSON.stringify(accBlob()));return 'LV3:'+z.slice(1).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
+decSnap2=(f=>async function(c){c=c.trim().replace(/\s+/g,'');if(/^LV3:/.test(c)){const o=JSON.parse(await unzipStr('Z'+c.slice(4).replace(/-/g,'+').replace(/_/g,'/')));if(!o||!o['lounge-vegas-hp'])throw new Error('bad');accApplyBlob(o,'dari kode simpan');throw {acc:1};}return f(c);})(decSnap2);
+function accLoad(){if(!FB_CFG)return Promise.reject(new Error('cfg'));if(ACC.p)return ACC.p;const V='10.12.2',js=n=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=`https://cdn.jsdelivr.net/npm/firebase@${V}/firebase-${n}-compat.js`;s.onload=ok;s.onerror=no;document.head.appendChild(s);});
+  ACC.p=js('app').then(()=>Promise.all([js('auth'),js('firestore')])).then(()=>{const app=firebase.initializeApp(FB_CFG);ACC.auth=firebase.auth();ACC.db=firebase.firestore();
+    ACC.auth.onAuthStateChanged(u=>{ACC.user=u;ACC.st=u?'in':'out';if(u)accOnLogin(false);accRefresh();});});return ACC.p;}
+const accEmail=u=>u.toLowerCase()+'@akun.lounge-reme.game';
+const accName=()=>ACC.user?(ACC.user.displayName||ACC.user.email.split('@')[0]):'';
+function accErr(e){const c=(e&&e.code)||'';return /email-already/.test(c)?'Username sudah dipakai orang lain.':/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)?'Username atau password salah.':/weak-password/.test(c)?'Password minimal 6 karakter.':/too-many/.test(c)?'Terlalu banyak percobaan, tunggu sebentar.':/network/.test(c)?'Koneksi internet bermasalah.':'Gagal: '+(e&&e.message||e);}
+async function accPush(silent){if(!ACC.user||window.__noSave||ACC.busy)return;ACC.busy=1;try{const z=await zipStr(JSON.stringify(accBlob()));const t=Date.now();
+  await ACC.db.collection('saves').doc(ACC.user.uid).set({z,t,ver:GAME_VER,name:accName(),nw:Math.round(netWorth())});ACC.last=t;localStorage.setItem('lounge-acc-t',String(t));if(!silent)showResult('☁️ Progres tersimpan di akun');}catch(e){if(!silent)showResult(accErr(e));}finally{ACC.busy=0;accRefresh();}}
+async function accOnLogin(fresh){try{const d=await ACC.db.collection('saves').doc(ACC.user.uid).get();if(!d.exists){await accPush(true);if(fresh)showResult('☁️ Akun dibuat. Progres di device ini sekarang tersimpan di akun.');return;}
+  const r=d.data();if(fresh||r.t>accLocalT()+5000){const o=JSON.parse(await unzipStr(r.z));accApplyBlob(o,'dari akun '+accName());}else ACC.last=r.t;}catch(e){console.error('acc',e);}}
+async function accDo(kind,u,p){if(!/^[a-zA-Z0-9_]{3,20}$/.test(u))return 'Username 3–20 huruf, angka atau _ (tanpa spasi).';if((p||'').length<6)return 'Password minimal 6 karakter.';
+  try{await accLoad();if(kind==='reg'){const c=await ACC.auth.createUserWithEmailAndPassword(accEmail(u),p);await c.user.updateProfile({displayName:u});ACC.user=c.user;await accPush(true);return 'ok:reg';}
+    const c=await ACC.auth.signInWithEmailAndPassword(accEmail(u),p);ACC.user=c.user;await accOnLogin(true);return 'ok:in';}catch(e){return accErr(e);}}
+setInterval(()=>{if(ACC.user&&started)accPush(true);},60000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user)accPush(true);});
+if(FB_CFG)setTimeout(()=>accLoad().catch(e=>console.error('fb',e)),1500);
+function accHTML(){if(!FB_CFG)return `<section class="setg acc"><h4>👤 Akun</h4><p class="muted">Login dengan username dan password akan aktif setelah server akun disambungkan. Sementara pakai kode simpan di bawah (sekarang jauh lebih pendek dan membawa semua progres).</p></section>`;
+  if(ACC.user)return `<section class="setg acc"><h4>👤 Akun: ${esc(accName())}</h4><p class="muted">Progres otomatis tersimpan ke akun setiap menit. Di HP atau browser lain cukup login dengan username dan password yang sama.${ACC.last?` Terakhir tersimpan ${new Date(ACC.last).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}.`:''}</p>
+    <div class="srow"><button class="pbtn" id="aSave">☁️ Simpan sekarang</button><button class="pbtn danger" id="aOut">Keluar akun</button></div><p class="muted" id="aMsg"></p></section>`;
+  return `<section class="setg acc"><h4>👤 Akun</h4><p class="muted">Buat akun supaya bisa main di device lain cukup dengan username dan password.</p>
+    <label class="tin"><span>Username</span><input id="aU" autocomplete="username" maxlength="20" placeholder="contoh: stev23"></label><label class="tin"><span>Password</span><input id="aP" type="password" autocomplete="current-password" placeholder="minimal 6 karakter"></label>
+    <div class="srow"><button class="pbtn" id="aIn">Masuk</button><button class="pbtn" id="aReg">Daftar akun baru</button></div><p class="muted" id="aMsg">${ACC.st==='off'?'Menyambungkan ke server akun...':''}</p></section>`;}
+function accBind(root){const q=id=>root.querySelector('#'+id),m=t=>{const e=q('aMsg');if(e)e.textContent=t;};
+  if(q('aSave'))q('aSave').onclick=()=>accPush(false);if(q('aOut'))q('aOut').onclick=async()=>{await accPush(true);await ACC.auth.signOut();ACC.user=null;m('Sudah keluar.');accRefresh();};
+  [['aIn','in'],['aReg','reg']].forEach(([id,k])=>{const b=q(id);if(!b)return;b.onclick=async()=>{const u=(q('aU').value||'').trim(),p=q('aP').value||'';b.disabled=true;m(k==='reg'?'Membuat akun...':'Masuk...');const r=await accDo(k,u,p);b.disabled=false;
+    if(r==='ok:reg'){m('Akun dibuat! Progres di device ini sudah tersimpan.');SFX.big();accRefresh();}else if(r==='ok:in'){m('Berhasil masuk.');}else{SFX.error();m(r);}};});}
+function accRefresh(){const s=document.querySelector('section.acc');if(!s)return;const w=document.createElement('div');w.innerHTML=accHTML();const n=w.firstElementChild;s.replaceWith(n);accBind(n.parentNode||document);}
+
+/* v42: phone lists (Ranking etc.) no longer re-render under your finger */
+const PHT={down:0,t:0,last:{}};
+['pointerdown','touchstart'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target&&e.target.closest&&e.target.closest('#phone')){PHT.down=1;PHT.t=performance.now();}},{capture:true,passive:true}));
+['pointerup','pointercancel','touchend','touchcancel'].forEach(ev=>document.addEventListener(ev,()=>{PHT.down=0;PHT.t=performance.now();},{capture:true,passive:true}));
+document.addEventListener('scroll',e=>{if(e.target&&e.target.closest&&e.target.closest('#phone'))PHT.t=performance.now();},{capture:true,passive:true});
+phoneSoft=(f=>function(fromTick){if(!fromTick&&!window.__phF&&(PHT.down||performance.now()-PHT.t<1200))return;if(fromTick){const now=performance.now();if(PHT.down||now-PHT.t<2500)return;const gap=phView==='rank'?5000:phView==='home'?4000:0;if(gap){if(now-(PHT.last[phView]||0)<gap)return;PHT.last[phView]=now;}}return f.apply(this,arguments);})(phoneSoft);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
