@@ -3307,7 +3307,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v26.2';
+const GAME_VER='v26.3';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6049,7 +6049,7 @@ function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)key
     el.querySelector('.moclose').onclick=()=>{modal=null;el.remove();advRender();};el.addEventListener('pointerdown',e=>{if(e.target===el){modal=null;el.remove();}});
     el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{moTab=b.dataset.tab;SFX.pop();draw();});
     el.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{const [k,v,v2]=b.dataset.mo.split(':');SFX.pop();
-      if(k==='buy'){modal=null;el.remove();bizDo('gBuy',v);ADV.list=ADV.list.filter(x=>x.M.id!==v);return;}
+      if(k==='buy'){const M=MEGA.find(m=>m.id===v),was=M&&megaS(M).me;bizDo('gBuy',v);if(M&&megaS(M).me&&!was){ADV.list=ADV.list.filter(x=>x.M.id!==v);if(!ADV.list.length)ADV.list=advPick();}}
       if(k==='skip'){ADV.skip[v]=1;ADV.list=ADV.list.filter(x=>x.M.id!==v);}if(k==='newp')ADV.list=advPick();
       if(k==='sb'){const a=assetOf(v);if(a&&!blockBuy(a,+v2)){SFX.error();}}
       if(k==='pa'){s.auto=+v;}if(k==='son')st.on=st.on?0:1;if(k==='sp')st.pct=+v;if(k==='sg')st.gain=+v;
