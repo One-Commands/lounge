@@ -3396,7 +3396,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v33.4';
+const GAME_VER='v33.5';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6754,6 +6754,18 @@ function twBuild(){if(twBuilt)return;twBuilt=true;
       /*19 vases by the lift + dining flowers*/[-3.4,3.4].forEach(x=>{cBox(g,.7,1,.7,0xf1ebe0,x,.5,Z+17.8,true);const v=new THREE.Mesh(new THREE.CylinderGeometry(.25,.18,.7,10),M(0x2a3a5a));v.position.set(x,1.35,Z+17.8);g.add(v);for(let i=0;i<5;i++)cBox(g,.04,.6,.04,0x3f7a4a,x+(i-2)*.07,1.9,Z+17.8);});
         {const v=new THREE.Mesh(new THREE.CylinderGeometry(.18,.12,.4,10),M(0xf1ebe0));v.position.set(8,1.15,Z+9);g.add(v);[0xd83a3a,0xffd84a,0xf2f2f2].forEach((c,i)=>{const fl=new THREE.Mesh(new THREE.IcosahedronGeometry(.12,0),M(c));fl.position.set(7.9+i*.1,1.5,Z+9+(i-1)*.08);g.add(fl);});}
       /*20 fireplace*/cBox(g,3.4,2.2,.7,0x3a3d42,15,1.1,BW,true);cBox(g,2.2,1.1,.1,0x111111,15,.8,BW-.32);{const fm=new THREE.Mesh(new THREE.PlaneGeometry(1.8,.6),new THREE.MeshBasicMaterial({color:0xff9a3a}));fm.position.set(15,.6,BW-.38);fm.rotation.y=Math.PI;g.add(fm);window.TWFIRE=fm;}cBox(g,3.8,.12,.9,0x2a1d15,15,2.26,BW);[14,16].forEach(x=>cBox(g,.25,.35,.25,GOLD,x,2.5,BW));
+      /* v33.5: manager desk with working manager */{const X=-20.8,Zm=Z+3;cBox(g,1.5,.1,3.2,0x2a1d15,X,.92,Zm,true);cBox(g,.1,.87,3.2,0x2a1d15,X+.7,.44,Zm);[-1.5,1.5].forEach(d=>cBox(g,1.5,.87,.1,0x2a1d15,X,.44,Zm+d));
+        cBox(g,.08,.75,1.3,0x111216,X+.35,1.45,Zm-.5);cBox(g,.02,.65,1.2,0x2a5a8a,X+.3,1.45,Zm-.5,false,true);cBox(g,.08,.6,1,0x111216,X+.35,1.38,Zm+.8);cBox(g,.02,.5,.9,0x2a7a5a,X+.3,1.38,Zm+.8,false,true);
+        cBox(g,.35,.03,.9,0x1a1a1e,X-.25,.99,Zm-.4);cBox(g,.6,.05,.45,0xf4f0e8,X-.1,.98,Zm+.6);cBox(g,.12,.18,.12,0xf4f4f4,X+.1,1.06,Zm+1.2);
+        {const np=signTex(256,64,(c,w,hh)=>{c.fillStyle='#1e1814';c.fillRect(0,0,w,hh);c.fillStyle='#d9b878';c.font='bold 34px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('MANAJER',w/2,hh/2);});const p=plane(g,1.2,.3,new THREE.MeshBasicMaterial({map:np}),X+.76,.62,Zm,Math.PI/2);}
+        cBox(g,.9,.12,.9,LEATHER,X-1.6,.55,Zm-.4);cBox(g,.15,1.2,.9,LEATHER,X-2.05,1.15,Zm-.4);cBox(g,.12,.5,.12,0x222222,X-1.6,.25,Zm-.4);
+        const mp=new THREE.Group();mp.position.set(X-1.6,0,Zm-.4);g.add(mp);const mb=(w,h,d,c,x,y,z,par)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);(par||mp).add(m);return m;};
+        mb(.75,.22,.5,0x2a2e3a,.25,.72,0);mb(.22,.62,.5,0x2a2e3a,.62,.35,0);mb(.26,.1,.55,0x111111,.7,.05,0);
+        mb(.4,.95,.75,0xf4f4f4,0,1.3,0);mb(.42,.6,.22,0x2a2e3a,-.01,1.45,-.27);mb(.42,.6,.22,0x2a2e3a,-.01,1.45,.27);mb(.05,.45,.1,0x7a1a2a,.21,1.4,0);
+        mb(.5,.5,.5,0xd8a880,0,2.08,0);mb(.54,.16,.54,0x2a1d15,-.02,2.38,0);mb(.06,.08,.3,0x111111,.26,2.12,0);
+        const arms=[-.32,.32].map(z=>{const a=new THREE.Group();a.position.set(0,1.65,z);mp.add(a);mb(.2,.2,.2,0x2a2e3a,0,-.1,0,a);mb(.62,.18,.18,0x2a2e3a,.32,-.42,0,a);mb(.14,.14,.14,0xd8a880,.68,-.42,0,a);return a;});
+        window.TWMGR={arms,head:mp.children[8]};
+        stationAdd('twmgr',X+1.5,Zm,-Math.PI/2,'Meja Manajer',{useDist:2.8,verb:'Bicara',act:()=>{if(typeof openMgrOffice==='function')openMgrOffice();},btn:'MANAJER',ctx:()=>`<div class="ctx-head"><h3>👔 Manajer sedang bekerja</h3><small>Mengurus sewa, penjualan, dan saran investasimu</small></div><div class="ctx-row"><button class="go" id="ctxGo">Bicara (E)</button></div>`});}
       lift(g,zc,0);
       stationAdd('twdeskP',0,zc-6.4,Math.PI,'Meja kerja',{useDist:2.8,verb:'Kerja',act:()=>{if(typeof openMgrOffice==='function')openMgrOffice();},btn:'MEJA',ctx:()=>`<div class="ctx-head"><h3>🖋️ Meja kerja pribadi</h3><small>Buka Kantor Manajer dan laporan bisnis</small></div><div class="ctx-row"><button class="go" id="ctxGo">Duduk (E)</button></div>`});
       stationAdd('twsafe',26,zc+12.6,Math.PI,'Brankas',{useDist:2.6,verb:'Buka',act:()=>XA.xTwSafe(),btn:'BRANKAS',ctx:()=>`<div class="ctx-head"><h3>🔐 Brankas pribadi</h3><small>Kekayaan bersih ${fmtBig(Math.round(netWorth()))}</small></div><div class="ctx-row"><button class="go" id="ctxGo">Buka (E)</button></div>`});
@@ -6764,6 +6776,8 @@ function twBuild(){if(twBuilt)return;twBuilt=true;
 /* aquarium fish animation */setInterval(()=>{if(!window.TWFISH||twAt(you.pos.z)!==4)return;const t=performance.now()/1000;TWFISH.forEach(o=>{const a=o.a+t*o.s;o.f.position.z=o.z0+Math.sin(a)*o.r;o.f.rotation.y=Math.cos(a)>0?0:Math.PI;o.f.position.y+=Math.sin(t*2+o.a)*.002;});},50);
 
 setInterval(()=>{if(!window.TWFIRE||twAt(you.pos.z)!==4)return;const t=performance.now()/1000;TWFIRE.material.color.setRGB(1,.5+.15*Math.sin(t*7)+.1*Math.sin(t*13),.15);TWFIRE.scale.y=.85+.2*Math.abs(Math.sin(t*5));},80);
+
+setInterval(()=>{if(!window.TWMGR||twAt(you.pos.z)!==4)return;const t=performance.now()/1000;TWMGR.arms.forEach((a,i)=>{a.rotation.z=Math.sin(t*14+i*2.2)*.06-.02;});},70);
 function twFloorCtx(){const f=TWC.f,s=twF(f);return `<div class="ctx-head"><h3>${twType(f)===1?'🏢':'🏙️'} Lantai ${f} · ${twName(f)}</h3><small>${s.st==='kosong'?'Kosong · nilai '+fmtBig(twVal(f)):s.st==='cari'?'Sedang mencari penyewa...':s.st==='sewa'?'Disewa '+esc(s.ten)+' · '+fmtBig(s.rent)+'/hari':'Sudah dijual ke '+esc(s.buyer)}</small></div><div class="ctx-row"><button class="go" id="ctxGo">Kelola (E)</button></div>`;}
 function twGo(f){twBuild();TWC.f=f;const k=twType(f);if(twSign)redrawTex(twSign,twFloorSignDraw);const zc=twZ(k),lx=k===0?12:k===3?18:0;tpTo(lx,zc+TW.hd-3,Math.PI);cityVisK=null;
   banner(`🏙️ ${TW.n.toUpperCase()} · LANTAI ${f}<small>${twName(f)}</small>`,'',1500);}
