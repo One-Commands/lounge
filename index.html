@@ -3474,7 +3474,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v36.4';
+const GAME_VER='v37';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7320,6 +7320,156 @@ setTimeout(function fx364(){if(!started||!PF.eco36){setTimeout(fx364,3000);retur
 setInterval(()=>{try{if(!started)return;PF.tyW=PF.tyW||{};TYCOONS.forEach(n=>{const base=tyBase(n)+(PF.tyW[n]||0);PF.tyW[n]=(PF.tyW[n]||0)+Math.max(0,base)*.006;});
   const H=npcH();for(const n in H){let v=0;for(const id in H[n]){const a=assetOf(id);if(a)v+=H[n][id]*a.p;}if(v>0)oppW({n},v*.002);}
   (PF.rivals||[]).forEach(r=>{if(!TYCOONS.includes(r.n))r.w=Math.round(r.w*1.004);});}catch(e){}},60000);
+/* ================= v37: Kerajaan Baru (Bahari Samudra, Tianlong, Nubara, Andara, Nordheim) ================= */
+const K37=[
+  {id:'bahari',ic:'🌊',n:'Kesultanan Bahari Samudra',short:'Bahari Samudra',cap:'Bandar Seri Bahari',flag:['#f2c12e','#1f5fa8','#ffffff'],tix:3e6,cur:'Istana panggung, masjid tepi laut dan kampung air',raja:['Sultan Iskandar Bahari','Sultan Hamzah Laksamana','Sultan Mahmud Samudra'],min:4,pro:['ikan','kayu','sawit'],dem:['elek','mesin','mobil']},
+  {id:'tianlong',ic:'🐉',n:'Kekaisaran Tianlong',short:'Tianlong',cap:'Kota Naga Langit',flag:['#c8102e','#f2c12e'],tix:7e6,cur:'Pagoda, tembok naga dan istana terlarang',raja:['Kaisar Long Wei','Kaisar Zhao Ming','Kaisar Huang Tian'],min:6,pro:['elek','tekstil','mesin'],dem:['bara','timah','sawit','kayu']},
+  {id:'nubara',ic:'🏜️',n:'Kerajaan Nubara',short:'Nubara',cap:'Kemet Nubara',flag:['#1f3f8a','#f2c12e','#c8102e'],tix:5e6,cur:'Piramida, obelisk dan oasis di gurun',raja:['Firaun Amenkara','Ratu Nefertari Sena','Firaun Ramaset'],min:5,pro:['bara','tekstil'],dem:['kopi','ikan','kayu','elek']},
+  {id:'andara',ic:'🏔️',n:'Kerajaan Andara',short:'Andara',cap:'Intipata',flag:['#c8102e','#ffffff','#2f9e5a'],tix:6e6,cur:'Kota teras di pegunungan dan kuil matahari',raja:['Inka Pachaku','Inka Tupara','Ratu Ocllo Andara'],min:7,pro:['timah','kopi','karet'],dem:['mesin','mobil','elek','ikan']},
+  {id:'nordheim',ic:'❄️',n:'Kerajaan Nordheim',short:'Nordheim',cap:'Fjordvik',flag:['#1f3f8a','#f2c12e','#ffffff'],tix:8e6,cur:'Rumah panjang, fjord bersalju dan kapal naga',raja:['Raja Haraldur','Ratu Sigrun','Raja Eirik Fjord'],min:8,pro:['ikan','kayu','mesin'],dem:['kopi','rempah','sawit','tekstil']}];
+K37.forEach(K=>{ZN.push({id:K.id,n:`${K.ic} ${K.n}`,sp:[0,62,Math.PI],tix:K.tix,cap:K.cap,flag:K.flag,cur:K.cur});
+  if(!KDS.find(x=>x[0]===K.id))KDS.push([K.id,K.ic,K.short,K.raja]);
+  if(typeof EI_PORTS!=='undefined'&&!EI_PORTS.find(p=>p[0]===K.id))EI_PORTS.push([K.id,K.ic,K.short,K.min,K.pro,K.dem]);});
+WS=(f=>function(){const w=f.apply(this,arguments);try{KDS.forEach(([id],i)=>{if(!w.k[id])w.k[id]={pow:1000+i*90+Math.round(Math.random()*400),wil:6,raja:0,gen:1};});}catch(e){}return w;})(WS);
+/* shared cheap geometry/material helpers */
+const K7={};
+function k7m(c){return K7['m'+c]||(K7['m'+c]=mat(c));}
+function k7B(G,w,h,d,c,x,y,z,col,ry){const m=new THREE.Mesh(K7.box||(K7.box=new THREE.BoxGeometry(1,1,1)),k7m(c));m.scale.set(w,h,d);m.position.set(x,y,z);if(ry)m.rotation.y=ry;G.add(m);
+  if(col){const cc=Math.abs(Math.cos(ry||0)),ss=Math.abs(Math.sin(ry||0)),hw=(cc*w+ss*d)/2,hd=(ss*w+cc*d)/2;colliders.push({x0:x-hw,x1:x+hw,z0:z-hd,z1:z+hd,top:y+h/2});}return m;}
+function k7Cone(G,r,h,c,x,y,z,seg,ry){const m=new THREE.Mesh(K7['cone'+seg]||(K7['cone'+seg]=new THREE.ConeGeometry(1,1,seg||4)),k7m(c));m.scale.set(r,h,r);m.position.set(x,y,z);m.rotation.y=ry==null?Math.PI/4:ry;G.add(m);return m;}
+function k7Cyl(G,r,h,c,x,y,z,seg){const m=new THREE.Mesh(K7['cyl'+(seg||10)]||(K7['cyl'+(seg||10)]=new THREE.CylinderGeometry(1,1,1,seg||10)),k7m(c));m.scale.set(r,h,r);m.position.set(x,y,z);G.add(m);return m;}
+function k7Sph(G,r,c,x,y,z,sy){const m=new THREE.Mesh(K7.sph||(K7.sph=new THREE.SphereGeometry(1,14,10)),k7m(c));m.scale.set(r,r*(sy||1),r);m.position.set(x,y,z);G.add(m);return m;}
+// gable roof: ridge along local x
+function k7Gable(G,w,d,h,c,x,y,z,ry){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=ry||0;G.add(g);const a=Math.atan2(h,d/2),L=Math.hypot(h,d/2)+.3;
+  [1,-1].forEach(s=>{const m=new THREE.Mesh(K7.box||(K7.box=new THREE.BoxGeometry(1,1,1)),k7m(c));m.scale.set(w,.28,L);m.rotation.x=-s*a;m.position.set(0,h/2,s*-d/4);g.add(m);});return g;}
+function k7Person(G,x,z,ry,shirt,crown){const p=miniPerson(G,x,z,ry,shirt);if(crown){const c=new THREE.Mesh(K7.box||(K7.box=new THREE.BoxGeometry(1,1,1)),k7m(0xf2c12e));c.scale.set(.62,.22,.62);c.position.y=2.66;p.add(c);}return p;}
+function k7Stall(G,x,z,ry,cloth){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry||0;G.add(g);k7B(g,3.4,1,1.6,0x8a6a44,0,.5,0);[[-1.6,-.7],[1.6,-.7],[-1.6,.7],[1.6,.7]].forEach(([a,b])=>k7B(g,.12,2.6,.12,0x5a4030,a,1.3,b));k7B(g,3.8,.15,2,cloth,0,2.65,0);
+  for(let i=0;i<4;i++)k7B(g,.5,.4,.5,[0xd8435b,0xf2a33a,0x2f9e5a,0xe8e0d0][i],-1.2+i*.8,1.2,0);k7Person(g,0,-1.3,0);colliders.push({x0:x-1.9,x1:x+1.9,z0:z-1,z1:z+1,top:2.7});}
+function k7Common(G,zc,k,K,o){o=o||{};
+  // kingdom office: info, valas, ekspor
+  const mx=o.mx==null?24:o.mx,mz=o.mz==null?32:o.mz;
+  stationAdd('kdm',mx,zc+mz,0,'Pasar '+K.short,{useDist:4,verb:'Pasar',act:()=>xOpen('ekspor'),ctx:()=>k7Ctx(K),btn:'PASAR'});
+  flag(G,-10,zc+70,K.flag);flag(G,10,zc+70,K.flag);
+  const sh=[0x2f6fe0,0xd8435b,0x2f9e5a,0xf2a33a,0x8a4a9e,0xe8e0d0];
+  for(let i=0;i<12;i++)addWalker(G,o.walk||[[-30,zc+40],[30,zc+40],[0,zc+20],[-40,zc+60],[40,zc+60],[20,zc+50],[-20,zc+10]]);
+  (o.guards||[[-5,zc-22],[5,zc-22]]).forEach(([x,z])=>k7Person(G,x,z,0,o.guardC||0x8a1a1a));
+  zGate(G,zc,k,'BANDARA '+K.short.toUpperCase());}
+function k7Ctx(K){const s=WS().k[K.id]||{},c=fxOfK(K.id),F=typeof fxS==='function'?fxS():null,war=atWar(K.id);
+  return `<div class="ctx-head"><h3>${K.ic} ${esc(K.n)}</h3><small>Raja: ${esc(kdRaja(K.id))} · Ibu kota ${esc(K.cap)}${c&&F?` · 1 ${c} = 🪙 ${fmt(Math.round(F.r[c]*100)/100)}`:''}${war?' · ⚔️ sedang perang':''}</small></div>
+  <div class="ctx-row">${bzB('xK7Ex',K.id,'🚢 Ekspor ke sini')}${bzB('xK7Fx','','💱 Valas')}${bzB('xK7War','','⚔️ Info perang',1)}</div>`;}
+XA.xK7Ex=id=>{if(typeof EIU!=='undefined'){EIU.tab='pasar';EIU.mode='ex';EIU.port=id;EIU.g=null;}xOpen('ekspor');};
+XA.xK7Fx=()=>xOpen('valas');
+XA.xK7War=()=>{if(XV.perang)xOpen('perang');else openMgrOffice('war');};
+function k7Palace(K,x,z){stationAdd('kdp',x,z,0,'Istana '+K.short,{useDist:4.5,verb:'Istana',act:()=>xOpen('perang'),ctx:()=>k7Ctx(K),btn:'ISTANA'});}
+/* ---------- 1. Bahari Samudra (Melayu: rumah panggung, masjid kubah, kampung air) ---------- */
+function k7Stilt(G,x,z,ry,v){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;G.add(g);const wood=[0x8a5a34,0x9a6a40,0x7a4a2a][v%3],roof=[0x5a3420,0x3a5a2a,0x6a2a1a][v%3];
+  [[-3,-2.2],[3,-2.2],[-3,2.2],[3,2.2],[0,-2.2],[0,2.2]].forEach(([a,b])=>k7B(g,.3,2.2,.3,0x4a3020,a,1.1,b));k7B(g,7,.3,5,0x6a4a2a,0,2.3,0);k7B(g,6.4,2.6,4.4,wood,0,3.75,0);
+  k7Gable(g,7.6,5.4,2.8,roof,0,5.05,0);k7B(g,1,2,.1,0x3a2414,0,3.5,2.25);[-2,2].forEach(a=>k7B(g,1,.9,.08,0xf2e6c8,a,4,2.25));
+  for(let i=0;i<4;i++)k7B(g,1.2,.15,.5,0x6a4a2a,0,.3+i*.55,3+i*.45);colliders.push({x0:x-3.6,x1:x+3.6,z0:z-2.6,z1:z+2.6,top:7});}
+ZB.bahari=(G,zc,k)=>{const K=K37[0];G.userData.noDress=1;const T=kTex();zGround(G,zc,0,T.grass);zSea(G,zc,-100,-40,0x1a8aa8);
+  gplane(G,12,130,new THREE.MeshLambertMaterial({color:0xd8c8a0}),0,zc+25,.01);gplane(G,200,10,new THREE.MeshLambertMaterial({color:0xe8d8a8}),0,zc-35,.012);
+  // water village on stilts over the sea + boardwalk
+  for(let i=0;i<8;i++){const x=-90+i*24;k7Stilt(G,x,zc-52-(i%2)*10,0,i);}k7B(G,190,.3,2.4,0x7a5a3a,0,.4,zc-44);
+  const boats=[];for(let i=0;i<6;i++){const b=new THREE.Group();b.position.set(-80+i*30,0,zc-75-(i%3)*6);G.add(b);k7B(b,1.6,.8,6,[0xd8435b,0x2f6fe0,0xf2c12e][i%3],0,.3,0);k7B(b,.12,3.4,.12,0x5a4030,0,2,0);k7B(b,.08,2.4,2.2,0xf2e6c8,.1,2.6,.4);boats.push(b);}
+  zAnim.push({k,f:()=>{const t=performance.now()/1000;boats.forEach((b,i)=>{b.position.y=Math.sin(t*1.3+i)*.12;b.rotation.z=Math.sin(t+i)*.05;});}});
+  // land houses
+  let v=0;for(const z of [8,32,56])for(const x of [-90,-72,-54,-36,36,54,72,90]){k7Stilt(G,x,zc+z,(x<0?1:-1)*Math.PI/2,v++);}
+  // grand mosque with gold dome and minarets
+  {const x=-55,z=zc-15;k7B(G,26,1,26,0xe8e0d0,x,.5,z,true);k7B(G,18,9,18,0xf4efe6,x,5.5,z,true);k7Cyl(G,7,2,0xf4efe6,x,11,z,16);k7Sph(G,7,0xf2c12e,x,12,z,.9);k7Cone(G,.7,3,0xf2c12e,x,20,z,8);
+    [[-11,-11],[11,-11],[-11,11],[11,11]].forEach(([a,b])=>{k7Cyl(G,1.1,20,0xf4efe6,x+a,10,z+b,10);k7Cyl(G,1.5,1,0x1f7a45,x+a,16,z+b,10);k7Cone(G,1.2,3,0x1f7a45,x+a,21.5,z+b,10);});
+    for(let i=-2;i<=2;i++)k7B(G,1.8,4.2,.1,0x1f5f3a,x+i*3.4,5,z+9.06);G.add(neon('MASJID AGUNG BAHARI',x,10.6,z+9.3,0,'#ffffff','#7dffb0',12,1.1));}
+  // istana panggung (multi-tier roof)
+  {const x=40,z=zc-14;[[-8,-6],[8,-6],[-8,6],[8,6],[0,-6],[0,6],[-4,0],[4,0]].forEach(([a,b])=>k7B(G,.6,3,.6,0x4a3020,x+a,1.5,z+b));k7B(G,22,.5,16,0x6a4a2a,x,3.2,z,true);k7B(G,20,4.2,13,0x9a6a40,x,5.5,z,true);
+    k7Gable(G,23,15,4.4,0x5a3420,x,7.6,z);k7B(G,12,2.4,8,0x9a6a40,x,11.4,z);k7Gable(G,14,9.4,3.4,0xf2c12e,x,12.6,z);for(let i=0;i<6;i++)k7B(G,4,.4,1.2,0x6a4a2a,x,.4+i*.5,z+8.6+i*.9);
+    G.add(neon('ISTANA BAHARI',x,9.3,z+7.2,0,'#ffffff','#ffd25f',10,1.1));k7Person(G,x,z+5.2,0,0xf2c12e,1);k7Palace(K,x,z+12.6);}
+  for(let i=0;i<10;i++){palm(G,-100+i*22,zc+78,.9);}
+  [[18,zc+26,0],[-18,zc+26,0],[18,zc+44,0],[-18,zc+44,0]].forEach(([x,z,r],i)=>k7Stall(G,x,z,r,[0xf2c12e,0x1f5fa8,0x2f9e5a,0xd8435b][i]));
+  k7Common(G,zc,k,K,{guardC:0x1f5fa8});};
+/* ---------- 2. Tianlong (pagoda, tembok naga, gerbang paifang) ---------- */
+function k7Pagoda(G,x,z,tiers,c,roof){const s=new THREE.Group();s.position.set(x,0,z);G.add(s);let y=0;for(let i=0;i<tiers;i++){const w=8-i*1.1;k7B(s,w,3,w,c,0,y+1.5,0);k7B(s,w+3.2,.5,w+3.2,roof,0,y+3.2,0);[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>k7B(s,.8,.5,.8,roof,a*(w/2+1.6),y+3.5,b*(w/2+1.6)));y+=3.5;}
+  k7Cyl(s,.25,4,0xf2c12e,0,y+2,0,6);colliders.push({x0:x-4,x1:x+4,z0:z-4,z1:z+4,top:y});}
+function k7Court(G,x,z,ry,v){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;G.add(g);k7B(g,9,.4,7,0x7a7a7a,0,.2,0);k7B(g,8,3.2,6,[0xe8dcc8,0xd8c8b0][v%2],0,2,0);[[-3.8,2.9],[3.8,2.9],[-3.8,-2.9],[3.8,-2.9]].forEach(([a,b])=>k7B(g,.4,3.4,.4,0xc8102e,a,2,b));
+  k7B(g,10,.35,8,0x2a2a32,0,3.8,0);k7B(g,6.5,.9,5,0x2a2a32,0,4.4,0);k7B(g,1.4,2.4,.1,0xc8102e,0,1.6,3.05);k7Sph(g,.4,0xd8202e,-2.4,3,3.4);k7Sph(g,.4,0xd8202e,2.4,3,3.4);colliders.push({x0:x-4.6,x1:x+4.6,z0:z-4,z1:z+4,top:5});}
+ZB.tianlong=(G,zc,k)=>{const K=K37[1];G.userData.noDress=1;const T=kTex();zGround(G,zc,0x7a7a72);gplane(G,16,160,new THREE.MeshLambertMaterial({color:0xb8b0a0}),0,zc+10,.01);
+  // dragon wall (long red wall with a snaking gold-green dragon)
+  {const z=zc-70;k7B(G,180,7,2,0xb01a28,0,3.5,z,true);k7B(G,184,.8,3,0x2a2a32,0,7.4,z);for(let i=0;i<60;i++){const x=-88+i*3;k7B(G,3.1,1.2,.4,i%2?0xf2c12e:0x2f9e5a,x,3.6+Math.sin(i*.45)*1.8,z+1.2);}k7Sph(G,1.4,0xf2c12e,88,3.6+Math.sin(60*.45)*1.8,z+1.4);}
+  // forbidden palace on terraces
+  {const x=0,z=zc-40;k7B(G,50,1.2,26,0xd8d0c0,x,.6,z,true);k7B(G,40,1.2,20,0xe8e0d0,x,1.8,z,true);k7B(G,32,8,14,0xb01a28,x,6.4,z,true);for(let i=-7;i<=7;i++)k7B(G,.8,8,.8,0x8a1020,x+i*2.2,6.4,z+7.2);
+    k7B(G,38,.8,20,0xf2c12e,x,10.8,z);k7B(G,28,2.4,12,0xb01a28,x,12.6,z);k7B(G,32,.7,16,0xf2c12e,x,14.1,z);for(let i=0;i<5;i++)k7B(G,14,.5,1.4,0xd8d0c0,x,.25+i*.5,z+13+i*1.3);
+    G.add(neon('ISTANA NAGA LANGIT',x,9.4,z+7.7,0,'#ffffff','#ffd25f',14,1.2));k7Person(G,x,z+9,0,0xf2c12e,1);k7Palace(K,x,z+20);}
+  k7Pagoda(G,-60,zc-30,7,0xb01a28,0x2a2a32);k7Pagoda(G,60,zc-30,5,0xb01a28,0x1f5a3a);
+  // paifang gate
+  {const z=zc+58;[-7,-2.4,2.4,7].forEach(a=>k7B(G,.9,8,.9,0xb01a28,a,4,z,true));k7B(G,17,1.2,1.6,0x2a2a32,0,8.6,z);k7B(G,9,1,1.4,0x2a2a32,0,10,z);k7B(G,6,1.4,.3,0xf2c12e,0,7.4,z+.9);G.add(neon('天龍 TIANLONG',0,7.4,z+1.1,0,'#c8102e','#ffd25f',6,1.1));}
+  let v=0;for(const z of [-2,22,46])for(const x of [-92,-76,-60,-40,40,60,76,92])k7Court(G,x,zc+z,x<0?Math.PI/2:-Math.PI/2,v++);
+  // lantern lines
+  for(let i=0;i<14;i++){const z=zc+70-i*8;[-9,9].forEach(a=>{k7B(G,.15,3.6,.15,0x333333,a,1.8,z);k7Sph(G,.55,0xe8202e,a,3.9,z,1.2);});}
+  [[20,zc+30,0],[-20,zc+30,0],[20,zc+46,0],[-20,zc+46,0]].forEach(([x,z,r],i)=>k7Stall(G,x,z,r,[0xc8102e,0xf2c12e,0xc8102e,0x2f9e5a][i]));
+  // cherry-plum trees
+  for(let i=0;i<12;i++){const x=(i%2?1:-1)*(18+(i*7)%20),z=zc-6+(i*11)%60;k7Cyl(G,.3,3,0x5a3a2a,x,1.5,z,6);k7Sph(G,2,i%3?0xf2a0b8:0xffc0d0,x,4,z);}
+  k7Common(G,zc,k,K,{guardC:0xb01a28,guards:[[-6,zc-24],[6,zc-24],[-6,zc+56],[6,zc+56]]});};
+/* ---------- 3. Nubara (piramida, obelisk, oasis, rumah bata lumpur) ---------- */
+function k7Mud(G,x,z,v){const h=3+(v%3);k7B(G,7,h,6,[0xd8b88a,0xc8a070,0xe0c8a0][v%3],x,h/2,z,true);k7B(G,7.4,.4,6.4,0xb89060,x,h+.2,z);k7B(G,1.2,2,.1,0x4a3020,x,1,z+3.05);k7B(G,.8,.6,.1,0x2a1a10,x-2.2,h-1,z+3.05);k7B(G,.8,.6,.1,0x2a1a10,x+2.2,h-1,z+3.05);if(v%2)k7B(G,2,1.4,2,0xd8b88a,x+2,h+.7,z-1.5);}
+ZB.nubara=(G,zc,k)=>{const K=K37[2];G.userData.noDress=1;const sand=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#e0c48a';q.fillRect(0,0,w,h);for(let i=0;i<600;i++){q.fillStyle=`rgba(${Math.random()<.5?'255,236,190':'170,130,80'},.45)`;q.fillRect(Math.random()*w,Math.random()*h,2,2);}});sand.wrapS=sand.wrapT=THREE.RepeatWrapping;sand.repeat.set(24,24);
+  zGround(G,zc,0,sand);gplane(G,12,150,new THREE.MeshLambertMaterial({color:0xc8b080}),0,zc+15,.01);
+  // great pyramids
+  [[-55,-62,34,26],[0,-72,44,34],[55,-62,30,22]].forEach(([x,z,s,h])=>{const p=k7Cone(G,s*.71,h,0xd8b880,x,h/2,zc+z,4);colliders.push({x0:x-s/2,x1:x+s/2,z0:zc+z-s/2,z1:zc+z+s/2,top:h});k7Cone(G,s*.71*.12,h*.12,0xf2c12e,x,h-h*.06,zc+z,4);});
+  // sphinx-like lion guardian (original blocky design)
+  {const x=-30,z=zc-28;k7B(G,5,3,12,0xd0b078,x,1.5,z,true);k7B(G,4,4,4,0xd0b078,x,4.5,z+5);k7B(G,4.6,3,2,0x1f3f8a,x,5,z+3.6);k7B(G,1.4,1.2,4,0xd0b078,x-1.6,.6,z+7.5);k7B(G,1.4,1.2,4,0xd0b078,x+1.6,.6,z+7.5);}
+  // temple palace with columns
+  {const x=30,z=zc-24;k7B(G,30,1.4,20,0xe8d8b0,x,.7,z,true);k7B(G,24,9,12,0xe0c898,x,5.9,z-2,true);for(let i=0;i<8;i++){k7Cyl(G,.9,9,0xf2e6c8,x-10.5+i*3,5.9,z+6,10);k7B(G,2.2,.6,2.2,0xf2c12e,x-10.5+i*3,10.6,z+6);}k7B(G,26,1.4,16,0xd8c08a,x,11.6,z);
+    G.add(neon('ISTANA KEMET',x,9,z+4.2,0,'#ffffff','#ffd25f',10,1.1));k7Person(G,x,z+3,0,0xf2e6c8,1);k7Palace(K,x,z+11);}
+  // obelisks along avenue
+  for(let i=0;i<4;i++)[-9,9].forEach(a=>{const z=zc+60-i*16;k7B(G,1.2,10,1.2,0xd0b078,a,5,z,true);k7Cone(G,.85,1.6,0xf2c12e,a,10.8,z,4);});
+  // oasis
+  {const x=60,z=zc+40;const w=new THREE.Mesh(new THREE.CircleGeometry(12,24),new THREE.MeshLambertMaterial({color:0x2a9ac0}));w.rotation.x=-Math.PI/2;w.position.set(x,.03,z);G.add(w);seaBlock(x-9,x+9,z-9,z+9);for(let i=0;i<9;i++){const a=i/9*Math.PI*2;palm(G,x+Math.cos(a)*14,z+Math.sin(a)*14,1);}}
+  let v=0;for(const z of [12,30,50])for(const x of [-95,-82,-69,-56,-43])k7Mud(G,x,zc+z,v++);for(const z of [6,22])for(const x of [28,42])k7Mud(G,x,zc+z,v++);
+  // camels (blocky)
+  const cam=[];for(let i=0;i<4;i++){const c=new THREE.Group();G.add(c);k7B(c,1,1.4,2.6,0xb8905a,0,2.2,0);k7B(c,.9,.8,1,0xa8804a,0,3.2,0);k7B(c,.5,1.6,.5,0xb8905a,0,3,1.4);k7B(c,.6,.5,.9,0xb8905a,0,3.9,1.8);[[-.35,-1],[.35,-1],[-.35,1],[.35,1]].forEach(([a,b])=>k7B(c,.25,1.6,.25,0xa8804a,a,.8,b));cam.push(c);}
+  zAnim.push({k,f:()=>{const t=performance.now()/1000;cam.forEach((c,i)=>{const a=t*.08+i*1.6;c.position.set(-20+Math.cos(a)*70,0,zc+30+Math.sin(a)*30);c.rotation.y=-a;});}});
+  [[20,zc+52,0],[-20,zc+52,0],[20,zc+36,0],[-20,zc+36,0]].forEach(([x,z,r],i)=>k7Stall(G,x,z,r,[0x1f3f8a,0xf2c12e,0xc8102e,0xf2e6c8][i]));
+  k7Common(G,zc,k,K,{guardC:0x1f3f8a,mz:44});};
+/* ---------- 4. Andara (teras gunung, rumah batu, kuil matahari, llama) ---------- */
+ZB.andara=(G,zc,k)=>{const K=K37[3];G.userData.noDress=1;const T=kTex();zGround(G,zc,0,T.grass);gplane(G,10,140,new THREE.MeshLambertMaterial({color:0x9a9488}),0,zc+20,.01);
+  // mountains backdrop
+  [[-80,-90,40,60],[-30,-95,34,70],[30,-92,38,64],[85,-88,30,52]].forEach(([x,z,r,h])=>{k7Cone(G,r,h,0x6a6a62,x,h/2,zc+z,7,0);k7Cone(G,r*.32,h*.32,0xf4f4f4,x,h-h*.16,zc+z,7,0);});
+  // stepped farming terraces on both sides
+  for(let s=0;s<2;s++)for(let i=0;i<6;i++){const x=(s?1:-1)*(70-i*2),y=.5+i*.9,z=zc-40+i*7;k7B(G,40-i*3,y*2,7,0x7a6a58,x,y,z,true);gplane(G,38-i*3,6.2,new THREE.MeshLambertMaterial({color:i%2?0x6fae4a:0x8ac850}),x,z,y*2+.02);}
+  // sun temple: stepped stone platform with gold sun disk
+  {const x=0,z=zc-48;for(let i=0;i<6;i++)k7B(G,36-i*5,2,30-i*4,0x8a8478,x,1+i*2,z,true);k7B(G,8,6,6,0x9a948a,x,15,z,true);const sun=new THREE.Mesh(new THREE.CircleGeometry(3.4,24),new THREE.MeshBasicMaterial({color:0xf2c12e,side:THREE.DoubleSide}));sun.position.set(x,15,z+3.05);G.add(sun);
+    for(let i=0;i<6;i++)k7B(G,6,.5,1.6,0x8a8478,x,.25+i*.5,z+15+i*1.4);G.add(neon('KUIL INTI',x,10,z+12.2,0,'#ffffff','#ffd25f',8,1));k7Person(G,x,z+10.5,0,0xc8102e,1);k7Palace(K,x,z+24);
+    zAnim.push({k,f:()=>{sun.rotation.z+=.004;}});}
+  // stone houses with thatch roofs
+  let v=0;for(const z of [8,26,44,62])for(const x of [-56,-42,-28,28,42,56]){k7B(G,8,3.2,6,[0x9a948a,0x8a8478,0xa8a296][v%3],x,1.6,zc+z,true);k7Cone(G,6.2,3.4,0xc8a050,x,4.9,zc+z,4);k7B(G,1.2,2,.1,0x3a2a1a,x,1,zc+z+3.05);v++;}
+  // llamas wandering
+  const lm=[];for(let i=0;i<6;i++){const c=new THREE.Group();G.add(c);k7B(c,.8,.9,1.6,[0xf2ece0,0xa8805a,0x5a4030][i%3],0,1.3,0);k7B(c,.35,1.4,.35,[0xf2ece0,0xa8805a,0x5a4030][i%3],0,2.2,.7);k7B(c,.4,.4,.6,0xf2ece0,0,2.9,.9);[[-.25,-.6],[.25,-.6],[-.25,.6],[.25,.6]].forEach(([a,b])=>k7B(c,.18,.9,.18,0x4a3a2a,a,.45,b));lm.push(c);}
+  zAnim.push({k,f:()=>{const t=performance.now()/1000;lm.forEach((c,i)=>{const a=t*.12+i;c.position.set((i%2?60:-60)+Math.cos(a)*12,0,zc+10+Math.sin(a*1.3)*10+i*3);c.rotation.y=-a;});}});
+  [[16,zc+34,0],[-16,zc+34,0],[16,zc+50,0],[-16,zc+50,0]].forEach(([x,z,r],i)=>k7Stall(G,x,z,r,[0xc8102e,0x2f9e5a,0xf2c12e,0x8a4a9e][i]));
+  k7Common(G,zc,k,K,{guardC:0xc8102e,mx:16,mz:20});};
+/* ---------- 5. Nordheim (rumah panjang, fjord, kapal naga, pinus bersalju, salju turun) ---------- */
+function k7Pine(G,x,z,s){k7Cyl(G,.35*s,2*s,0x4a3020,x,s,z,6);for(let i=0;i<3;i++){k7Cone(G,(2.6-i*.7)*s,2.4*s,0x1f4a2a,x,(2.4+i*1.5)*s,z,8,0);k7Cone(G,(1.2-i*.3)*s,.8*s,0xf4f8ff,x,(3.4+i*1.5)*s,z,8,0);}}
+function k7Long(G,x,z,ry,v){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;G.add(g);k7B(g,14,3,6,[0x6a4a2a,0x5a3a20,0x7a5a3a][v%3],0,1.5,0);k7Gable(g,15,7.2,3.6,0x3a2a1a,0,3,0);k7Gable(g,15.2,7.4,3.7,0xf4f8ff,0,3.12,0);
+  [-7.4,7.4].forEach(a=>{k7B(g,.3,2.2,.3,0x4a3020,a,6.4,0);k7B(g,.3,.3,1.2,0x4a3020,a,7.4,a>0?.4:-.4);});k7B(g,1.4,2.2,.1,0x2a1a10,0,1.1,3.05);colliders.push({x0:x-(ry?3.2:7.2),x1:x+(ry?3.2:7.2),z0:z-(ry?7.2:3.2),z1:z+(ry?7.2:3.2),top:7});}
+ZB.nordheim=(G,zc,k)=>{const K=K37[4];G.userData.noDress=1;zGround(G,zc,0xeef2f6);zSea(G,zc,-100,-38,0x1f4a6a);gplane(G,10,140,new THREE.MeshLambertMaterial({color:0xc8ccd2}),0,zc+20,.01);
+  // fjord cliffs
+  [[-105,-70],[105,-70]].forEach(([x,z])=>{k7B(G,14,30,60,0x5a5f66,x,15,zc+z,true);k7B(G,14.4,2,60.4,0xf4f8ff,x,30.5,zc+z);});
+  // dragon longships
+  const ships=[];for(let i=0;i<3;i++){const s=new THREE.Group();s.position.set(-40+i*40,0,zc-60-i*8);G.add(s);k7B(s,2.6,1.4,14,0x6a4a2a,0,.5,0);k7B(s,.4,2.6,.4,0x6a4a2a,0,1.6,7.4);k7B(s,.6,.6,1.4,0x6a4a2a,0,3,7.8);k7B(s,.15,7,.15,0x4a3020,0,4.4,0);
+    for(let j=0;j<5;j++)k7B(s,.08,1,5,j%2?0xc8102e:0xf4f4f4,.15,6.8-j,0);for(let j=0;j<5;j++)[-1.4,1.4].forEach(a=>k7Cyl(s,.5,.1,[0xc8102e,0xf2c12e,0x1f3f8a][j%3],a,1.2,-4+j*2,10));ships.push(s);}
+  zAnim.push({k,f:(dt)=>{const t=performance.now()/1000;ships.forEach((s,i)=>{s.position.y=Math.sin(t+i)*.15;s.rotation.z=Math.sin(t*.8+i)*.04;});if(K7.snow){const P=K7.snow.geometry.attributes.position,a=P.array;for(let i=0;i<a.length;i+=3){a[i+1]-=dt*3;a[i]+=Math.sin(t+i)*.01;if(a[i+1]<0)a[i+1]=30;}P.needsUpdate=true;}}});
+  // great hall (palace)
+  {const x=0,z=zc-18;k7B(G,40,2,22,0x7a7a72,x,1,z,true);k7B(G,34,8,16,0x5a3a20,x,6,z,true);k7Gable(G,36,18,9,0x3a2a1a,x,10,z);k7Gable(G,36.2,18.2,9.1,0xf4f8ff,x,10.15,z);[-17.6,17.6].forEach(a=>{k7B(G,.6,5,.6,0x4a3020,x+a,20.5,z);k7B(G,.6,.6,2.6,0xf2c12e,x+a,23,z+1);});
+    k7B(G,5,6,.2,0x2a1a10,x,5,z+8.1);for(let i=-3;i<=3;i++)if(i)k7Cyl(G,1,.15,[0xc8102e,0xf2c12e,0x1f3f8a][(i+3)%3],x+i*4,6,z+8.2,12).rotation.x=Math.PI/2;
+    G.add(neon('AULA AGUNG FJORDVIK',x,12.5,z+8.4,0,'#ffffff','#7df3ff',14,1.2));k7Person(G,x,z+10.5,0,0x1f3f8a,1);k7Palace(K,x,z+15);}
+  let v=0;for(const z of [12,34,56])for(const x of [-80,-58,58,80])k7Long(G,x,zc+z,0,v++);k7Long(G,-36,zc+66,Math.PI/2,v++);k7Long(G,36,zc+66,Math.PI/2,v++);
+  // standing stones circle
+  for(let i=0;i<9;i++){const a=i/9*Math.PI*2;k7B(G,1.2,4+(i%3),1,0x8a8f96,-60+Math.cos(a)*9,2.2,zc-28+Math.sin(a)*9,true,a);}
+  for(let i=0;i<26;i++){const x=(i%2?1:-1)*(22+(i*13)%70),z=zc-30+(i*17)%100;if(Math.abs(x)<26&&z>zc+0)continue;k7Pine(G,x,z,.9+(i%3)*.2);}
+  // falling snow
+  {const n=500,a=new Float32Array(n*3);for(let i=0;i<n;i++){a[i*3]=(Math.random()-.5)*200;a[i*3+1]=Math.random()*30;a[i*3+2]=zc+(Math.random()-.5)*180;}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(a,3));
+    const p=new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:.35,transparent:true,opacity:.85}));p.frustumCulled=false;G.add(p);K7.snow=p;}
+  [[16,zc+30,0],[-16,zc+30,0],[16,zc+46,0],[-16,zc+46,0]].forEach(([x,z,r],i)=>k7Stall(G,x,z,r,[0x1f3f8a,0xc8102e,0xf2c12e,0x2f9e5a][i]));
+  k7Common(G,zc,k,K,{guardC:0x1f3f8a});};
+
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
