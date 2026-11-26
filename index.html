@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v59';
+const GAME_VER='v60';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9629,6 +9629,45 @@ function openDpWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
 xView('dp59',{t:'Diplomasi',s:'Diplomasi',ic:'🕊️',bg:'linear-gradient(135deg,#2f6fd6,#9ad0ff)',dot:()=>dpS().dec.length,r:()=>{setTimeout(()=>{if(phView==='dp59'){phView='home';closePhone();openDpWin();}},20);return '<p class="muted">Membuka Diplomasi...</p>';}});
 /* a station in the throne hall grounds: the royal council chamber */
 gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{stationAdd('gkdip',GK.X+14,GK.Z+131,0,'Balai Diplomasi',{useDist:4,verb:'Diplomasi',btn:'DIPLOMASI',act:()=>openDpWin(dpS().dec.length?'dewan':'hub'),ctx:()=>`<div class="ctx-head"><h3>🕊️ Balai Diplomasi</h3><small>${dpS().dec.length?dpS().dec.length+' usulan dewan menunggu':'Utusan, pakta, aliansi, dagang, pernikahan'}</small></div>`});}catch(e){}return g;})(gkBuild);
+
+/* ================= v60: poles & performa — gabung mesh statis istana, navigasi kerajaan terpadu ================= */
+/* merge static meshes that share a material into one mesh per area, which cuts draw calls a lot */
+function v60Merge(root,skip){try{root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),groups=new Map(),m4=new THREE.Matrix4(),nm=new THREE.Matrix3();
+  const skipped=o=>{for(let p=o;p&&p!==root;p=p.parent){if(skip.has(p)||p.visible===false)return true;}return false;};
+  root.traverse(o=>{if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||Array.isArray(o.material))return;const m=o.material,g=o.geometry;if(!m||!g||!g.isBufferGeometry||m.transparent||!g.attributes.position||!g.attributes.normal||g.morphAttributes&&Object.keys(g.morphAttributes).length)return;
+    if(o.onBeforeRender&&o.onBeforeRender.toString().length>30)return;if(skipped(o))return;const wp=new THREE.Vector3().setFromMatrixPosition(o.matrixWorld),uv=!!g.attributes.uv;
+    const mk=m.type+(m.color?m.color.getHexString():'')+(m.emissive?m.emissive.getHexString():'')+(m.map?m.map.uuid:'')+(m.emissiveMap?m.emissiveMap.uuid:'')+m.side+(m.flatShading?1:0)+(m.vertexColors?1:0)+(m.roughness!=null?m.roughness+','+m.metalness:'')+(m.fog?1:0)+(m.wireframe?1:0)+(m.depthWrite?1:0)+(m.polygonOffset?1:0);const key=mk+'|'+uv+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+'|'+Math.floor(wp.x/70)+','+Math.floor(wp.z/70);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(o);});
+  let before=0,after=0;groups.forEach(list=>{before+=list.length;if(list.length<2){after+=list.length;return;}
+    let n=0;const parts=list.map(o=>{const gg=o.geometry.index?o.geometry.toNonIndexed():o.geometry;n+=gg.attributes.position.count;return [o,gg];});
+    const P=new Float32Array(n*3),N=new Float32Array(n*3),hasUV=!!list[0].geometry.attributes.uv,U=hasUV?new Float32Array(n*2):null,v=new THREE.Vector3();let off=0;
+    parts.forEach(([o,gg])=>{m4.multiplyMatrices(inv,o.matrixWorld);nm.getNormalMatrix(m4);const pa=gg.attributes.position,na=gg.attributes.normal,ua=gg.attributes.uv;
+      for(let i=0;i<pa.count;i++){v.fromBufferAttribute(pa,i).applyMatrix4(m4);P[(off+i)*3]=v.x;P[(off+i)*3+1]=v.y;P[(off+i)*3+2]=v.z;v.fromBufferAttribute(na,i).applyMatrix3(nm).normalize();N[(off+i)*3]=v.x;N[(off+i)*3+1]=v.y;N[(off+i)*3+2]=v.z;if(U&&ua){U[(off+i)*2]=ua.getX(i);U[(off+i)*2+1]=ua.getY(i);}}
+      off+=pa.count;if(gg!==o.geometry)gg.dispose();});
+    const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.BufferAttribute(P,3));G.setAttribute('normal',new THREE.BufferAttribute(N,3));if(U)G.setAttribute('uv',new THREE.BufferAttribute(U,2));G.computeBoundingSphere();
+    const M=new THREE.Mesh(G,list[0].material);M.castShadow=list[0].castShadow;M.receiveShadow=list[0].receiveShadow;M.matrixAutoUpdate=false;root.add(M);M.updateMatrix();
+    list.forEach(o=>{o.parent&&o.parent.remove(o);});after++;});
+  return [before,after];}catch(e){console.error('v60merge',e);return [0,0];}}
+const V60={gk:null,gp:null};
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{const skip=new Set();GK.pat.forEach(P=>skip.add(P.grp));(GK.spin||[]).forEach(s=>skip.add(s.o));if(GF58.deco)skip.add(GF58.deco.D);V60.gk=v60Merge(g,skip);try{renderer.shadowMap.needsUpdate=true;}catch(e){}}catch(e){console.error('v60gk',e);}return g;})(gkBuild);
+gpBuild=(f=>function(kd){const g=f.apply(this,arguments);try{if(g&&g.isObject3D){V60.gp=v60Merge(g,new Set());try{renderer.shadowMap.needsUpdate=true;}catch(e){}}}catch(e){console.error('v60gp',e);}return g;})(gpBuild);
+/* one navigation strip across all kingdom windows, with badges for things that need you */
+const KNAV=[['Kerajaanku','🏰','Kerajaanku',()=>openKgWin(),()=>0],['Markas Militer','🎖️','Militer',()=>openMilWin(),()=>{try{return ml56().trq.length;}catch(e){return 0;}}],
+  ['Istana','🏯','Istana',()=>openIstana(),()=>0],['Politik','🎩','Politik',()=>openPlWin(),()=>0],['Perayaan','🎉','Perayaan',()=>openGfWin(),()=>{try{return gfFestOn()?'!':0;}catch(e){return 0;}}],['Diplomasi','🕊️','Diplomasi',()=>openDpWin(),()=>{try{return dpS().dec.length;}catch(e){return 0;}}]];
+if(!document.getElementById('knavcss')){const st=document.createElement('style');st.id='knavcss';st.textContent=`.knav{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;background:#efe4c8;border-bottom:2px solid #e2d3b0;scrollbar-width:none}.knav::-webkit-scrollbar{display:none}
+.knav button{flex:0 0 auto;border:2px solid #e2d3b0;background:#fff8e6;border-radius:12px;padding:5px 10px;font:700 12px Fredoka,sans-serif;color:#5a3a10;position:relative;cursor:pointer}.knav button.on{background:#2f6fd6;border-color:#2f6fd6;color:#fff}
+.knav button em{position:absolute;top:-6px;right:-6px;background:#e0566a;color:#fff;font-style:normal;font-size:10px;min-width:16px;height:16px;border-radius:8px;line-height:16px;text-align:center;padding:0 3px}`;document.head.appendChild(st);}
+function knavPut(m){try{if(!m||!m.el||modal!==m)return;const panel=m.el.querySelector('.panel');if(!panel||panel.querySelector('.knav'))return;const head=panel.querySelector('.mohead');if(!head)return;
+  const lab=m.st&&m.st.label;head.insertAdjacentHTML('afterend',`<div class="knav">${KNAV.map(([l,ic,n,,b],i)=>{const c=b();return `<button class="${l===lab?'on':''}" data-knav="${i}">${ic} ${n}${c?`<em>${c}</em>`:''}</button>`;}).join('')}</div>`);}catch(e){}}
+function knavHook(){const m=modal;if(!m||!m.el||m.__kn)return;const lab=m.st&&m.st.label;if(!KNAV.some(x=>x[0]===lab))return;m.__kn=1;
+  const ob=new MutationObserver(()=>knavPut(m));ob.observe(m.el,{childList:true});knavPut(m);
+  m.el.addEventListener('click',e=>{const t=e.target.closest('[data-knav]');if(!t)return;e.stopPropagation();const K=KNAV[+t.dataset.knav];if(!K||K[0]===lab)return;try{SFX.pop();}catch(e2){}ob.disconnect();if(modal===m)modal=null;m.el.parentNode&&m.el.parentNode.removeChild(m.el);setTimeout(()=>{try{K[3]();}catch(e3){}},10);},true);}
+openKgWin=(f=>function(){const r=f.apply(this,arguments);knavHook();return r;})(openKgWin);
+openMilWin=(f=>function(){const r=f.apply(this,arguments);knavHook();return r;})(openMilWin);
+openPlWin=(f=>function(){const r=f.apply(this,arguments);knavHook();return r;})(openPlWin);
+openGfWin=(f=>function(){const r=f.apply(this,arguments);knavHook();return r;})(openGfWin);
+openDpWin=(f=>function(){const r=f.apply(this,arguments);knavHook();return r;})(openDpWin);
+openIstana=(f=>function(){const r=f.apply(this,arguments);try{knavHook();}catch(e){}return r;})(openIstana);
+xHud=(f=>function(){const r=f.apply(this,arguments);try{if(hudPill&&INT.built&&INT.built.gp52&&you&&Math.abs(you.pos.x-GP52.X)<GP52.W){const a='📍 '+NEGARA.kota;if(hudPill.innerHTML.includes(a))hudPill.innerHTML=hudPill.innerHTML.replace(a,'🏯 Ruang Takhta');}}catch(e){}return r;})(xHud);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
