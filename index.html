@@ -3489,7 +3489,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v44';
+const GAME_VER='v45';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8009,6 +8009,86 @@ xView('rumah',{t:'Rumah Keluarga',s:'Rumah',ic:'🏠',bg:'linear-gradient(135deg
   <p class="muted">Pintu Rumah Keluarga ada di Perumahan Elite. Perabot langsung muncul di dalam rumah.</p>`;}});
 if(XV.dinasti){const r0=XV.dinasti.r;XV.dinasti.r=()=>r0()+`<div class="srow">${xB('xHomeIn','','🏠 Masuk Rumah Keluarga','small')}</div>`;}
 if(XV.bankku){const r1=XV.bankku.r;XV.bankku.r=()=>{const h=r1();return bk41().on?`<div class="srow">${xB('xBankIn','','🚪 Masuk ke lobi bank','small p')}</div>`+h:h;};}
+
+/* ================= v45: Teman & Klub (jendela Sosial sendiri) ================= */
+const SCLUBS=[['golf','⛳','Klub Golf Permata',1,'Pendapatan bisnis +5%'],['yacht','⛵','Klub Yacht Samudra',2,'Bisnis +3%, reputasi naik tiap jam'],['catur','♟️','Klub Catur Merdeka',.5,'Pertemanan naik 1,5x lebih cepat'],
+  ['seni','🎨','Klub Seni Nusantara',.8,'Kenyamanan rumah dihitung 1,5x'],['sosialita','🥂','Klub Sosialita Elite',1.5,'Tiap teman akrab (≥50) +0,5% bisnis, maks 6%']];
+function socS(){const s=PF.soc=PF.soc||{fr:{},club:null,h:[],debt:{}};s.fr=s.fr||{};s.debt=s.debt||{};s.h=s.h||[];return s;}
+function socLog(ic,t,c){const s=socS();s.h.unshift({ic,t,c:c||'',at:Date.now()});s.h=s.h.slice(0,30);}
+function frOf(n){const s=socS();return s.fr[n]=s.fr[n]||{pt:5,t:{}};}
+function frGain(n,v){const s=socS(),f=frOf(n),m=s.club&&s.club.id==='catur'?1.5:1;f.pt=Math.max(0,Math.min(100,f.pt+v*(v>0?m:1)));return f.pt;}
+function frLv(p){return p>=80?['💛','Sahabat']:p>=50?['💚','Teman akrab']:p>=20?['🤝','Teman']:['👋','Kenalan'];}
+function socCost(m){return Math.round(Math.max(5e6,netWorth()*.001)*m);}
+function frList(){return ranking().filter(r=>!r.me).slice(0,14);}
+function clubBonus(){const s=socS(),c=s.club;if(!c)return 0;let b=0;if(c.id==='golf')b+=.05;if(c.id==='yacht')b+=.03;if(c.id==='sosialita')b+=Math.min(.06,Object.values(s.fr).filter(f=>f.pt>=50).length*.005);if(c.ketua)b+=.02;return b;}
+dyBonus=(f=>function(){return f.apply(this,arguments)+clubBonus();})(dyBonus);
+homeComfort=(f=>function(){const v=f.apply(this,arguments),s=PF.soc;return s&&s.club&&s.club.id==='seni'?Math.round(v*1.5):v;})(homeComfort);
+function frCd(n,k,ms){const f=frOf(n),t=f.t[k]||0;if(Date.now()-t<ms){showResult(`Tunggu ${Math.ceil((ms-(Date.now()-t))/60000)} menit lagi`);return false;}f.t[k]=Date.now();return true;}
+XA.xFrHi=n=>{if(!frCd(n,'hi',300000))return;const p=frGain(n,2);socLog('👋',`Menyapa ${n}. Pertemanan ${Math.round(p)}.`);SFX.pop();savePF();SOCW.redraw();};
+XA.xFrGift=n=>{const c=socCost(1);if(S.bal<c){showResult('Koin kurang');return;}if(!frCd(n,'gift',120000))return;S.bal-=c;const p=frGain(n,10);socLog('🎁',`Hadiah untuk ${n} (🪙 ${fmtBig(c)}). Pertemanan ${Math.round(p)}.`);SFX.coin();savePF();SOCW.redraw();};
+XA.xFrDine=n=>{if(homeComfort()<20){showResult('Rumah butuh kenyamanan minimal 20. Beli perabot dulu di app Rumah.');return;}const c=socCost(3);if(S.bal<c){showResult('Koin kurang');return;}if(!frCd(n,'dine',600000))return;S.bal-=c;
+  const p=frGain(n,18);try{const D=dyS();if(D.sp)D.sp.har=Math.min(100,D.sp.har+5);}catch(e){}socLog('🍽️',`Makan malam bersama ${n} di rumah. Pertemanan ${Math.round(p)}.`,'up');logLine('sys',null,`🍽️ ${n} datang makan malam di rumah ${dyS().fam}.`,'win');SFX.big();savePF();SOCW.redraw();};
+XA.xFrTip=n=>{if(frOf(n).pt<50)return;if(!frCd(n,'tip',600000))return;const L=typeof stkIdeas==='function'?stkIdeas():[];const x=L[pick(Math.max(1,Math.min(3,L.length)))];
+  const t=x?`${n}: "Coba lihat ${x.a.id} (${x.a.n}). Harganya ${Math.round(x.disc*100)}% di bawah nilai wajar menurut analisku. Tapi keputusan tetap di tanganmu ya."`:`${n}: "Pasar lagi mahal semua, mending tahan dulu."`;socLog('💡',t);logLine('sys',null,'💡 '+t);SOCW.redraw();};
+XA.xFrLoan=n=>{const s=socS();if(frOf(n).pt<80||s.debt[n])return;const rw=(ranking().find(r=>r.n===n)||{w:0}).w,amt=Math.round(Math.min(Math.max(0,rw)*.01,Math.max(1e9,netWorth()*.5)));if(amt<1e6){showResult(`${n} sedang tidak punya kas lebih`);return;}
+  S.bal+=amt;oppW({n},-amt);s.debt[n]={a:amt,t:Date.now()};socLog('🤝',`${n} meminjamkan 🪙 ${fmtBig(amt)} tanpa bunga. Kembalikan dalam 60 menit.`,'up');SFX.coin();savePF();SOCW.redraw();};
+XA.xFrPay=n=>{const s=socS(),d=s.debt[n];if(!d)return;if(S.bal<d.a){showResult('Koin kurang untuk melunasi');return;}S.bal-=d.a;oppW({n},d.a);delete s.debt[n];frGain(n,5);socLog('✅',`Pinjaman dari ${n} lunas. Kepercayaan naik.`,'up');SFX.coin();savePF();SOCW.redraw();};
+/* clubs */
+function clubFee(c){return socCost(20*c[3]);}
+function clubMembers(id){let h=7;for(const ch of id)h=(h*31+ch.charCodeAt(0))>>>0;const T=TYCOONS.concat((PF.rivals||[]).map(r=>r.n));const L=[];for(let i=0;i<8;i++){const n=T[(h+i*7)%T.length];if(!L.includes(n))L.push(n);}return L;}
+XA.xClubJoin=id=>{const s=socS(),c=SCLUBS.find(x=>x[0]===id);if(!c)return;if(s.club&&s.club.id===id)return;const fee=clubFee(c);if(S.bal<fee){showResult('Koin kurang untuk iuran anggota');return;}
+  S.bal-=fee;s.club={id,pts:0,join:Date.now(),ketua:0};socLog(c[1],`Bergabung dengan ${c[2]} (iuran 🪙 ${fmtBig(fee)}).`,'up');logLine('sys',null,`${c[1]} Kamu resmi jadi anggota ${c[2]}.`,'win');SFX.big();savePF();SOCW.redraw();};
+XA.xClubLeave=()=>{const s=socS();if(!s.club)return;const c=SCLUBS.find(x=>x[0]===s.club.id);s.club=null;socLog('🚪',`Keluar dari ${c?c[2]:'klub'}.`);savePF();SOCW.redraw();};
+XA.xClubDon=v=>{const s=socS();if(!s.club)return;const amt=socCost(+v);if(S.bal<amt){showResult('Koin kurang');return;}S.bal-=amt;s.club.pts+=+v*10;clubKetua();socLog('💝',`Sumbangan ke klub 🪙 ${fmtBig(amt)} (+${+v*10} poin).`);SFX.coin();savePF();SOCW.redraw();};
+function clubNpcPts(id){const t=Math.floor((Date.now()-1795e9)/600000);return clubMembers(id).map((n,i)=>({n,pts:((t*(i+3)*37+i*101)%400)+i*25}));}
+function clubKetua(){const s=socS();if(!s.club)return;const top=Math.max(...clubNpcPts(s.club.id).map(x=>x.pts));const was=s.club.ketua;s.club.ketua=s.club.pts>top?1:0;if(s.club.ketua&&!was){socLog('👑','Kamu terpilih jadi Ketua Klub! Bisnis +2%.','up');logLine('sys',null,'👑 Kamu terpilih jadi Ketua Klub.','win');}}
+/* club tournament: every 20 minutes, 5-minute sign-up, everyone has the same chance */
+function tourS(){const s=socS();const slot=Math.floor(Date.now()/1200000),start=slot*1200000;if(!s.tour||s.tour.slot!==slot)s.tour={slot,start,in:0,done:0};return s.tour;}
+XA.xTourJoin=()=>{const s=socS(),T=tourS();if(!s.club||T.in||Date.now()-T.start>300000)return;const fee=socCost(2);if(S.bal<fee){showResult('Koin kurang');return;}S.bal-=fee;T.in=1;T.fee=fee;s.club.pts+=15;clubKetua();socLog('🏆',`Daftar turnamen klub (🪙 ${fmtBig(fee)}).`);SFX.chip();savePF();SOCW.redraw();};
+setInterval(()=>{try{if(!started)return;const s=socS(),T=tourS();if(T.in&&!T.done&&Date.now()-T.start>300000){T.done=1;const M=clubMembers(s.club?s.club.id:'golf'),n=M.length+1,pot=T.fee*n,win=Math.random()<1/n;
+  if(win){S.bal+=pot;socLog('🥇',`Juara turnamen klub! Hadiah 🪙 ${fmtBig(pot)}.`,'up');logLine('sys',null,`🥇 Kamu juara turnamen klub dan membawa pulang 🪙 ${fmtBig(pot)}.`,'win');try{banner('🥇 JUARA TURNAMEN KLUB<small>+🪙 '+fmtBig(pot)+'</small>','',3000);SFX.big();}catch(e){}}
+  else{const w=M[pick(M.length)];oppW({n:w},pot);socLog('🏅',`Turnamen klub dimenangkan ${w}. Coba lagi 20 menit lagi.`);logLine('sys',null,`🏅 ${w} juara turnamen klub kali ini.`);}savePF();}
+  if(s.club&&s.club.id==='yacht'&&PF.rep&&Math.random()<1/60)PF.rep.pts=(PF.rep.pts||0)+3;
+  for(const n in s.debt){const d=s.debt[n];if(Date.now()-d.t>3600000){const pay=Math.min(S.bal,d.a);S.bal-=pay;oppW({n},pay);delete s.debt[n];frGain(n,-30);socLog('⚠️',`Pinjaman dari ${n} lewat 60 menit, dilunasi otomatis. Pertemanan −30.`,'dn');logLine('sys',null,`⚠️ Pinjaman dari ${n} telat, pertemanan turun.`,'lose');}}
+  if(Math.random()<1/10)for(const n in s.fr)s.fr[n].pt=Math.max(0,s.fr[n].pt-1);}catch(e){}},30000);
+/* club house interior */
+function v45BuildClub(){const s=socS(),c=SCLUBS.find(x=>x[0]===(s.club&&s.club.id))||SCLUBS[0],X=3240,Z=0,W=26,D=20;const g=v44Shell(X,Z,W,D,0x2a4a3a,0xe8dcc4,c[2].toUpperCase());
+  iB(g,8,1.1,2,0x5a3a20,X-6,.55,Z-6,true);iB(g,8,.1,2.2,0xffd25f,X-6,1.15,Z-6);for(let i=0;i<4;i++)iB(g,.8,1,.8,0x8a5a32,X-9+i*2,.5,Z-4.3);
+  [[6,-5],[6,1],[-2,3]].forEach(([x,z])=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,.12,16),mat(0x1f6a3e));t.position.set(X+x,1,Z+z);g.add(t);iB(g,.2,1,.2,0x3a2a1a,X+x,.5,Z+z);});
+  clubMembers(c[0]).slice(0,6).forEach((n,i)=>miniPerson(g,X-8+i*3,Z+(i%2?-1:2),i%2?0:Math.PI));
+  stationAdd('v44exit',X,Z+D/2-1.2,0,'Pintu keluar',{useDist:2.6,verb:'Keluar',btn:'KELUAR',act:()=>v44Leave(),ctx:()=>`<div class="ctx-head"><h3>🚪 Pintu keluar</h3><small>Kembali ke tempat kamu masuk tadi</small></div>`});
+  stationAdd('v45desk',X-6,Z-4.6,Math.PI,'Meja klub',{useDist:3,verb:'Buka',btn:'KLUB',act:()=>openSocWin('klub'),ctx:()=>`<div class="ctx-head"><h3>${c[1]} ${c[2]}</h3><small>Turnamen, sumbangan, daftar anggota</small></div>`});return g;}
+XA.xClubIn=()=>{if(!socS().club){showResult('Gabung klub dulu');return;}INT.X.klub=3240;if(!INT.built.klub)INT.built.klub=v45BuildClub();if(!INT.ret)INT.ret={x:you.pos.x,z:you.pos.z,yaw:you.yaw};
+  if(modal)closeGame();travelFxSafe('🥂','Rumah Klub','Masuk ke klub',()=>{tpTo(3240,7,Math.PI);try{DYF.list.forEach(f=>f.av.root.position.set(3240,0,8));}catch(e){}});};
+/* Sosial window */
+const SOCW={tab:'teman',redraw(){if(SOCW.m&&modal===SOCW.m)SOCW.m.refresh();}};
+function openSocWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)SOCW.tab=tab;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Sosial'},busy:false,refresh(){draw();}};modal=m;SOCW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns)=>`<div class="mocard"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const s=socS(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
+    if(SOCW.tab==='teman'){body=`<p class="muted">Pertemanan naik dengan menyapa, memberi hadiah dan makan malam di rumah. Teman akrab memberi pendapat soal saham, sahabat bisa meminjamkan modal tanpa bunga. Duel tetap 50:50, pertemanan tidak mempengaruhi hasil.</p>`+
+      frList().map(r=>{const f=frOf(r.n),L=frLv(f.pt),d=s.debt[r.n];return card(L[0],esc(r.n),`${L[1]} · ${Math.round(f.pt)}/100 · ${titleOf(r.w)}${d?` · utang 🪙 ${fmtBig(d.a)}`:''}`,
+        B('xFrHi',r.n,'👋 Sapa')+B('xFrGift',r.n,'🎁 '+fmtBig(socCost(1)))+B('xFrDine',r.n,'🍽️ Makan malam')+(f.pt>=50?B('xFrTip',r.n,'💡 Tips','mogo'):'')+(f.pt>=80?(d?B('xFrPay',r.n,'✅ Lunasi','mogo'):B('xFrLoan',r.n,'🤝 Pinjam','mogo')):''));}).join('');}
+    else if(SOCW.tab==='klub'){const my=s.club&&SCLUBS.find(x=>x[0]===s.club.id);
+      if(my){const T=tourS(),open=Date.now()-T.start<300000,left=open?Math.ceil((300000-(Date.now()-T.start))/60000):Math.ceil((1200000-(Date.now()-T.start))/60000);
+        const R=clubNpcPts(my[0]).concat([{n:'Kamu',pts:s.club.pts,me:1}]).sort((a,b)=>b.pts-a.pts);
+        body=card(my[1],`${my[2]}${s.club.ketua?' · 👑 Ketua':''}`,`${my[4]} · poinmu ${s.club.pts} · bonus bisnis klub +${(clubBonus()*100).toFixed(1)}%`,B('xClubIn','','🚪 Masuk rumah klub','mogo')+B('xClubLeave','','Keluar klub'))+
+        card('🏆','Turnamen klub',T.in?(T.done?'Sudah selesai, tunggu turnamen berikutnya.':`Kamu sudah terdaftar. Pemenang diumumkan ${left} menit lagi. Semua peserta punya peluang sama.`):open?`Pendaftaran buka ${left} menit lagi. Biaya 🪙 ${fmtBig(socCost(2))}, pemenang ambil semua uang pendaftaran.`:`Turnamen berikutnya ${left} menit lagi.`,open&&!T.in?B('xTourJoin','','Daftar','mogo'):'')+
+        card('💝','Sumbang ke klub','Sumbangan menambah poin. Poin tertinggi jadi Ketua Klub (+2% bisnis).',[1,5,20].map(v=>B('xClubDon',v,'🪙 '+fmtBig(socCost(v)))).join(''))+
+        `<div class="thd">Papan poin anggota</div>`+R.map((x,i)=>`<div class="mocard"><div class="moic">${i===0?'👑':'#'+(i+1)}</div><div class="mot"><b>${esc(x.n)}</b><small>${x.pts} poin</small></div></div>`).join('');}
+      else body=`<p class="muted">Pilih satu klub. Iuran sekali bayar, bonusnya berlaku selama kamu jadi anggota.</p>`+SCLUBS.map(c=>card(c[1],c[2],`${c[4]} · anggota: ${clubMembers(c[0]).slice(0,3).join(', ')}, dst.`,B('xClubJoin',c[0],'Gabung · 🪙 '+fmtBig(clubFee(c)),'mogo',S.bal<clubFee(c)))).join('');}
+    else body=(s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>');
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Sosial"><div class="mohead"><b>🤝 Sosial</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['teman','🤝','Teman'],['klub','🥂','Klub'],['log','📜','Catatan']].map(([k,ic,n])=>`<button class="${k===SOCW.tab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){SOCW.tab=t.dataset.tab;SFX.pop();draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+XA.xSocOpen=()=>{closePhone();setTimeout(()=>openSocWin(),30);};
+xView('sosial',{t:'Sosial',s:'Sosial',ic:'🤝',bg:'linear-gradient(135deg,#ff9fd8,#7f5fff)',r:()=>{setTimeout(()=>{if(phView==='sosial'){phView='home';closePhone();openSocWin();}},20);return '<p class="muted">Membuka jendela Sosial...</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
