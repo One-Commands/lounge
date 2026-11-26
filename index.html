@@ -3478,7 +3478,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v41';
+const GAME_VER='v41.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7714,16 +7714,18 @@ xView('bankku',{t:'Bank Milikmu',s:'Bankku',ic:'🏦',bg:'linear-gradient(135deg
 
 /* ================= v41 fix: cap table can never exceed total shares; income breakdown + history ================= */
 npcHeld=function(a){const H=npcH();let s=0;for(const n in H){const q=H[n]&&H[n][a.id];if(q>0)s+=q;}return s;};
-function capFix(){let big=0;const H=npcH();MK.forEach(a=>{if(a.t!=='saham'||!(a.sh>0))return;const c=corpS(a);
+function capFix(list){let big=0;const H=npcH();PF.cost=PF.cost||{};(list||MK).forEach(a=>{if(a.t!=='saham'||!(a.sh>0))return;try{const c=corpS(a);for(const n in H){const h=H[n];if(h&&h[a.id]!==undefined)h[a.id]=+h[a.id]||0;}if(PF.hold[a.id]!==undefined)PF.hold[a.id]=+PF.hold[a.id]||0;
   if(c.cf!=null&&!(c.cf>=0&&c.cf<=.95))c.cf=Math.max(.05,Math.min(.9,+c.cf||CTRL));
   const room=Math.max(0,a.sh-cfOf(a)*a.sh);const parts=[];
   for(const n in H){const h=H[n];if(!h||h[a.id]===undefined)continue;if(!(h[a.id]>0)){delete h[a.id];continue;}parts.push({g:()=>h[a.id],s:v=>{if(v<1)delete h[a.id];else h[a.id]=v;}});}
   corpBlk(a).forEach(b=>{if(!(b.q>0)){b.q=0;return;}parts.push({g:()=>b.q,s:v=>b.q=v});});
   if(!(PF.hold[a.id]>=0)){PF.hold[a.id]=0;PF.cost[a.id]=0;}
   if(PF.hold[a.id]>0)parts.push({me:1,g:()=>PF.hold[a.id],s:v=>{const o=PF.hold[a.id];PF.hold[a.id]=v;PF.cost[a.id]=(PF.cost[a.id]||0)*(o>0?v/o:0);if(PF.blkQ&&PF.blkQ[a.id]>v)PF.blkQ[a.id]=v;if(v<=0)PF.cost[a.id]=0;}});
-  parts.forEach(p=>{if(p.g()>room){if(p.g()>room*1.5)big++;p.s(Math.floor(room));}});
-  const tot=parts.reduce((s,p)=>s+p.g(),0);if(tot>room+1){const f=room/tot;if(f<.9)big++;parts.forEach(p=>p.s(Math.floor(p.g()*f)));}});
+  parts.forEach(p=>{if(p.g()>room){if(p.g()>room*1.5)big++;p.s(Math.floor(room*.5));}});
+  const tot=parts.reduce((s,p)=>s+(+p.g()||0),0);if(tot>room+1){const f=room/tot;if(f<.9)big++;parts.forEach(p=>p.s(Math.floor(p.g()*f)));}}catch(e){console.error('capFix',a.id,e);}});
   return big;}
+holders=(f=>function(a){try{if(a&&a.t==='saham')capFix1(a);}catch(e){}return f.apply(this,arguments);})(holders);
+function capFix1(a){capFix([a]);}
 npcGive=(f=>function(n,st){try{const a=st&&st.k!=='coin'&&assetOf(st.k);if(a&&a.t==='saham'){const c=corpS(a);if(!(c.o===n&&!c.me)){const ff=Math.floor(freeFloat(a));if(st.q>ff){const x=st.q-ff;oppW({n},Math.round(x*a.p));st={k:st.k,q:ff};if(ff<=0)return;}}}}catch(e){}return f.call(this,n,st);})(npcGive);
 setTimeout(function cf41(){if(!started){setTimeout(cf41,1500);return;}try{const nw0=netWorth(),b=capFix();if(b){savePF();const d=nw0-netWorth();
   setTimeout(()=>{logLine('sys',null,`📉 Jumlah saham dirapikan: ada kepemilikan yang melebihi total saham beredar (bug). Kekayaan disesuaikan ${d>0?'-🪙 '+fmtBig(Math.round(d)):''}.`,'lose');},3500);}}catch(e){console.error('capFix',e);}
