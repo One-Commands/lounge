@@ -433,6 +433,7 @@ body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.
 .ei-bar{height:7px;background:#e8ddc4;border-radius:6px;overflow:hidden;margin-top:5px}.ei-bar i{display:block;height:100%;background:linear-gradient(90deg,#2f6fd6,#1fb5a8)}
 .mocard2{flex-direction:column;align-items:stretch}.mohd{display:flex;gap:12px;align-items:center}.moopt{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px dashed #e2d3b0;padding-top:8px}.moopt>span{font-weight:700;font-size:13px;color:#4a3f5a;flex:none}.moopt>div{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}@media (max-width:700px){.moopt{flex-direction:column;align-items:stretch}.moopt>div{justify-content:flex-start}}
 .phone .pubf .srow .small:not(.ghost){background:linear-gradient(180deg,#ffd25f,#e8a62a);color:#3a2400}
+body.phOpen #ctx{display:none!important}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3473,7 +3474,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v36.2';
+const GAME_VER='v36.3';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -5804,7 +5805,7 @@ ZN.push({id:'aptd',n:'🏙️ Distrik Apartemen Permata Baru',sp:[0,80,Math.PI]}
 {let lastK='',lastS=0;
   phoneRender=(f=>function(){const ph=$('phone');if(!ph||ph.classList.contains('hidden'))return f.apply(this,arguments);
     const k=phView+'|'+(typeof phAsset!=='undefined'&&phAsset?phAsset.id:'')+'|'+(typeof rkOpen!=='undefined'?rkOpen:'');const ob=ph.querySelector('.ph-body');
-    if(ob&&k===lastK&&(phTouch||performance.now()-phScrollT<1200)){if(!phPend){phPend=true;setTimeout(()=>{phPend=false;phoneRender();},1300);}return;}
+    if(ob&&k===lastK&&!window.__phF&&(phTouch||performance.now()-phScrollT<1200)){if(!phPend){phPend=true;setTimeout(()=>{phPend=false;phoneRender();},1300);}return;}
     const keep=ob&&k===lastK?ob.scrollTop:0;const r=f.apply(this,arguments);const nb=ph.querySelector('.ph-body');
     if(nb){nb.scrollTop=keep;nb.style.overflowAnchor='none';}lastK=k;return r;})(phoneRender);
   togglePhone=(f=>function(force){const ph=$('phone'),wasHidden=ph.classList.contains('hidden');if(wasHidden){lastK='';phKey='';}return f.apply(this,arguments);})(togglePhone);}
@@ -7307,6 +7308,10 @@ const _ff0=freeFloat;freeFloat=function(a){if(!a||a.t!=='saham')return _ff0(a);t
 corpBox=(f=>function(a){let h=f.apply(this,arguments);if(!a||a.t!=='saham')return h;try{const H=npcH();let small=0,n=0;for(const k in H){const q=(H[k]&&H[k][a.id])||0;if(q>0&&q<a.sh*.05){small+=q;n++;}}
   const row=small>0?`<div class="hold"><span><b>Investor kecil (${n} NPC, masing-masing di bawah 5%)</b><small>${(small/a.sh*100).toFixed(1)}% · ${fmt(Math.floor(small))} lembar</small></span></div>`:'';
   h=h.replace('<div class="hold pub">',row+'<div class="hold pub">').replace('(pemegang di bawah 5% ikut di sini)','(sisa saham yang beredar di pasar)');}catch(e){}return h;})(corpBox);
+
+/* v36.3: taps inside the phone re-render immediately (no 1.3s scroll deferral); station panel hidden while the phone is open */
+document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#phone')){window.__phF=1;setTimeout(()=>{window.__phF=0;},0);}},true);
+setTimeout(()=>{try{const ph=$('phone');const sync=()=>document.body.classList.toggle('phOpen',!ph.classList.contains('hidden'));new MutationObserver(sync).observe(ph,{attributes:true,attributeFilter:['class']});sync();}catch(e){}},500);
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
