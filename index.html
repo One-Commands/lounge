@@ -3394,7 +3394,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v29';
+const GAME_VER='v30';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6476,6 +6476,54 @@ function wingV2(p,body){let S=WSPEC[p.wings];if(!S&&p.wingC){const w=p.wingC;S={
   const mk=sg=>{const pv=new THREE.Group();pv.position.set(sg*.2,1.78,-.3);const g=new THREE.Group();g.scale.x=sg;
     const a=new THREE.Mesh(geo[0],mA);a.castShadow=!gfxLite();g.add(a);if(geo[1])g.add(new THREE.Mesh(geo[1],mG));g.position.y=.22;g.rotation.z=sg*.18;pv.add(g);body.add(pv);return pv;};
   return [mk(-1),mk(1)];}
+
+/* ================= v30: NPC pintar (sifat, pinjaman, tingkat kesulitan), properti hidup (kejadian, yayasan amal), kacamata detail ================= */
+const TRAITS=[['Agresif','⚡','Sering membeli dan menantang duel'],['Hati-hati','🛡️','Jarang rugi, suka menabung'],['Oportunis','🦊','Memburu barang murah'],['Dermawan','🤝','Suka membantu, mudah diajak kerja sama'],['Licik','🐍','Suka sabotase dan ambil alih']];
+const traitOf=n=>{let h=0;for(const ch of String(n))h=(h*31+ch.charCodeAt(0))>>>0;return TRAITS[h%TRAITS.length];};
+function relS(){PF.rel=PF.rel||{};return PF.rel;}
+/* N29: NPC difficulty changes how often NPC brains act */
+setInterval(()=>{if(!started)return;const d=PF.npcLv||'normal';if(d==='sultan')try{npcBrain();}catch(e){}},20000);
+{const _nb=npcBrain;npcBrain=function(){if((PF.npcLv||'normal')==='santai'&&Math.random()<.5)return;return _nb.apply(this,arguments);};}
+/* N22: NPC asks to borrow money */
+function loanS(){PF.nLoan=PF.nLoan||{ask:null,act:[]};return PF.nLoan;}
+setInterval(()=>{if(!started)return;const L=loanS();if(L.ask&&Date.now()-L.ask.t>180000)L.ask=null;if(L.ask||Math.random()>.35||S.bal<1e8)return;
+  const ns=TYCOONS.concat(PF.rivals.map(r=>r.n)),n=ns[pick(ns.length)],tr=traitOf(n);const amt=Math.round(S.bal*(.01+Math.random()*.03)/1e6)*1e6,rate=tr[0]==='Licik'?.14:tr[0]==='Hati-hati'?.05:.08,risk=tr[0]==='Licik'?.15:tr[0]==='Hati-hati'?.02:.06;
+  L.ask={n,amt,rate,risk,t:Date.now()};logLine('sys',null,`💼 ${n} (${tr[1]} ${tr[0]}) ingin pinjam ${fmtBig(amt)} dengan bunga ${Math.round(rate*100)}%. Cek app Tycoon.`);savePF();},90000);
+XA.xLoanNpc=v=>{const L=loanS(),a=L.ask;if(!a)return;if(v==='no'){L.ask=null;const r=relS();r[a.n]=(r[a.n]||0)-1;SFX.pop();savePF();phoneRender();return;}
+  if(S.bal<a.amt){SFX.error();return;}S.bal-=a.amt;L.act.push({n:a.n,amt:a.amt,rate:a.rate,risk:a.risk,due:Date.now()+3*300000});L.ask=null;const r=relS();r[a.n]=(r[a.n]||0)+2;
+  logLine('sys',null,`💼 Kamu meminjamkan ${fmtBig(a.amt)} ke ${a.n}. Jatuh tempo 3 hari bursa.`);SFX.coin();save();savePF();render();phoneRender();};
+setInterval(()=>{if(!started)return;const L=loanS(),now=Date.now();let ch=false;L.act=L.act.filter(x=>{if(now<x.due)return true;ch=true;
+  if(Math.random()<x.risk){const r=relS();r[x.n]=(r[x.n]||0)-5;logLine('sys',null,`💸 ${x.n} kabur dan tidak membayar pinjaman ${fmtBig(x.amt)}!`,'lose');news.unshift(`${x.n} gagal bayar utang ke pemain.`);}
+  else{const got=Math.round(x.amt*(1+x.rate));S.bal+=got;oppW({n:x.n},-(got-x.amt));logLine('sys',null,`💰 ${x.n} melunasi pinjaman: ${fmtBig(got)} (bunga ${fmtBig(got-x.amt)}).`,'win');xpAdd(6);}return false;});if(ch){save();savePF();render();}},5000);
+/* N1-N4: tycoon directory app */
+xView('tycoon',{t:'Tycoon Kota',s:'Tycoon',ic:'🎩',bg:'linear-gradient(135deg,#3a3446,#b7791f)',dot:()=>loanS().ask?1:0,r:()=>{const R=ranking().filter(r=>!r.me),rel=relS(),L=loanS(),d=PF.npcLv||'normal';
+  const relTxt=v=>v>=5?['Sahabat','#1f9d55']:v>=2?['Akrab','#1f9d55']:v<=-5?['Musuh','#d93a3a']:v<=-2?['Kurang suka','#d97a1a']:['Netral','#6d6180'];
+  return (L.ask?`<div class="wallet" style="border-color:#e8a62a"><small>Permintaan pinjaman</small><b>${esc(L.ask.n)} · ${fmtBig(L.ask.amt)}</b><div class="row"><span>Bunga ${Math.round(L.ask.rate*100)}% · 3 hari bursa</span><span>Risiko gagal bayar ${Math.round(L.ask.risk*100)}%</span></div><div class="bk" style="margin-top:6px"><button class="p" data-xa="xLoanNpc" data-id="yes">Pinjamkan</button><button data-xa="xLoanNpc" data-id="no">Tolak</button></div></div>`:'')+
+  (L.act.length?`<div class="wallet"><small>Piutang ke NPC</small>${L.act.map(x=>`<div class="row"><span>${esc(x.n)} · ${fmtBig(x.amt)}</span><span>${Math.max(0,Math.ceil((x.due-Date.now())/60000))} menit · +${Math.round(x.rate*100)}%</span></div>`).join('')}</div>`:'')+
+  `<div class="wallet"><small>Tingkat kecerdasan NPC</small><div class="bk" style="margin-top:6px">${[['santai','😌 Santai'],['normal','🙂 Normal'],['sultan','😈 Sultan']].map(([k,n])=>`<button class="${d===k?'p':''}" data-xa="xNpcLv" data-id="${k}">${n}</button>`).join('')}</div><small class="muted">Sultan: NPC bergerak 2x lebih sering, rebutan properti dan saham makin ketat.</small></div>`+
+  R.slice(0,16).map(r=>{const t=traitOf(r.n),[rt,rc]=relTxt(rel[r.n]||0);return `<div class="chap"><span style="font-size:24px">${t[1]}</span><div><b>${esc(r.n)}</b><small>${t[0]}: ${t[2]} · ${fmtBig(Math.round(r.w||0))} · <span style="color:${rc};font-weight:800">${rt}</span></small></div></div>`;}).join('');}});
+XA.xNpcLv=v=>{PF.npcLv=v;SFX.pop();savePF();phoneRender();};
+/* N1: traits steer the NPC brain a little: aggressive/opportunist tycoons act extra */
+setInterval(()=>{if(!started||Math.random()>.4)return;try{npcBrain();}catch(e){}},55000);
+/* B5-B6: life events on owned properties */
+setInterval(()=>{if(!started)return;const own=MEGA.filter(M=>megaS(M).me);if(!own.length||Math.random()>.5)return;const M=own[pick(own.length)],s=megaS(M),r=Math.random();
+  if(r<.35){const cost=Math.round(s.v*.004);if(insured&&insured()){logLine('sys',null,`🛡️ ${M.n} kena kebocoran pipa, ditanggung asuransi.`);return;}S.bal-=cost;logLine('sys',null,`🔧 ${M.n} kebocoran pipa. Biaya perbaikan ${fmtBig(cost)}.`,'lose');}
+  else if(r<.65){s.v*=1.03;logLine('sys',null,`📸 ${M.n} viral di media sosial! Nilainya naik 3%.`,'win');}
+  else if(r<.85){const got=Math.round(megaInc(M)*.5);S.bal+=got;logLine('sys',null,`🎉 ${M.n} disewa untuk acara besar. Bonus ${fmtBig(got)}.`,'win');}
+  else{s.v*=1.06;logLine('sys',null,`🏗️ Jalan tol baru dekat ${M.n}. Nilainya naik 6%.`,'win');}save();savePF();render();},240000);
+/* B29: charity foundation -> reputation -> small permanent business bonus */
+function repS(){PF.rep=PF.rep||{pts:0,don:0};return PF.rep;}
+const repMult=()=>1+Math.min(.15,repS().pts/2000);
+xMult=(f=>function(){return f.apply(this,arguments)*repMult();})(xMult);
+XA.xDonate=v=>{const amt=Math.round(S.bal*(+v)/100);if(amt<1e6){SFX.error();showResult('Minimal 1 juta');return;}S.bal-=amt;const R=repS();const pts=Math.max(1,Math.round(Math.log10(amt)*3));R.pts+=pts;R.don+=amt;
+  logLine('sys',null,`🤝 Yayasan Permata menyalurkan donasimu ${fmtBig(amt)}. Reputasi +${pts}.`,'win');news.unshift(`Pemain menyumbang ${fmtBig(amt)} untuk warga kota.`);SFX.win();xpAdd(10);save();savePF();render();phoneRender();};
+xView('yayasan',{t:'Yayasan Permata',s:'Yayasan',ic:'🤝',bg:'linear-gradient(135deg,#ff9fb0,#3ddc84)',r:()=>{const R=repS();return `<div class="wallet"><small>Reputasi</small><b>${fmt(R.pts)} poin</b><div class="row"><span>Bonus pemasukan bisnis</span><span>+${((repMult()-1)*100).toFixed(1)}% (maks 15%)</span></div><div class="row"><span>Total donasi</span><span>${fmtBig(R.don)}</span></div></div>
+  <div class="wallet"><small>Salurkan donasi</small><div class="bk" style="margin-top:6px">${[1,5,10].map(p=>`<button class="p" data-xa="xDonate" data-id="${p}">${p}% koin · ${fmtBig(Math.round(S.bal*p/100))}</button>`).join('')}</div></div><p class="news">Reputasi bikin bisnismu lebih dipercaya warga. Bonusnya permanen.</p>`;}});
+/* glasses: add frames and temple arms for every eyewear */
+makeAvatar=(f=>function(p){const a=f.apply(this,arguments);try{if(p&&(p.eyeT||p.glasses||p.diamg||p.visorG)&&a&&a.body){const fc=p.eyeT==='heartg'?0xff4d8a:p.eyeT==='cyber'||p.visorG?0x2a2a33:p.diamg?0xd8e6f0:0x111118;
+    const m=new THREE.MeshLambertMaterial({color:fc});[-1,1].forEach(sg=>{const t=new THREE.Mesh(new THREE.BoxGeometry(.04,.05,.42),m);t.position.set(sg*.415,2.52,.2);a.body.add(t);});
+    const br=new THREE.Mesh(new THREE.BoxGeometry(.8,.04,.04),m);br.position.set(0,2.6,.43);a.body.add(br);
+    const sh=new THREE.Mesh(new THREE.BoxGeometry(.1,.04,.02),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));[-.24,.12].forEach(x=>{const s2=sh.clone();s2.position.set(x,2.55,.45);a.body.add(s2);});}}catch(e){}return a;})(makeAvatar);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
