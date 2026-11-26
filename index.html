@@ -3307,7 +3307,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v25';
+const GAME_VER='v26';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6056,6 +6056,39 @@ function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)key
       if(k==='lv')XA.xMgrLv();if(k==='ins')XA.xIns();if(k==='lease')XA.xLease();if(k==='wapp'){modal=null;el.remove();xOpen('perang');return;}
       savePF();draw();});};
   draw();}
+
+/* ================= v26: government waterfront district + NPC investor brains ================= */
+const GOV='Pemerintah Kota Permata';
+ZN.push({id:'ppk',n:'🌊 Kawasan Pantai Permata Kencana',sp:[0,30,Math.PI]});
+{const k=ZN.length-1,Z=l=>zoneZ(k)+l,U=[];
+  ['Ruko Kencana A','Ruko Kencana B','Ruko Kencana C','Ruko Kencana D','Ruko Kencana E','Ruko Kencana F','Ruko Kencana G','Ruko Kencana H','Ruko Kencana I'].forEach((n,i)=>U.push({n,key:'studio',b:[8,10,8],x:-98+i*10,z:28,p:(15+i*1.2)*1e9,r:.02,ic:'🏪',u:'pembeli',lab:'sewa ruko'}));
+  ['Villa Pasir Putih','Villa Ombak Biru','Villa Mutiara Laut','Villa Senja Kencana','Villa Karang Emas','Villa Camar'].forEach((n,i)=>U.push({n,key:'resort',b:[12,7,10],x:18+i*16,z:58,p:(60+i*12)*1e9,r:.015,ic:'🏖️',u:'tamu',lab:'sewa villa'}));
+  [['Kencana Bay Tower','apt',60,2.4e12],['Permata Ocean Residence','pent',70,3.6e12],['Samudra Sky Suites','glass',64,3e12],['Pelangi Harbour Tower','apt',56,2.1e12]].forEach(([n,key,h,p],i)=>U.push({n,key,b:[18,h,18],x:[-80,-48,48,80][i],z:-58,p,r:.012,ic:'🏙️',u:'penghuni',lab:'sewa unit'}));
+  U.push({n:'Kencana Waterfront Mall',key:'glass',b:[30,16,22],x:22,z:-60,p:1.5e12,r:.02,ic:'🏬',u:'pengunjung',lab:'sewa tenant'});
+  U.push({n:'Hotel Kencana Beach',key:'hgrand',b:[20,30,16],x:-20,z:-58,p:900e9,r:.02,ic:'🏨',u:'tamu',lab:'okupansi kamar'});
+  U.push({n:'Kencana Marina Club',key:'resort',b:[14,6,10],x:62,z:10,p:300e9,r:.022,ic:'🛥️',u:'kapal',lab:'sewa dermaga'});
+  U.forEach((u,i)=>{const M=Object.assign({id:'pk'+i,k:'bld',z:Z(u.z),o:GOV,vis:Math.max(40,Math.round(u.p/2e9)),c:'#2a3450',w:'#ffd58a',ppk:1},u,{z:Z(u.z)});XP.push(M);MEGA.push(M);});
+  ZB.ppk=(G,zc)=>{const sand=canvasTex(64,64,(q,w,h)=>{q.fillStyle='#e8d6a8';q.fillRect(0,0,w,h);for(let i=0;i<160;i++){q.fillStyle='rgba(180,150,90,.35)';q.fillRect(Math.random()*w,Math.random()*h,2,2);}});sand.wrapS=sand.wrapT=THREE.RepeatWrapping;sand.repeat.set(24,24);
+    zGround(G,zc,0,sand);const sea=new THREE.Mesh(new THREE.PlaneGeometry(240,40),new THREE.MeshLambertMaterial({color:0x2f8fd0,transparent:true,opacity:.92}));sea.rotation.x=-Math.PI/2;sea.position.set(0,.02,zc+86);G.add(sea);
+    roadSeg(G,-108,zc+40,108,zc+40,10);roadSeg(G,0,zc+70,0,zc-98,10);roadSeg(G,-108,zc-30,108,zc-30,10);addTraffic(G,-106,zc+40,106,zc+40,6);addTraffic(G,-106,zc-30,106,zc-30,5);
+    for(let x=-100;x<=100;x+=10){if(Math.abs(x)<8)continue;tree(G,x,zc+48,1.1);tree(G,x,zc-22,.9);}
+    G.add(neon('KAWASAN PANTAI PERMATA KENCANA',0,9,zc+66,Math.PI,'#ffffff','#ffd25f',24,2));
+    stationAdd('xgate',0,zc+44,Math.PI,'Halte Pantai Permata Kencana',{useDist:3.5,verb:'Pergi',zk:k,act:()=>{},ctx:()=>gateCtx(k),btn:'PERGI'});};
+  tripSections=(f=>function(){const S=f.apply(this,arguments);const a=S.find(s=>s.h==='Antarkota');if(a)a.rows.push({col:'#ffd25f',n:'🌊 Pantai Permata Kencana',sub:'Kawasan baru pemerintah · banyak properti dijual',fee:XS().vip?'Gratis':'🪙 '+fmtBig(5000),a:'xFly',id:'ppk'});return S;})(tripSections);}
+/* launch event + hype appreciation for the first 2 hours */
+setTimeout(function ppkLaunch(){if(!started){setTimeout(ppkLaunch,3000);return;}const x=XS();if(!x.ppk){x.ppk={t:Date.now()};const m=`🏛️ ${GOV} meresmikan Kawasan Pantai Permata Kencana! 22 properti dijual: ruko, villa tepi pantai, apartemen, mall, hotel, dan marina. Harga awal masih murah, pantau di halte Antarkota.`;news.unshift(m);logLine('sys',null,m,'win');banner('🏛️ KAWASAN BARU DIBUKA<small>Pantai Permata Kencana · 22 properti dijual</small>','',3200);savePF();}},8000);
+setInterval(()=>{if(!started)return;const x=XS();if(!x.ppk)return;const hype=Date.now()-x.ppk.t<7200000;MEGA.forEach(M=>{if(!M.ppk)return;const s=megaS(M);s.v*=hype?1.004:1.0005;});},60000);
+/* NPC investor brains: buy cheap property and undervalued stocks, renovate, take profit */
+function npcBrain(){const ns=TYCOONS.slice(),n=ns[pick(ns.length)],cash=npcCash(n);if(cash<1e10)return;const roll=Math.random();
+  if(roll<.45){const L=MEGA.filter(M=>{const s=megaS(M);return !s.me&&s.o!==n&&s.v<cash*.45;}).map(M=>{const s=megaS(M),gov=s.o===GOV;return {M,s,sc:(M.r||.02)*(gov?1.5:1)*(M.ppk&&Date.now()-(XS().ppk||{t:0}).t<7200000?1.4:1)};}).sort((a,b)=>b.sc-a.sc);
+    const c=L.slice(0,4)[pick(Math.min(4,L.length))];if(!c)return;const price=Math.round(c.s.v*(c.s.o===GOV?1:1.12));const prev=c.s.o;oppW({n},-price);oppW({n:prev},price);c.s.o=n;
+    const m=`🧠 ${n} membeli ${c.M.n} dari ${prev} seharga ${fmtBig(price)} (incar pemasukan ${((c.M.r||.02)*100).toFixed(1)}%/hari).`;news.unshift(m);news=news.slice(0,6);if(c.M.ppk||Math.random()<.4)logLine('sys',null,m);return;}
+  if(roll<.75){const L=MK.filter(a=>a.t==='saham'&&freeFloat(a)>a.sh*.01&&a.p<(a.f||a.p)*.94).sort((a,b)=>a.p/(a.f||a.p)-b.p/(b.f||b.p));const a=L[0];if(!a)return;
+    const q=Math.floor(Math.min(freeFloat(a)*.5,a.sh*(.01+Math.random()*.03))),cost=Math.round(q*blkPx(a,q));if(q<=0||cost>cash*.4)return;const H=npcH();H[n]=H[n]||{};H[n][a.id]=(H[n][a.id]||0)+q;oppW({n},-cost);
+    const up=Math.min(.15,q/(a.sh*FLOAT)*.35);a.p*=1+up;a.h[a.h.length-1]=a.p;const m=`🧠 ${n} melihat ${a.id} murah dan membeli ${(q/a.sh*100).toFixed(1)}% sahamnya (${fmtBig(cost)}). Harga naik ${(up*100).toFixed(1)}%.`;news.unshift(m);news=news.slice(0,6);if(PF.hold[a.id])logLine('sys',null,m);return;}
+  const own=MEGA.filter(M=>megaS(M).o===n&&!megaS(M).me&&(megaS(M).lv||1)<5);const M=own[pick(own.length||1)];if(!M)return;const s=megaS(M),cost=Math.round(s.v*.15);if(cost>cash*.3)return;s.lv=(s.lv||1)+1;s.v*=1.12;oppW({n},-cost);
+  const m=`🧠 ${n} merenovasi ${M.n} ke Lv ${s.lv}. Nilainya naik 12%.`;news.unshift(m);news=news.slice(0,6);}
+setInterval(()=>{if(started)try{npcBrain();}catch(e){console.error(e);}},40000);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
