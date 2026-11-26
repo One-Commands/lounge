@@ -447,6 +447,38 @@ body.phOpen #ctx{display:none!important}
 .rkpod b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkpod small{display:block;font-size:11px;color:#6a5236}.rkpod span{font-size:22px}.rkpod i{display:block;font-style:normal;font-weight:900;font-size:22px}
 .rkpod .p1{background:linear-gradient(#ffe08a,#f2b630);min-height:120px}.rkpod .p2{background:linear-gradient(#eef1f6,#c3cad6);min-height:95px}.rkpod .p3{background:linear-gradient(#f3d2b0,#d79b67);min-height:80px}
 .prhero{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#fff6d8,#ffe7a8);border:2px solid #e2c070;border-radius:14px;padding:12px}.prhero>div:last-child{flex:1;min-width:0}.prhero b{display:block;font-size:20px;color:#5a3a10}.prhero small{color:#7a5a2a}.prlv{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#e0a020 70%,#a86a10);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;text-shadow:0 2px 0 #8a5a10;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2)}.prbar{height:10px;background:#f0e2c0;border-radius:6px;overflow:hidden;margin:6px 0 4px}.prbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcc4a,#ff9a2a)}.mocard.prme{border-color:#e0a020;background:#fff8e0}.mocard.prdone{background:#f4fbef;border-color:#b8dca0}
+.cinema>*:not(canvas):not(#ov):not(#lbx):not(#vs):not(#flashfx):not(#result):not(.modal):not(.ultfx):not(#trvl):not(#broke){opacity:0!important;pointer-events:none!important;transition:opacity .25s}
+.ultfx{position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+.ultfx>div{position:absolute;inset:0;opacity:0}
+.ultfx .u-lines{inset:-40%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.0) 0deg 4deg,rgba(255,255,255,.55) 4.4deg 5deg,rgba(255,255,255,0) 5.4deg 11deg);-webkit-mask:radial-gradient(circle,transparent 26%,#000 62%);mask:radial-gradient(circle,transparent 26%,#000 62%);animation:uspin 1.4s linear infinite}
+.ultfx.on .u-lines{opacity:.35;transition:opacity .3s}.ultfx.on.peak .u-lines{opacity:.75;animation-duration:.45s}
+.ultfx.me .u-lines{background:repeating-conic-gradient(from 0deg,rgba(150,220,255,0) 0deg 4deg,rgba(170,230,255,.6) 4.4deg 5deg,rgba(150,220,255,0) 5.4deg 11deg)}.ultfx.op .u-lines{background:repeating-conic-gradient(from 0deg,rgba(255,150,170,0) 0deg 4deg,rgba(255,170,185,.6) 4.4deg 5deg,rgba(255,150,170,0) 5.4deg 11deg)}
+.ultfx .u-vig{background:radial-gradient(circle,transparent 45%,rgba(0,0,0,.65) 100%)}
+.ultfx.me .u-vig{box-shadow:inset 0 0 90px rgba(79,195,255,.55)}.ultfx.op .u-vig{box-shadow:inset 0 0 90px rgba(255,79,106,.55)}
+.ultfx.on .u-vig{opacity:1;transition:opacity .3s}.ultfx.on.peak .u-vig{animation:upulse .22s ease-in-out infinite alternate}
+.ultfx .u-cut{opacity:1;inset:auto;left:0;right:0;top:22%;height:92px;transform:translateX(-120%) skewY(-6deg)}
+.ultfx .u-cut i{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(10,10,30,.92) 12%,rgba(10,10,30,.92) 88%,transparent);border-top:4px solid #fff;border-bottom:4px solid #fff}
+.ultfx.me .u-cut i{border-color:#4fc3ff;box-shadow:0 0 24px #4fc3ff}.ultfx.op .u-cut i{border-color:#ff4f6a;box-shadow:0 0 24px #ff4f6a}
+.ultfx .u-cut b{position:absolute;left:0;right:0;top:10px;text-align:center;font:900 44px/1 'Fredoka',system-ui,sans-serif;letter-spacing:4px;color:#fff;font-style:italic;text-shadow:3px 3px 0 #000,0 0 18px rgba(255,255,255,.7)}
+.ultfx .u-cut small{position:absolute;left:0;right:0;bottom:12px;text-align:center;font:700 14px system-ui,sans-serif;color:#ffe9a8;letter-spacing:2px}
+.ultfx .u-cut.go{animation:ucut 1.5s cubic-bezier(.2,.9,.2,1) forwards}
+.ultfx .u-ring{inset:auto;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:6px solid #fff;box-shadow:0 0 30px #fff,inset 0 0 20px #fff}
+.ultfx .u-ring.go{animation:uring .6s ease-out forwards}
+.ultfx .u-imp.go{animation:uimp .32s steps(1) forwards}
+.ultfx .u-burst{inset:-50%;background:repeating-conic-gradient(rgba(255,210,95,.0) 0 8deg,rgba(255,210,95,.55) 8deg 14deg);-webkit-mask:radial-gradient(circle,#000 10%,transparent 55%);mask:radial-gradient(circle,#000 10%,transparent 55%)}
+.ultfx .u-burst.lose{background:radial-gradient(circle,rgba(40,60,120,.0) 20%,rgba(10,20,60,.6) 80%);-webkit-mask:none;mask:none;inset:0}
+.ultfx .u-burst.go.win{animation:uburst 2.2s ease-out forwards,uspin 6s linear infinite}
+.ultfx .u-burst.go.lose{animation:ulose 1.6s ease-out forwards}
+.ultfx .u-conf{opacity:1}.ultfx .u-conf i{position:absolute;top:-4%;width:10px;height:16px;border-radius:2px;animation:uconf 1.8s cubic-bezier(.3,.6,.5,1) forwards}
+@keyframes uspin{to{transform:rotate(360deg)}}
+@keyframes upulse{from{opacity:.75}to{opacity:1}}
+@keyframes ucut{0%{transform:translateX(-120%) skewY(-6deg)}18%{transform:translateX(0) skewY(-6deg)}78%{transform:translateX(3%) skewY(-6deg);opacity:1}100%{transform:translateX(130%) skewY(-6deg);opacity:0}}
+@keyframes uring{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(28);border-width:1px}}
+@keyframes uimp{0%{opacity:1;background:#fff}30%{opacity:1;background:#111;mix-blend-mode:difference}60%{opacity:.85;background:#fff}100%{opacity:0}}
+@keyframes uburst{0%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(1.1)}70%{opacity:.8}100%{opacity:0;transform:scale(1.3)}}
+@keyframes ulose{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+@keyframes uconf{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(115vh) rotate(var(--rt))}}
+@media (max-height:420px){.ultfx .u-cut{height:72px}.ultfx .u-cut b{font-size:32px;top:8px}.ultfx .u-cut small{font-size:11px;bottom:9px}}
 .ctx-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ctx-head h3{margin:0;font-family:var(--display);font-size:18px;color:var(--gold)}
 .ctx-head small{color:var(--muted)}
@@ -3490,7 +3522,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v48.1';
+const GAME_VER='v49';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8335,6 +8367,42 @@ setInterval(()=>{try{const now=performance.now();document.querySelectorAll('.mod
     if(now-WDG.seen.get(el)>1500){WDG.seen.delete(el);if(modal&&modal.el===el){try{clearInterval(modal.iv);}catch(e){}modal=null;}el.parentNode&&el.parentNode.removeChild(el);busy=false;console.warn('watchdog removed empty modal');try{logLine('sys',null,'🛠️ Layar gelap tanpa jendela ditutup otomatis.');}catch(e){}}});
   if(modal&&modal.el&&!modal.el.isConnected)modal=null;}catch(e){}},700);
 window.addEventListener('error',e=>{try{const m=String(e.message||'').slice(0,120);if(!m||WDG.errs[m]||/Script error|ResizeObserver/.test(m))return;WDG.errs[m]=1;logLine('sys',null,'⚠️ Error: '+m+' (kirim screenshot ini ke pembuat game)');}catch(_){}});
+/* ================= v49: animasi taruhan ala jurus pamungkas (tanpa skill, hasil tetap acak) ================= */
+const ULT={el:null,beam:null,t0:0,dur:0,w:null};
+function ultEl(){if(ULT.el&&ULT.el.isConnected)return ULT.el;const d=document.createElement('div');d.className='ultfx';d.innerHTML='<div class="u-lines"></div><div class="u-vig"></div><div class="u-cut"><i></i><b></b><small></small></div><div class="u-ring"></div><div class="u-imp"></div><div class="u-burst"></div><div class="u-conf"></div>';
+  const lb=$('vs');stage.insertBefore(d,lb||null);ULT.el=d;return d;}
+function ultOn(){return stage.classList.contains('cinema')&&SET.gfx!=='hemat';}
+function ultBeam(w,col){ultBeamOff();const g=new THREE.Group();const M=(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.2,14,24,1,true),M(col,.0));b.position.y=7;g.add(b);
+  const r1=new THREE.Mesh(new THREE.TorusGeometry(2.3,.07,8,48),M(0xffffff,.0));r1.rotation.x=Math.PI/2;r1.position.y=.3;g.add(r1);
+  const r2=new THREE.Mesh(new THREE.TorusGeometry(1.7,.05,8,40),M(col,.0));r2.rotation.x=Math.PI/2;r2.position.y=2.6;g.add(r2);
+  const sp=[];for(let i=0;i<18;i++){const s=new THREE.Mesh(new THREE.OctahedronGeometry(.09,0),M(i%2?0xffffff:col,.0));s.userData={a:Math.random()*6.28,r:1+Math.random()*1.4,y:Math.random()*5,v:1.5+Math.random()*2.5};g.add(s);sp.push(s);}
+  g.position.set(w.center.x,0,w.center.z);scene.add(g);ULT.beam={g,b,r1,r2,sp,col};}
+function ultBeamOff(){if(ULT.beam){scene.remove(ULT.beam.g);ULT.beam.g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});ULT.beam=null;}}
+function ultTick(dt){const B=ULT.beam;if(!B)return;const k=Math.min(1,(performance.now()-ULT.t0)/Math.max(400,ULT.dur)),t=performance.now()/1000;
+  B.b.material.opacity=.06+k*.22+Math.sin(t*18)*.03;B.b.scale.set(1-k*.35,1,1-k*.35);B.r1.material.opacity=.3+k*.5;B.r1.rotation.z+=dt*(2+k*10);B.r1.scale.setScalar(1+Math.sin(t*6)*.08);
+  B.r2.material.opacity=.2+k*.6;B.r2.rotation.z-=dt*(3+k*12);B.r2.position.y=2.6+Math.sin(t*3)*1.2;
+  B.sp.forEach(s=>{const u=s.userData;u.y+=dt*u.v*(1+k*2);if(u.y>7)u.y=0;u.a+=dt*(1+k*4);s.position.set(Math.cos(u.a)*u.r*(1-k*.4),u.y,Math.sin(u.a)*u.r*(1-k*.4));s.material.opacity=.5+k*.5;s.rotation.y+=dt*4;});}
+xTick=(f=>function(dt){const r=f.apply(this,arguments);try{ultTick(Math.min(dt||.016,.1));}catch(e){}return r;})(xTick);
+function ultCharge(w,dur){if(!ultOn())return;const me=w.role==='player'||w.role==='duelP',col=me?0x4fc3ff:0xff4f6a,d=ultEl();
+  d.className='ultfx on '+(me?'me':'op');const c=d.querySelector('.u-cut');c.querySelector('b').textContent=me?'GILIRANMU!':'GILIRAN LAWAN';c.querySelector('small').textContent=me?'Putaran penentuan · semua tergantung roda':'Lawan memutar roda · tahan napas';
+  c.classList.remove('go');void c.offsetWidth;c.classList.add('go');ULT.t0=performance.now();ULT.dur=dur||3000;ULT.w=w;ultBeam(w,col);try{SFX.riser();}catch(e){}
+  clearTimeout(ULT.tc);ULT.tc=setTimeout(()=>d.classList.add('peak'),Math.max(300,(dur||3000)*.6));}
+function ultImpact(){if(!ULT.el||!ULT.el.classList.contains('on'))return;const d=ULT.el;d.classList.remove('peak');
+  const i=d.querySelector('.u-imp'),r=d.querySelector('.u-ring');[i,r].forEach(x=>{x.classList.remove('go');void x.offsetWidth;x.classList.add('go');});try{SFX.boom();shakeFx();}catch(e){}
+  if(ULT.beam){const B=ULT.beam;B.r1.scale.setScalar(3);B.b.material.opacity=.6;setTimeout(ultBeamOff,260);}
+  clearTimeout(ULT.to);ULT.to=setTimeout(()=>{d.classList.remove('on','me','op');},700);}
+function ultResult(win,big){if(SET.gfx==='hemat')return;const d=ultEl();d.classList.add('res');const b=d.querySelector('.u-burst'),cf=d.querySelector('.u-conf');
+  b.className='u-burst '+(win?'win':'lose')+(big?' big':'');void b.offsetWidth;b.classList.add('go');
+  if(win){let h='';const n=big?60:36;for(let k=0;k<n;k++){const x=(Math.random()*100).toFixed(1),dl=(Math.random()*.5).toFixed(2),du=(1.2+Math.random()*1.2).toFixed(2),c=['#ffd25f','#fff3b0','#ff9a2a','#7df3ff','#ff7ad9'][k%5],rt=Math.round(Math.random()*720-360);
+      h+=`<i style="left:${x}%;background:${c};animation-delay:${dl}s;animation-duration:${du}s;--rt:${rt}deg"></i>`;}cf.innerHTML=h;}else cf.innerHTML='';
+  clearTimeout(ULT.tr);ULT.tr=setTimeout(()=>{d.classList.remove('res');b.classList.remove('go');cf.innerHTML='';},2400);}
+spinWheel=(f=>function(w,n,dur){let fx=false;try{if(ultOn()){ultCharge(w,dur);fx=true;}}catch(e){}const p=f.apply(this,arguments);return fx?p.then(r=>{try{ultImpact();}catch(e){}return r;}):p;})(spinWheel);
+banner=(f=>function(html,cls,ms){const r=f.apply(this,arguments);try{if(cls==='resb'){const s=String(html);ultResult(/vs-big win/.test(s),/vs-big win[^"]*"[^>]*>[^<]*!/.test(s)&&!/MENANG!/.test(s));}}catch(e){}return r;})(banner);
+cineOff=(f=>function(){const r=f.apply(this,arguments);try{ultBeamOff();if(ULT.el)ULT.el.classList.remove('on','me','op','peak');}catch(e){}return r;})(cineOff);
+
+/* v49: windows only animate when they first open, not on every refresh (stops the blinking) */
+setTimeout(function noAnimBoot(){const st=document.getElementById('stage')||(typeof stage!=='undefined'&&stage);if(!st){setTimeout(noAnimBoot,500);return;}try{new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList&&n.classList.contains('modal'))setTimeout(()=>n.classList.add('noanim'),260);}));}).observe(st,{childList:true});}catch(e){console.error('noanim',e);}},500);
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
