@@ -1558,7 +1558,7 @@ let job=null;
 setInterval(()=>{
   if(!job)return;const k=Math.min(1,(performance.now()-job.t0)/(job.j.d*(PF.pass.worker?700:1000)));
   const bar=document.getElementById('jobbar-'+job.j.id);if(bar)bar.style.width=(k*100)+'%';
-  if(k>=1){const pay=Math.round((job.j.min+pick(job.j.max-job.j.min+1))*(1+buffs().job/100));S.bal+=pay;save();SFX.coin();qAdd('job');logLine('sys',null,`Kerja sampingan "${job.j.n}" selesai. Dapat ${fmt(pay)} koin.`,'win');job=null;render();phoneRender();}
+  if(k>=1){const pay=Math.round((job.j.min+pick(job.j.max-job.j.min+1))*(1+(buffs().job+buffs().bonus)/100));S.bal+=pay;save();SFX.coin();qAdd('job');logLine('sys',null,`Kerja sampingan "${job.j.n}" selesai. Dapat ${fmt(pay)} koin.`,'win');job=null;render();phoneRender();}
 },200);
 let phView='home',phAsset=null,phAmt=0,phSide='buy',phAll=false,phShopTab='hat',phUnit='lbr',phLbr=0;
 const fmtQ=(a,q)=>a.t==='saham'?Math.floor(q+1e-9).toLocaleString('id-ID'):q.toLocaleString('id-ID',{maximumFractionDigits:q<1?4:3});
@@ -1661,7 +1661,7 @@ function phoneRender(){
       <p class="news" id="bkMsg">Tiap bayar hutang skor naik (lunas +25). Tanpa hutang, skor naik pelan sendiri. Limit dihitung dari skor, kekayaan bersih, dan total yang pernah kamu bayar, jadi melunasi tidak menurunkan limit.</p>${B.loan>0?'<button class="small" id="bkHelp">⚖️ Keringanan / pailit</button>':''}`;
   }else if(phView==='toko'){
     const bf=buffs();
-    body=`<div class="wallet"><small>Buff aktif</small><div class="buffs">${buffTxt(bf).map(t=>`<span>${t}</span>`).join('')||'<span>Belum ada</span>'}</div><small class="muted">Hoki = peluang hasil buruk diulang sekali (maks 50%). Cuan = bonus dari kemenangan.</small></div>
+    body=`<div class="wallet"><small>Buff aktif</small><div class="buffs">${buffTxt(bf).map(t=>`<span>${t}</span>`).join('')||'<span>Belum ada</span>'}</div><small class="muted">Hoki = peluang hasil buruk diulang sekali (maks 50%). Cuan = tambahan gaji kerja dan bonus main; hadiah taruhan tetap murni 2x/4x.</small></div>
       <div class="tabs">${Object.entries(SLOTS).map(([k,v])=>`<button data-tab="${k}" class="${phShopTab===k?'on':''}">${v}</button>`).join('')}</div>`+
       SHOP.filter(x=>x.s===phShopTab).map(x=>{const o=PF.items[x.id],[rn,rc]=rarity(x.p);
         return `<div class="shopi" style="border-left:4px solid ${rc}"><span class="ic">${x.ic}</span><div><b>${x.n}</b> <em style="color:${rc}">${rn}</em><small>${x.d}</small><div class="buffs sm">${buffTxt(Object.assign({luck:0,bonus:0,job:0,save:0},x.b)).map(t=>`<span>${t}</span>`).join('')}</div><small>${o?`<span class="owned">Sudah punya${o.eq?' · dipakai':''}</span>`:`<b class="price">${fmt(x.p)} koin</b>`}</small></div>
@@ -1698,7 +1698,7 @@ function phoneRender(){
       <h5>Besar Kecil (Joko)</h5><p>Tiga dadu. Kecil 4-10, Besar 11-17, ganjil/genap 1:1. Triple membuat taruhan biasa kalah, tapi Triple apa saja bayar 30:1.</p>
       <h5>Roda bebas</h5><p>Roda di dekat pintu masuk dan pojok ruangan gratis diputar, cuma buat seru-seruan.</p>
       <h5>Bank & Toko</h5><p>Pinjam koin di app Bank (admin 2%, bunga jalan terus). Bayar hutang untuk menaikkan skor kredit. Tabungan dapat bunga kecil. Toko menjual aksesori yang langsung terlihat di karaktermu.</p>
-      <h5>Aksesoris & buff</h5><p>Buka Toko (🏪 kanan atas): promo harian, gacha, aksesoris per kategori, set aksesoris (bonus kalau lengkap dipakai), properti, pass permanen, dan tas. Satu barang per slot. Hoki X% = peluang hasil buruk diulang sekali (maks 50%). Cuan +X% = bonus dari setiap kemenangan.</p>
+      <h5>Aksesoris & buff</h5><p>Buka Toko (🏪 kanan atas): promo harian, gacha, aksesoris per kategori, set aksesoris (bonus kalau lengkap dipakai), properti, pass permanen, dan tas. Satu barang per slot. Hoki X% = peluang hasil buruk diulang sekali (maks 50%). Cuan +X% = tambahan gaji kerja dan bonus main (hadiah taruhan tidak dilipatgandakan).</p>
       <h5>Ranking & duel</h5><p>Ranking dihitung dari kekayaan bersih. Masuk top 10, 5, 3, dan juara 1 dapat hadiah sekali. Tantang NPC duel reme dari app Ranking.</p>
       <h5>Saldo habis</h5><p>Muncul pilihan: bantuan lounge 1.500 koin (tiap 1 menit), kerja sampingan, cairkan aset, pinjam bank, atau pailit kalau hutang sudah tidak tertolong.</p>
       <h5>Parkiran & koleksi</h5><p>Keluar lewat pintu depan untuk melihat parkiran. Mobil dan properti yang kamu beli tampil di sana, yang belum dimiliki tampil transparan.</p>
@@ -1963,7 +1963,7 @@ function buffs(){const r={luck:0,bonus:0,job:0,save:0,inv:0,fish:0},add=b=>{for(
   r.luck=Math.min(luckCap(),r.luck);return r;}
 const BI={luck:'🍀',bonus:'💰',job:'💼',save:'🏦',inv:'📊',fish:'🎣'};
 const buffTxt=b=>['luck','bonus','job','save','inv','fish'].filter(k=>b[k]).map(k=>`${BI[k]} ${k==='luck'?'Hoki ':k==='bonus'?'Cuan ':k==='job'?'Kerja ':k==='inv'?'Investasi ':k==='fish'?'Mancing ':'Bunga '}+${b[k]}%`);
-const buffChips=b=>['luck','bonus','job','save','inv','fish'].filter(k=>b[k]).map(k=>`<span title="${k==='luck'?'Hoki':k==='fish'?'Mancing: peluang ikan langka':k==='bonus'?'Cuan':k==='job'?'Kerja':k==='inv'?'Investasi: dividen, kupon obligasi, sewa & bisnis':'Bunga tabungan'}">${BI[k]} +${b[k]}%</span>`).join('');
+const buffChips=b=>['luck','bonus','job','save','inv','fish'].filter(k=>b[k]).map(k=>`<span title="${k==='luck'?'Hoki':k==='fish'?'Mancing: peluang ikan langka':k==='bonus'?'Cuan: tambahan gaji kerja dan bonus main (bukan hadiah taruhan)':k==='job'?'Kerja':k==='inv'?'Investasi: dividen, kupon obligasi, sewa & bisnis':'Bunga tabungan'}">${BI[k]} +${b[k]}%</span>`).join('');
 function luckTry(bad){const L=buffs().luck;if(L>0&&bad&&Math.random()<L/100){luckFx(L);return true;}return false;}
 const QUESTS=[
   {id:'reme',n:'Main 5 ronde Reme/Qeme di meja host',g:5,d:10},
@@ -1988,7 +1988,7 @@ let qLastWins=null;setInterval(()=>{if(!started)return;if(qLastWins===null)qLast
 function luckFx(L){const el=document.createElement('div');el.className='luckfx';el.innerHTML=`🍀 HOKI ${L}%!<small>hasil buruk diulang</small>`;stage.appendChild(el);setTimeout(()=>el.remove(),1900);try{SFX.coin();}catch(e){}logLine('sys',null,`🍀 Hoki aksesoris (${L}%) aktif! Hasil buruk diulang dan diambil yang terbaik.`,'win');}
 // luckRoll: if the first result is bad, luck% chance to roll 2 more times and keep the best
 function luckRoll(gen,score,bad){const r=gen(),L=buffs().luck;if(!(L>0&&bad(r)&&Math.random()<L/100))return r;let best=r;for(let i=0;i<2;i++){const c=gen();if(score(c)>score(best))best=c;}luckFx(L);return best;}
-const bonusOn=win=>{const B=buffs().bonus;return win>0&&B?Math.round(win*B/100):0;};
+const bonusOn=win=>0; // v21: hadiah judi selalu murni (2x / 4x). Cuan dipindah ke gaji kerja & bonus main.
 function equip(id,on){const x=SHOP.find(i=>i.id===id);if(on)SHOP.forEach(y=>{if(y.s===x.s&&PF.items[y.id])PF.items[y.id].eq=false;});PF.items[id].eq=on;}
 function youPal(){const it=PF.items||{},eq=id=>it[id]&&it[id].eq,inS=s=>{const x=SHOP.find(y=>y.s===s&&eq(y.id));return x?x.id:null;};
   const p={skin:'#f0c39a',hair:0x5a3519,shirt:0x2f6fe0,pants:0x2b2b3a,logo:0xffffff};
@@ -2080,7 +2080,7 @@ function checkRankReward(){const rk=myRank();if(!PF.rankBest)PF.rankBest=99;
   RANK_REW.forEach(([lim,rew])=>{if(rk<=lim&&PF.rankBest>lim){S.bal+=rew;SFX.big();you.cheer=2;logLine('sys',null,`Ranking naik ke #${rk}! Hadiah masuk top ${lim}: ${fmt(rew)} koin.`,'win');}});
   if(rk<PF.rankBest)PF.rankBest=rk;}
 setInterval(()=>{if(started){checkRankReward();save();savePF();}},5000);
-let onlineT=0;setInterval(()=>{if(!started||document.hidden)return;onlineT+=10;if(onlineT>=120){onlineT=0;const g=Math.round(500*(PF.pass.sultan?3:1)*(1+buffs().job/100));S.bal+=g;SFX.coin();logLine('sys',null,`🎁 Bonus main 2 menit: +${fmt(g)} koin.`,'win');render();}},10000);
+let onlineT=0;setInterval(()=>{if(!started||document.hidden)return;onlineT+=10;if(onlineT>=120){onlineT=0;const g=Math.round(500*(PF.pass.sultan?3:1)*(1+(buffs().job+buffs().bonus)/100));S.bal+=g;SFX.coin();logLine('sys',null,`🎁 Bonus main 2 menit: +${fmt(g)} koin.`,'win');render();}},10000);
 function flushSave(){try{if(started){save();savePF();}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave();});addEventListener('pagehide',flushSave);addEventListener('beforeunload',flushSave);
 let duel=null;
@@ -3277,8 +3277,8 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible)continue;co
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v20';
-function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v\d+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
+const GAME_VER='v20.1';
+function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
 const TYCOONS=['Sultan Bram','Tante Lily','Om Hartono','Keluarga Wijaya','Grup Santoso','Koh Hendra','Bu Ratna','Pak Darmawan','Nyonya Meiliana','Juragan Asep'];
