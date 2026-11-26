@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v53';
+const GAME_VER='v54';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9153,6 +9153,89 @@ gpBuild=(b0=>function(kd){const {X,W,D,H}=GP52,Z=0,K=gpKd(kd),fc=K.flag,g=new TH
   g.userData.kd=kd;return g;})(gpBuild);
 /* rewrap the exit after replacing the builder */
 {const b1=gpBuild;gpBuild=function(kd){const g=b1.apply(this,arguments);try{const s=stations.find(x=>x.type==='gpexit');if(s){s.act=()=>{if(GK.built&&GK.kd===kd){travelFxSafe('🏰','Halaman istana','Keluar dari ruang takhta',()=>tpTo(GK.X,GK.Z-58+25+14,0));}else v44Leave();};}}catch(e){}return g;};}
+
+/* ================= v54: pemukiman di sekitar kastil (pasar, rumah warga, pandai besi, kedai, kuil desa, sumur, ladang, kincir, warga) ================= */
+INTR.push([GK.X,GK.Z+40,236,196]);GK.spin=[];
+function gkTown(g,kd){const {X,Z,W,D}=GK,st=gkStyle(kd),K=gpKd(kd),fc=K.flag.map(gpHex);const MC={},M=c=>MC[c]||(MC[c]=mat(c)),MB=c=>MC['b'+c]||(MC['b'+c]=new THREE.MeshBasicMaterial({color:c}));
+  const Bx=(w,h,d,c,x,y,z,col)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof c==='number'?M(c):c);m.position.set(X+x,y,Z+z);g.add(m);if(col)colliders.push({x0:X+x-w/2,x1:X+x+w/2,z0:Z+z-d/2,z1:Z+z+d/2,top:y+h/2});return m;};
+  const Pl=(w,d,m,x,z,y)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m);p.rotation.x=-Math.PI/2;p.position.set(X+x,y||.015,Z+z);g.add(p);return p;};
+  const inst=(geo,m,pts)=>{const im=new THREE.InstancedMesh(geo,m,pts.length),o=new THREE.Object3D();pts.forEach((p,i)=>{o.position.set(X+p[0],p[1],Z+p[2]);o.rotation.set(0,p[3]||0,0);o.scale.set(p[4]||1,p[5]||1,p[6]||1);o.updateMatrix();im.setMatrixAt(i,o.matrix);});g.add(im);return im;};
+  const lbl=(t,s,c,x,y,z,k)=>{try{const l=labelPlane(t,s,c);l.scale.setScalar(k||1);l.position.set(X+x,y,Z+z);g.add(l);}catch(e){}};
+  const grass=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#5a944a';q.fillRect(0,0,w,h);for(let i=0;i<500;i++){q.fillStyle=`rgba(${70+Math.random()*40},${130+Math.random()*40},${50+Math.random()*30},.6)`;q.fillRect(Math.random()*w,Math.random()*h,2,3);}});grass.wrapS=grass.wrapT=THREE.RepeatWrapping;grass.repeat.set(70,60);
+  Pl(470,400,new THREE.MeshLambertMaterial({map:grass}),0,40,.005);
+  const dirt=canvasTex(64,64,(q,w,h)=>{q.fillStyle='#b89a6a';q.fillRect(0,0,w,h);for(let i=0;i<200;i++){q.fillStyle=`rgba(120,90,60,.4)`;q.fillRect(Math.random()*w,Math.random()*h,2,2);}});dirt.wrapS=dirt.wrapT=THREE.RepeatWrapping;
+  const dm=new THREE.MeshLambertMaterial({map:dirt});Pl(16,110,dm,0,180,.02);Pl(330,12,dm,0,146,.02);Pl(12,230,dm,-160,40,.02);Pl(12,230,dm,160,40,.02);
+  /* market square in front of the bridge */
+  Pl(60,34,new THREE.MeshLambertMaterial({color:0xcfc2a8}),0,150,.025);
+  const awn=[0xd8435b,0x2f6fe0,0xffd25f,0x3ddc84,0xff7ab0,0x9a5aff];
+  for(let i=0;i<10;i++){const s=i<5?-1:1,j=i%5,x=s*(10+j*4.4),z=140+((j%2)*12);Bx(3.4,1,2.2,0x8a5a2a,x,.5,z);for(const a of [-1,1])for(const b of [-1,1])Bx(.15,2.6,.15,0x6a4a2a,x+a*1.6,1.3,z+b*1);
+    const aw=new THREE.Mesh(new THREE.BoxGeometry(3.8,.2,2.8),M(awn[i%awn.length]));aw.position.set(X+x,2.7,Z+z);aw.rotation.z=.08*s;g.add(aw);
+    const goods=[];for(let k=0;k<5;k++)goods.push([x-1.3+k*.65,1.15,z]);inst(new THREE.SphereGeometry(.25,8,6),M([0xff6a3a,0x9ad84a,0xffd25f,0xd8843a,0xc04a8a][i%5]),goods);
+    miniPerson(g,X+x,Z+z-1.8,0,[0xf0e8dc,0x8a6a4a,0x5a7a3a][i%3]);}
+  lbl('Pasar Rakyat','Dagang & ekspor','#ffd25f',0,6,166,1.1);
+  /* well in the middle of the square */
+  {const w=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.7,1.2,16),M(0x9a9080));w.position.set(X,.6,Z+152);g.add(w);colliders.push({x0:X-1.7,x1:X+1.7,z0:Z+150.3,z1:Z+153.7,top:1.2});const wt=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,.05,16),MB(0x3a7aa8));wt.position.set(X,1.15,Z+152);g.add(wt);
+   for(const s of [-1,1])Bx(.2,3,.2,0x6a4a2a,s*1.5,2,152);const r=new THREE.Mesh(new THREE.CylinderGeometry(0,2.4,1.4,4),M(st.roof));r.rotation.y=Math.PI/4;r.position.set(X,4.2,Z+152);g.add(r);}
+  /* houses along the roads (instanced walls + roofs) */
+  const hw=[],hr=[],hdoor=[],hwin=[];const add=(x,z,ry,s)=>{hw.push([x,2.5*s,z,ry,s,s,s]);hr.push([x,5*s+1.6*s,z,ry+Math.PI/4,s*1.05,s,s*1.05]);const dx=Math.sin(ry),dz=Math.cos(ry);hdoor.push([x+dx*2.52*s,1.1,z+dz*2.52*s,ry]);hwin.push([x+dx*2.52*s+Math.cos(ry)*1.4*s,2.9*s,z+dz*2.52*s-Math.sin(ry)*1.4*s,ry]);};
+  for(let i=0;i<9;i++){const z=172+i*9;if(z>222)break;add(-14,z,Math.PI/2,1+((i*7)%3)*.12);add(14,z,-Math.PI/2,1+((i*5)%3)*.12);}
+  for(let i=0;i<14;i++){const x=-140+i*20;if(Math.abs(x)<36)continue;add(x,138,0,1+((i*3)%3)*.1);add(x,156,Math.PI,1+((i*5)%3)*.1);}
+  for(let i=0;i<10;i++){const z=-80+i*18;add(-148,z,Math.PI/2,1);add(-172,z,-Math.PI/2,1);add(148,z,-Math.PI/2,1);add(172,z,Math.PI/2,1);}
+  const wallCols=[0xf0e2c8,0xe8d0b0,0xdcc8a8,0xf4ece0];
+  inst(new THREE.BoxGeometry(5,5,5),M(wallCols[kd.length%4]),hw);inst(new THREE.ConeGeometry(4.4,3.2,4),M(st.dome==='onion'?0xc89a5a:st.roof===0x2a3a5a?0x3a4a6a:0x9a3a2a),hr);
+  inst(new THREE.BoxGeometry(1.2,2.2,.12),M(0x5a3a20),hdoor);inst(new THREE.BoxGeometry(1,1,.12),MB(0xffe6a0),hwin);
+  hw.forEach(p=>colliders.push({x0:X+p[0]-2.5*p[4],x1:X+p[0]+2.5*p[4],z0:Z+p[2]-2.5*p[4],z1:Z+p[2]+2.5*p[4],top:5*p[4]}));
+  /* blacksmith with forge glow */
+  Bx(10,4,8,0x6a5a4a,-34,2,170,true);Bx(11,.6,9,0x3a2a1a,-34,4.3,170);Bx(1.6,6,1.6,0x4a4040,-37,5,167);
+  {const f=new THREE.Mesh(new THREE.BoxGeometry(2,1,1.4),MB(0xff7a2a));f.position.set(X-34,1,Z+174.6);g.add(f);Bx(.8,.8,1.4,0x2a2a2a,-31,.6,175.6);const bs=miniPerson(g,X-32.4,Z+176.8,Math.PI,0x3a2a1a);const hm=new THREE.Mesh(new THREE.BoxGeometry(.15,.6,.15),M(0x777777));hm.position.set(.5,1.6,.3);bs.add(hm);GK.spin.push({o:hm,ax:'x',sp:6,sw:1});}
+  lbl('Pandai Besi','Senjata & zirah','#ff8a8a',-34,7,175,.9);
+  /* tavern */
+  Bx(14,6,10,0x8a6a4a,34,3,172,true);Bx(15,.8,11,0x5a3a20,34,6.4,172);{const r=new THREE.Mesh(new THREE.CylinderGeometry(0,10,3,4),M(0x7a3a2a));r.rotation.y=Math.PI/4;r.scale.set(1,1,.75);r.position.set(X+34,8.3,Z+172);g.add(r);}
+  Bx(3,1.4,.2,0x5a3a20,34,4,177.2);for(let i=0;i<3;i++){Cy0(g,X+28+i*5,Z+180);}
+  lbl('Kedai Rakyat','Dengar kabar & gosip','#ffd25f',34,9,178,.9);
+  function Cy0(gg,x,z){const t=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,.8,10),M(0x6a4a2a));t.position.set(x,.4,z);gg.add(t);for(let k=0;k<2;k++)miniPerson(gg,x+(k?1.4:-1.4),z,k?-Math.PI/2:Math.PI/2,[0x7a5a3a,0x3a5a7a][k]);}
+  /* village temple */
+  Bx(12,8,14,0xf0e8dc,0,4,212,true);{const sp=new THREE.Mesh(st.dome==='onion'?new THREE.SphereGeometry(4,14,10):new THREE.ConeGeometry(4,9,8),M(st.dome==='onion'?st.domeC:st.roof));sp.position.set(X,st.dome==='onion'?10:12.5,Z+212);if(st.dome==='onion')sp.scale.set(1,1.4,1);g.add(sp);}
+  lbl('Rumah Ibadah Desa','Tenang & damai','#8ef0a8',0,10,204.6,.9);
+  /* granary */
+  {const gr=new THREE.Mesh(new THREE.CylinderGeometry(4,4,8,16),M(0xc8a86a));gr.position.set(X+60,4,Z+178);g.add(gr);colliders.push({x0:X+56,x1:X+64,z0:Z+174,z1:Z+182,top:8});Cy1(g,X+60,Z+178,st);}
+  function Cy1(gg,x,z,st){const r=new THREE.Mesh(new THREE.ConeGeometry(4.6,3,16),M(st.roof));r.position.set(x,9.5,z);gg.add(r);}
+  lbl('Lumbung Kerajaan','Cadangan makanan','#ffd25f',60,12,183,.9);
+  /* farms with crop rows and a windmill */
+  const crops=[];for(const s of [-1,1])for(let r=0;r<10;r++)for(let c=0;c<6;c++)crops.push([s*(196+c*4)-s*0,.45,-90+r*12,0,1,1,1]);
+  const field=[];for(const s of [-1,1])for(let r=0;r<5;r++)field.push([s*206,.02,-84+r*24]);
+  field.forEach(p=>Pl(26,22,M(0x8a6a3a),p[0],p[2],.02));inst(new THREE.BoxGeometry(2.4,.9,10),M(0x7ab84a),crops.map(p=>[p[0],.45,p[2]]));
+  for(const s of [-1,1]){const mx=s*196,mz=110;const tw=new THREE.Mesh(new THREE.CylinderGeometry(2,3,14,12),M(0xe8e0d0));tw.position.set(X+mx,7,Z+mz);g.add(tw);colliders.push({x0:X+mx-3,x1:X+mx+3,z0:Z+mz-3,z1:Z+mz+3,top:14});
+    const cap=new THREE.Mesh(new THREE.ConeGeometry(2.6,3,12),M(0x7a3a2a));cap.position.set(X+mx,15.5,Z+mz);g.add(cap);
+    const hub=new THREE.Group();hub.position.set(X+mx,13,Z+mz+3);for(let k=0;k<4;k++){const b=new THREE.Mesh(new THREE.BoxGeometry(1,9,.15),M(0xf4efe6));b.position.y=4.5;const a=new THREE.Group();a.rotation.z=k*Math.PI/2;a.add(b);hub.add(a);}g.add(hub);GK.spin.push({o:hub,ax:'z',sp:.8});}
+  lbl('Ladang & Kincir','Hasil panen kerajaan','#8ef0a8',-196,18,114,1);
+  /* fences, carts, lamp posts, haystacks */
+  const fence=[];for(let x=-230;x<=230;x+=3){if(Math.abs(x)<180)continue;fence.push([x,.6,-104]);fence.push([x,.6,124]);}inst(new THREE.BoxGeometry(2.8,.2,.2),M(0x8a6a4a),fence);
+  const hay=[];for(let i=0;i<12;i++){const s=i%2?1:-1;hay.push([s*(186+(i*5)%30),.9,-96+i*17]);}inst(new THREE.CylinderGeometry(1.2,1.2,1.8,10),M(0xe8c868),hay);
+  for(let i=0;i<4;i++){const s=i%2?1:-1,x=s*(24+i*6),z=190+i*7;Bx(2.4,.8,1.6,0x8a5a2a,x,1.1,z);for(const a of [-1,1]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,.2,12),M(0x4a3a2a));wh.rotation.z=Math.PI/2;wh.position.set(X+x+a*1.3,.6,Z+z);g.add(wh);}}
+  const lamps=[];for(let z=130;z<=226;z+=12)for(const s of [-1,1])lamps.push([s*9,2.5,z]);inst(new THREE.CylinderGeometry(.1,.14,5,6),M(0x2a2a2a),lamps);inst(new THREE.SphereGeometry(.4,8,6),MB(0xffe6a0),lamps.map(p=>[p[0],5.2,p[2]]));
+  /* villagers and carts walking around */
+  const walk=(path,col,sp,cart)=>{const grp=new THREE.Group();miniPerson(grp,0,0,0,col);if(cart){const c=new THREE.Mesh(new THREE.BoxGeometry(1.6,.7,2),M(0x8a5a2a));c.position.set(0,.8,1.8);grp.add(c);}grp.position.set(X+path[0][0],0,Z+path[0][1]);g.add(grp);GK.pat.push({grp,path,i:1,sp:sp||1.3,t:Math.random()*6});};
+  const vc=[0xd8435b,0x2f6fe0,0xffd25f,0x3ddc84,0xff7ab0,0x9a5aff,0xf0e8dc,0x8a6a4a];
+  for(let i=0;i<10;i++)walk([[-26+i*5,128+(i%3)*6],[26-i*4,166-(i%4)*5],[i*3-14,140]],vc[i%vc.length],1.1+(i%3)*.3);
+  for(let i=0;i<6;i++)walk([[0,226],[0,128+(i%3)*4],[(i%2?1:-1)*120,146],[0,140]],vc[(i+3)%vc.length],1.4,i%3===0);
+  for(let i=0;i<6;i++){const s=i%2?1:-1;walk([[s*160,-90+i*20],[s*160,100],[s*200,100],[s*200,-90+i*20]],vc[(i+5)%vc.length],1.2,i<2);}
+  /* hills and forest around the edge so the world does not end in the sky */
+  {const hills=[];for(let i=0;i<36;i++){const a=i/36*Math.PI*2,r=300+((i*37)%60);hills.push([Math.cos(a)*r,0,40+Math.sin(a)*r*.9,0,1+((i*7)%5)*.25,1+((i*3)%4)*.3,1+((i*5)%5)*.25]);}inst(new THREE.ConeGeometry(60,45,7),M(0x5a7a52),hills.map(p=>[p[0],22,p[2],0,p[4],p[5],p[6]]));
+   const fr=[];for(let i=0;i<120;i++){const a=i/120*Math.PI*2+(i%3)*.02,r=250+((i*53)%40);fr.push([Math.cos(a)*r,4,40+Math.sin(a)*r*.9]);}inst(new THREE.ConeGeometry(3.4,9,7),M(0x2e6a3a),fr);Pl(900,800,M(0x5a8a4a),0,40,-.02);}
+  /* stations */
+  stationAdd('gkmkt',X,Z+160,0,'Pasar Rakyat',{useDist:5,verb:'Pasar',btn:'PASAR',act:()=>{try{xOpen('ekspor');}catch(e){}},ctx:()=>`<div class="ctx-head"><h3>🧺 Pasar Rakyat</h3><small>Dagang barang dan ekspor-impor</small></div>`});
+  stationAdd('gksmith',X-34,Z+177,0,'Pandai Besi',{useDist:4,verb:'Tempa',btn:'BESI',act:()=>openMilWin('senjata'),ctx:()=>`<div class="ctx-head"><h3>⚒️ Pandai Besi</h3><small>Beli senjata, zirah, kendaraan perang</small></div>`});
+  stationAdd('gktav',X+34,Z+179,0,'Kedai Rakyat',{useDist:4,verb:'Mampir',btn:'KEDAI',act:()=>gkTavern(kd),ctx:()=>`<div class="ctx-head"><h3>🍺 Kedai Rakyat</h3><small>Dengar gosip istana (+pengaruh kecil)</small></div>`});
+  stationAdd('gkgran',X+60,Z+184,0,'Lumbung',{useDist:4,verb:'Bagikan',btn:'LUMBUNG',act:()=>gkFeed(kd),ctx:()=>`<div class="ctx-head"><h3>🌾 Lumbung Kerajaan</h3><small>Bagikan beras: kesejahteraan rakyat naik</small></div>`});
+  stationAdd('gktemp',X,Z+204,0,'Rumah Ibadah Desa',{useDist:4,verb:'Berdoa',btn:'DOA',act:()=>gkPray(kd),ctx:()=>`<div class="ctx-head"><h3>🛕 Rumah Ibadah Desa</h3><small>Berkah kerajaan (tiap 10 menit)</small></div>`});}
+const GOSSIP=['Katanya panglima kerajaan tetangga diam-diam menimbun senjata.','Pedagang rempah bilang harga lada akan naik minggu ini.','Ada bangsawan yang menolak membayar pajak, rakyat mulai gelisah.','Pengawal istana bilang raja lama masih punya pendukung di utara.','Seorang konglomerat kota membeli tanah luas dekat perbatasan.','Kapal dagang dari Selatara membawa barang langka.','Ilmuwan kerajaan kabarnya sedang membuat mesin perang baru.','Penarik pajak terlihat lebih sering ke kedai daripada ke kantor.'];
+function gkTavern(kd){const s=tkS(),now=Date.now();if(now-(s.tav||0)<120000){showResult('Belum ada gosip baru, coba lagi sebentar');return;}s.tav=now;const t=GOSSIP[pick(GOSSIP.length)];tkAddInf(kd,2);logLine('sys',null,`🍺 Gosip kedai ${gpKd(kd).n}: "${t}" (+2 pengaruh)`);try{SFX.pop();}catch(e){}savePF();}
+function gkFeed(kd){const s=tkS(),now=Date.now();if(now-(s.feed||0)<300000){showResult('Lumbung bisa dibagikan lagi '+Math.ceil((300000-(now-(s.feed||0)))/60000)+' menit lagi');return;}const c=Math.round(Math.max(1e9,netWorth()*.0005));if(!xPay(c))return;s.feed=now;const K=tkK();K.rak=Math.min(100,K.rak+6);tkAddInf(kd,3);
+  try{SFX.coin();banner('🌾 BERAS DIBAGIKAN<small>Kesejahteraan +6 · pengaruh +3</small>','',2200);}catch(e){}tkLog('🌾',`Beras lumbung dibagikan di ${gpKd(kd).n} (🪙 ${fmtBig(c)}).`,'up');savePF();}
+gkBuild=(f=>function(kd){const c0=colliders.length;const g=f.apply(this,arguments);try{gkTown(g,kd);}catch(e){console.error('town',e);}GK.cols=new Set(colliders.slice(c0));return g;})(gkBuild);
+xTick=(f=>function(dt){const r=f.apply(this,arguments);try{if(GK.built&&GK.spin.length&&you&&Math.abs(you.pos.x-GK.X)<300){const d=Math.min(dt||.016,.1),t=performance.now()/1000;GK.spin.forEach(s=>{if(s.sw)s.o.rotation.x=Math.sin(t*s.sp)*.9;else s.o.rotation[s.ax]+=d*s.sp;});}}catch(e){}return r;})(xTick);
+gkDrop=(f=>function(){GK.spin=[];return f.apply(this,arguments);})(gkDrop);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
