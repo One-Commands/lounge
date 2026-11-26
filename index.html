@@ -3394,7 +3394,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v30';
+const GAME_VER='v31';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6524,6 +6524,49 @@ makeAvatar=(f=>function(p){const a=f.apply(this,arguments);try{if(p&&(p.eyeT||p.
     const m=new THREE.MeshLambertMaterial({color:fc});[-1,1].forEach(sg=>{const t=new THREE.Mesh(new THREE.BoxGeometry(.04,.05,.42),m);t.position.set(sg*.415,2.52,.2);a.body.add(t);});
     const br=new THREE.Mesh(new THREE.BoxGeometry(.8,.04,.04),m);br.position.set(0,2.6,.43);a.body.add(br);
     const sh=new THREE.Mesh(new THREE.BoxGeometry(.1,.04,.02),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));[-.24,.12].forEach(x=>{const s2=sh.clone();s2.position.set(x,2.55,.45);a.body.add(s2);});}}catch(e){}return a;})(makeAvatar);
+
+/* ================= v31: gelar bangsawan, pemilu wali kota, emote, kalender event ================= */
+/* W12-W13: noble titles with land tax income */
+const NOBLE=[['Baron','🎖️',5e10,.0006],['Viscount','🏅',2.5e11,.0007],['Count','🎗️',1e12,.0008],['Adipati','👑',5e12,.0009],['Pangeran','🤴',2e13,.001]];
+function nobS(){PF.nob=PF.nob||{lv:-1};return PF.nob;}
+XA.xNoble=()=>{const s=nobS(),n=NOBLE[s.lv+1];if(!n)return;if(S.bal<n[2]){SFX.error();showResult('Koin belum cukup');return;}S.bal-=n[2];s.lv++;
+  logLine('sys',null,`${n[1]} Kamu dianugerahi gelar ${n[0]}! Tanah bangsawan menghasilkan pajak tiap menit.`,'win');news.unshift(`Pemain resmi bergelar ${n[0]}.`);SFX.win();try{banner(`${n[1]} GELAR ${n[0].toUpperCase()}<small>Tanah bangsawan menghasilkan pajak</small>`,'',2600);}catch(e){}xpAdd(30);save();savePF();render();phoneRender();};
+setInterval(()=>{if(!started)return;const s=nobS();if(s.lv<0)return;let inc=0;for(let i=0;i<=s.lv;i++)inc+=NOBLE[i][2]*NOBLE[i][3]/1440*60;S.bal+=Math.round(inc);s.tot=(s.tot||0)+inc;},60000);
+/* W14-W16: mayor election every 30 minutes */
+const POL=[['pajak','💸','Pajak rendah','Pemasukan bisnis +8%'],['proyek','🏗️','Proyek kota','Proyek pemerintah dapat diskon 10% untukmu'],['aman','👮','Kota aman','Kebal sabotase dan preman']];
+function elS(){PF.el=PF.el||{t:Date.now(),mayor:null,camp:0,pol:'pajak'};return PF.el;}
+xMult=(f=>function(){let m=f.apply(this,arguments);try{const e=elS();if(e.mayor==='Kamu'&&e.pol==='pajak')m*=1.08;}catch(_){}return m;})(xMult);
+setInterval(()=>{if(!started)return;const e=elS();if(e.mayor==='Kamu'&&e.pol==='aman'){const c=CF();c.ins=Math.max(c.ins||0,Date.now()+120000);}},60000);
+XA.xCamp=v=>{const amt=Math.round(S.bal*(+v)/100);if(amt<1e6){SFX.error();return;}S.bal-=amt;const e=elS();e.camp+=amt;SFX.coin();logLine('sys',null,`🗳️ Dana kampanye ${fmtBig(amt)} disalurkan. Peluang menang naik.`);save();savePF();render();phoneRender();};
+XA.xPol=v=>{const e=elS();e.pol=v;SFX.pop();savePF();phoneRender();};
+function elChance(){const e=elS(),rep=(PF.rep||{}).pts||0,share=e.camp/Math.max(1,netWorth())*100;return Math.min(.85,.08+Math.min(.4,share*.04)+Math.min(.3,rep/1000)+(nobS().lv+1)*.03);}
+setInterval(()=>{if(!started)return;const e=elS();if(Date.now()-e.t<1800000)return;e.t=Date.now();const ran=e.camp>0;
+  if(ran&&Math.random()<elChance()){e.mayor='Kamu';logLine('sys',null,`🗳️ KAMU TERPILIH JADI WALI KOTA PERMATA! Kebijakan: ${POL.find(p=>p[0]===e.pol)[2]}.`,'win');try{banner('🗳️ WALI KOTA BARU<small>Selamat, kamu memimpin kota!</small>','',3000);SFX.win();}catch(_){}xpAdd(50);}
+  else{const ns=TYCOONS;e.mayor=ns[pick(ns.length)];logLine('sys',null,`🗳️ Pemilu selesai. ${e.mayor} terpilih jadi wali kota.${ran?' Kamu kalah suara, coba lagi periode depan.':''}`,ran?'lose':undefined);}
+  news.unshift(`Pemilu kota: ${e.mayor} jadi wali kota.`);e.camp=0;savePF();},30000);
+xView('pemilu',{t:'Pemilu Wali Kota',s:'Pemilu',ic:'🗳️',bg:'linear-gradient(135deg,#ff5a4f,#2f6fd6)',r:()=>{const e=elS(),left=Math.max(0,Math.ceil((1800000-(Date.now()-e.t))/60000)),s=nobS(),n=NOBLE[s.lv+1];
+  return `<div class="wallet"><small>Wali kota sekarang</small><b>${e.mayor?esc(e.mayor):'Belum ada'}</b><div class="row"><span>Pemilu berikutnya</span><span>${left} menit lagi</span></div><div class="row"><span>Dana kampanyemu</span><span>${fmtBig(e.camp)}</span></div><div class="row"><span>Peluang menang</span><span>${e.camp>0?Math.round(elChance()*100)+'%':'Belum mencalonkan'}</span></div></div>
+   <div class="wallet"><small>Salurkan dana kampanye (mencalonkan diri)</small><div class="bk" style="margin-top:6px">${[1,3,10].map(p=>`<button class="p" data-xa="xCamp" data-id="${p}">${p}% · ${fmtBig(Math.round(S.bal*p/100))}</button>`).join('')}</div><small class="muted">Peluang naik dengan dana kampanye, reputasi Yayasan, dan gelar bangsawan.</small></div>
+   <div class="thd">Kebijakan kalau kamu menang</div>${POL.map(p=>`<div class="chap ${e.pol===p[0]?'now':''}"><span style="font-size:22px">${p[1]}</span><div><b>${p[2]}</b><small>${p[3]}</small></div><button class="small ${e.pol===p[0]?'p':''}" data-xa="xPol" data-id="${p[0]}">${e.pol===p[0]?'Dipilih':'Pilih'}</button></div>`).join('')}
+   <div class="thd">Gelar bangsawan</div><div class="wallet"><small>Gelarmu</small><b>${s.lv<0?'Rakyat biasa':NOBLE[s.lv][1]+' '+NOBLE[s.lv][0]}</b>${s.tot?`<div class="row"><span>Total pajak tanah</span><span>${fmtBig(Math.round(s.tot))}</span></div>`:''}${n?`<div class="bk" style="margin-top:6px"><button class="p" data-xa="xNoble" ${S.bal<n[2]?'disabled':''}>Beli gelar ${n[1]} ${n[0]} · ${fmtBig(n[2])}</button></div><small class="muted">Tanah bangsawan menghasilkan sekitar ${(n[3]*100).toFixed(2)}% per hari dari harga gelar, tiap menit.</small>`:'<small class="muted">Gelar tertinggi sudah kamu miliki.</small>'}</div>`;}});
+/* M3: emotes */
+XA.xEmote=v=>{if(!you)return;if(v==='dance'){you.cheer=2.4;speak(you,'💃',false);}if(v==='wave'){you.arm=2;speak(you,'👋 Halo!',false);}if(v==='laugh'){you.cheer=1;speak(you,'😂 Hahaha',false);}if(v==='sad'){speak(you,'😢',false);}if(v==='rich'){you.cheer=1.5;speak(you,'💰 Sultan lewat!',false);try{burst(you.pos.clone().setY(3),16);}catch(e){}}
+  SFX.pop();closePhone();};
+xView('emote',{t:'Emote',s:'Emote',ic:'💃',bg:'linear-gradient(135deg,#ff7cc3,#ffd25f)',r:()=>`<div class="wallet"><small>Ekspresikan dirimu</small><div class="bk" style="margin-top:6px;flex-wrap:wrap">${[['wave','👋 Lambai'],['dance','💃 Joget'],['laugh','😂 Ketawa'],['sad','😢 Sedih'],['rich','💰 Pamer']].map(([k,n])=>`<button class="p" data-xa="xEmote" data-id="${k}">${n}</button>`).join('')}</div></div>`});
+/* M10-M17 + Q24: event calendar by real date */
+function evToday(){const d=new Date(),m=d.getMonth()+1,day=d.getDate();const E=[];
+  if(m===12&&day>=18&&day<=26)E.push(['🎄','Festival Natal','Kota dihias, pemasukan bisnis +25%',1.25]);
+  if((m===12&&day>=30)||(m===1&&day<=2))E.push(['🎆','Tahun Baru','Kembang api tiap malam, pemasukan +30%',1.3]);
+  if(m===8&&day>=14&&day<=20)E.push(['🇮🇩','Pekan Kemerdekaan','Lomba dan diskon, pemasukan +20%',1.2]);
+  if(day>=24&&day<=31&&!E.length)E.push(['🛍️','Pekan Belanja Akhir Bulan','Mall ramai, pemasukan +12%',1.12]);
+  if([0,6].includes(d.getDay()))E.push(['🎉','Akhir Pekan Ceria','XP main 2x',1]);return E;}
+xMult=(f=>function(){let m=f.apply(this,arguments);try{evToday().forEach(e=>m*=e[3]);}catch(_){}return m;})(xMult);
+{const _xa=xpAdd;xpAdd=function(n,w){const wk=[0,6].includes(new Date().getDay());return _xa(wk?n*2:n,w);};}
+setTimeout(function evBoot(){if(!started){setTimeout(evBoot,3000);return;}const E=evToday(),k=new Date().toDateString();if(E.length&&PF.evSeen!==k){PF.evSeen=k;savePF();setTimeout(()=>{try{banner(`${E[0][0]} ${E[0][1].toUpperCase()}<small>${E[0][2]}</small>`,'',3200);}catch(e){}logLine('sys',null,`${E[0][0]} Event aktif: ${E[0][1]}. ${E[0][2]}.`,'win');},15000);}},4000);
+xView('event',{t:'Kalender Event',s:'Event',ic:'📅',bg:'linear-gradient(135deg,#ffd25f,#ff5a4f)',dot:()=>evToday().length?1:0,r:()=>{const E=evToday();
+  const UP=[['🎄','Festival Natal','18–26 Desember'],['🎆','Tahun Baru','30 Desember – 2 Januari'],['🇮🇩','Pekan Kemerdekaan','14–20 Agustus'],['🛍️','Pekan Belanja Akhir Bulan','24–31 tiap bulan'],['🎉','Akhir Pekan Ceria','Tiap Sabtu dan Minggu']];
+  return `<div class="thd">Sedang berlangsung</div>`+(E.map(e=>`<div class="chap now"><span style="font-size:26px">${e[0]}</span><div><b>${e[1]}</b><small>${e[2]}</small></div></div>`).join('')||'<p class="muted">Tidak ada event hari ini.</p>')+
+  `<div class="thd">Jadwal</div>`+UP.map(e=>`<div class="chap"><span style="font-size:22px">${e[0]}</span><div><b>${e[1]}</b><small>${e[2]}</small></div></div>`).join('');}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
