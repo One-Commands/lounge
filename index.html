@@ -3561,7 +3561,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v51';
+const GAME_VER='v52';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8801,6 +8801,136 @@ xView('militer',{t:'Markas Militer',s:'Militer',ic:'🎖️',bg:'linear-gradient
 XA.xMilOpen=()=>{closePhone();setTimeout(()=>openMilWin(),30);};
 /* the war app and the army HQ point to the new window */
 {const pv=XV.perang;if(pv){const r0=pv.r;pv.r=function(){return `<div class="srow">${bzB('xMilOpen','','🎖️ Buka Markas Militer (pasukan, komandan, senjata, riset)')}</div>`+r0.apply(this,arguments);};}}
+
+/* ================= v52: istana megah di kerajaan + interior ruang takhta, serang kerajaan lain sebagai raja, menteri urus otomatis ================= */
+const GP52={X:3480,W:34,D:60,H:13,
+  ST:{aurelia:{wall:0xefe6d4,trim:0xd8b45a,roof:0x2f4f6e,dome:'round',domeC:0x5a7a9a},zahran:{wall:0xf0dcb0,trim:0xd8a648,roof:0xd8a648,dome:'onion',domeC:0xe8c050},
+    hanseo:{wall:0xf4f6fa,trim:0x7aa8ff,roof:0x2a3a5a,dome:'glass',domeC:0x9fd8ff}},cur:null};
+function gpKd(id){const K=KDS.find(x=>x[0]===id),Z=ZN.find(z=>z.id===id);return {id,ic:K?K[1]:'👑',n:K?K[2]:(Z?Z.n:id),flag:(Z&&Z.flag)||['#2f4f9e','#ffd25f','#ffffff']};}
+function gpHex(c){return new THREE.Color(c).getHex();}
+/* exterior palace in a kingdom zone */
+function gpExterior(G,x,z,kd){const st=GP52.ST[kd]||{wall:0xf4efe6,trim:0xd8b45a,roof:0x7a2a2a,dome:'round',domeC:0xd8b45a},K=gpKd(kd),fc=K.flag.map(gpHex);
+  const M=(c,o)=>mat(c,o),Lit=new THREE.MeshBasicMaterial({color:0xffe6a0});
+  gplane(G,46,34,mat(0xd8cfbe),x,z+4,.02);gplane(G,5,16,mat(0xa81c2a),x,z+19,.03);
+  cBox(G,28,12,16,st.wall,x,6,z,true);cBox(G,28.8,.7,16.8,st.trim,x,12.2,z);cBox(G,28.4,.35,16.4,st.trim,x,4.2,z);
+  for(let r=0;r<2;r++)for(let i=0;i<6;i++){const wx=x-11+i*4.4;if(Math.abs(wx-x)<3)continue;const w=new THREE.Mesh(new THREE.PlaneGeometry(1.5,2.6),Lit);w.position.set(wx,2.6+r*5,z+8.05);G.add(w);cBox(G,1.9,.25,.3,st.trim,wx,1.2+r*5,z+8.1);}
+  cBox(G,5,7.2,.2,st.trim,x,3.6,z+8.05);cBox(G,4,6.4,.3,0x5a2a10,x,3.2,z+8.15);
+  /* portico with columns and pediment */
+  for(let i=0;i<6;i++){const cx=x-10+i*4;if(Math.abs(cx-x)<1)continue;const c=new THREE.Mesh(new THREE.CylinderGeometry(.5,.6,9,12),M(st.wall));c.position.set(cx,4.5,z+12);G.add(c);cBox(G,1.4,.5,1.4,st.trim,cx,.25,z+12);cBox(G,1.4,.5,1.4,st.trim,cx,8.9,z+12);}
+  cBox(G,24,1,5,st.wall,x,9.6,z+10.5);cBox(G,24.4,.3,5.4,st.trim,x,10.2,z+10.5);
+  {const s=new THREE.Shape();s.moveTo(-12,0);s.lineTo(12,0);s.lineTo(0,4);s.lineTo(-12,0);const p=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:4.6,bevelEnabled:false}),M(st.kind==='flat'?st.wall:st.roof));p.position.set(x,10.3,z+8.2);G.add(p);}
+  G.add(neon('ISTANA '+String(K.n).toUpperCase(),x,11.6,z+13.0,0,'#ffffff','#ffd25f',13,1.3));
+  /* dome on drum */
+  {const dr=new THREE.Mesh(new THREE.CylinderGeometry(5,5.4,3,24),M(st.wall));dr.position.set(x,13.9,z);G.add(dr);
+    const rg=new THREE.Mesh(new THREE.TorusGeometry(5.1,.25,8,32),M(st.trim));rg.rotation.x=Math.PI/2;rg.position.set(x,15.4,z);G.add(rg);
+    let d;if(st.dome==='glass')d=new THREE.Mesh(new THREE.SphereGeometry(5,24,12,0,Math.PI*2,0,Math.PI/2),new THREE.MeshLambertMaterial({color:st.domeC,transparent:true,opacity:.75}));
+    else d=new THREE.Mesh(new THREE.SphereGeometry(5,24,14,0,Math.PI*2,0,Math.PI/2),M(st.domeC));d.position.set(x,15.4,z);if(st.dome==='onion')d.scale.set(1,1.6,1);G.add(d);
+    const tip=new THREE.Mesh(new THREE.ConeGeometry(.6,st.dome==='onion'?4:2.6,8),M(st.trim));tip.position.set(x,15.4+(st.dome==='onion'?9.6:6.2),z);G.add(tip);
+    const orb=new THREE.Mesh(new THREE.SphereGeometry(.55,12,8),M(0xffd25f));orb.position.set(x,15.4+(st.dome==='onion'?11.8:7.6),z);G.add(orb);}
+  /* four towers */
+  [[-15,-9],[15,-9],[-15,9],[15,9]].forEach(([dx,dz])=>{const tx=x+dx,tz=z+dz;
+    if(st.dome==='glass'){cBox(G,5,20,5,0xdfe8f4,tx,10,tz,true);const gl=new THREE.Mesh(new THREE.BoxGeometry(5.1,16,5.1),new THREE.MeshLambertMaterial({color:0x9fd8ff,transparent:true,opacity:.55}));gl.position.set(tx,11,tz);G.add(gl);cBox(G,5.6,.5,5.6,st.trim,tx,20.2,tz);return;}
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.8,17,16),M(st.wall));t.position.set(tx,8.5,tz);G.add(t);colliders.push({x0:tx-2.8,x1:tx+2.8,z0:tz-2.8,z1:tz+2.8,top:17});
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2;cBox(G,.9,1,.9,st.wall,tx+Math.cos(a)*2.6,17.4,tz+Math.sin(a)*2.6);}
+    const rf=st.dome==='onion'?new THREE.Mesh(new THREE.SphereGeometry(2.6,16,10),M(st.domeC)):new THREE.Mesh(new THREE.ConeGeometry(3.1,7,16),M(st.roof));rf.position.set(tx,st.dome==='onion'?19.6:21.4,tz);if(st.dome==='onion')rf.scale.set(1,1.4,1);G.add(rf);
+    for(let r=0;r<3;r++){const w=new THREE.Mesh(new THREE.PlaneGeometry(.8,1.4),Lit);w.position.set(tx,4+r*4.5,tz+2.72);G.add(w);}
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,3,6),M(0xdddddd));pole.position.set(tx,st.dome==='onion'?24:26.4,tz);G.add(pole);
+    const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.1),new THREE.MeshBasicMaterial({color:fc[0],side:THREE.DoubleSide}));fl.position.set(tx+.95,st.dome==='onion'?25:27.4,tz);G.add(fl);});
+  /* garden, fountains, guards */
+  for(const s of [-1,1]){cBox(G,1,1,12,0x2e7a3a,x+s*4.5,.5,z+21);for(let i=0;i<3;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(.9,10,8),M(0x2e8a40));b.position.set(x+s*7.5,.9,z+16+i*5);G.add(b);}
+    const fx=x+s*13,fz=z+22;const bs=new THREE.Mesh(new THREE.CylinderGeometry(3,3.2,.8,20),M(0xe8e0d0));bs.position.set(fx,.4,fz);G.add(bs);const wt=new THREE.Mesh(new THREE.CylinderGeometry(2.7,2.7,.1,20),new THREE.MeshBasicMaterial({color:0x5fc8f0}));wt.position.set(fx,.82,fz);G.add(wt);
+    const pl=new THREE.Mesh(new THREE.CylinderGeometry(.4,.6,2.4,10),M(st.trim));pl.position.set(fx,1.6,fz);G.add(pl);colliders.push({x0:fx-3.2,x1:fx+3.2,z0:fz-3.2,z1:fz+3.2,top:.8});
+    const gd=miniPerson(G,x+s*3,z+14.2,0,fc[0]);cBox(gd,.66,.35,.66,st.trim,0,2.6,0);
+    flag(G,x+s*21,z+14,K.flag);}
+  const door=stationAdd('gpdoor',x,z+13.6,0,'Istana '+K.n,{useDist:4,verb:'Masuk',btn:'ISTANA',act:()=>gpEnter(kd),ctx:()=>gpDoorCtx(kd)});return door;}
+function gpDoorCtx(kd){const K=gpKd(kd);let k=null;try{k=tkKing();}catch(e){}const mine=k&&k.kd===kd;let raja='';try{raja=mine?'Kamu':kdRaja(kd);}catch(e){}
+  return `<div class="ctx-head"><h3>🏰 Istana ${esc(K.n)}</h3><small>${mine?'👑 Istanamu. Masuk ke ruang takhta.':'Raja: '+esc(raja)+' · masuk untuk audiensi'}</small></div>`;}
+/* interior throne hall, rebuilt with the kingdom's colours */
+function gpTex(draw,w,h,rx,ry){const t=canvasTex(w,h,draw);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx||1,ry||1);return t;}
+function gpBuild(kd){const {X,W,D,H}=GP52,Z=0,K=gpKd(kd),fc=K.flag,g=new THREE.Group();scene.add(g);
+  const P=(w,h,m,x,y,z,rx,ry)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);p.position.set(x,y,z);p.rotation.set(rx||0,ry||0,0);g.add(p);return p;};
+  const floorT=gpTex((q,w,h)=>{for(let y=0;y<2;y++)for(let x=0;x<2;x++){q.fillStyle=(x+y)%2?'#efe8dc':'#3a3040';q.fillRect(x*64,y*64,64,64);}q.strokeStyle='rgba(200,160,80,.6)';q.lineWidth=2;q.strokeRect(0,0,128,128);},128,128,W/4,D/4);
+  P(W,D,new THREE.MeshLambertMaterial({map:floorT}),X,0,Z,-Math.PI/2);
+  const wallT=gpTex((q,w,h)=>{q.fillStyle='#f3e9d6';q.fillRect(0,0,w,h);q.fillStyle='#7a2030';q.fillRect(0,h*.78,w,h*.22);q.fillStyle='#d8b45a';q.fillRect(0,h*.76,w,6);q.fillRect(0,0,w,8);q.strokeStyle='#e0cfae';q.lineWidth=4;q.strokeRect(14,24,w-28,h*.66);},128,256,1,1);
+  const wl=(len,x,z,ry,rep)=>{const t=wallT.clone();t.needsUpdate=true;t.repeat.set(rep,1);P(len,H,new THREE.MeshLambertMaterial({map:t}),x,H/2,z,0,ry);};
+  wl(W,X,Z-D/2,0,W/5);wl(W,X,Z+D/2,Math.PI,W/5);wl(D,X-W/2,Z,Math.PI/2,D/5);wl(D,X+W/2,Z,-Math.PI/2,D/5);
+  [[X-W/2-.5,X-W/2,Z-D/2,Z+D/2],[X+W/2,X+W/2+.5,Z-D/2,Z+D/2],[X-W/2,X+W/2,Z-D/2-.5,Z-D/2],[X-W/2,X+W/2,Z+D/2,Z+D/2+.5]].forEach(([x0,x1,z0,z1])=>colliders.push({x0,x1,z0,z1,top:H}));
+  const ceilT=gpTex((q,w,h)=>{q.fillStyle='#4a2a3a';q.fillRect(0,0,w,h);q.fillStyle='#d8b45a';q.fillRect(0,0,w,6);q.fillRect(0,0,6,h);q.fillStyle='#6a3a4e';q.fillRect(14,14,w-22,h-22);},64,64,W/4,D/4);
+  P(W,D,new THREE.MeshLambertMaterial({map:ceilT}),X,H,Z,Math.PI/2);
+  /* carpet */
+  P(4.4,D-8,mat(0xb0182a),X,.03,Z+3,-Math.PI/2);for(const s of [-1,1])P(.3,D-8,mat(0xffd25f),X+s*2.35,.035,Z+3,-Math.PI/2);
+  /* columns, windows and banners */
+  const mar=mat(0xf4efe6),gold=mat(0xd8b45a);
+  for(let i=0;i<6;i++){const cz=Z-18+i*8;for(const s of [-1,1]){const cx=X+s*9;const c=new THREE.Mesh(new THREE.CylinderGeometry(.7,.8,H-1.2,14),mar);c.position.set(cx,(H-1.2)/2+.6,cz);g.add(c);
+      const b=new THREE.Mesh(new THREE.BoxGeometry(2,.6,2),gold);b.position.set(cx,.3,cz);g.add(b);const t=b.clone();t.position.y=H-.3;g.add(t);colliders.push({x0:cx-.9,x1:cx+.9,z0:cz-.9,z1:cz+.9,top:H});
+      const wx=X+s*(W/2-.06);P(2.2,5.6,new THREE.MeshBasicMaterial({color:0xbfe2ff}),wx,6.2,cz+4,0,-s*Math.PI/2);P(2.6,.4,gold,wx-s*.01,9.2,cz+4,0,-s*Math.PI/2);
+      const ban=canvasTex(64,160,(q,w,h)=>{fc.forEach((c,j)=>{q.fillStyle=c;q.fillRect(j*w/fc.length,0,w/fc.length+1,h-20);});q.fillStyle=fc[0];q.beginPath();q.moveTo(0,h-20);q.lineTo(w/2,h);q.lineTo(w,h-20);q.fill();q.font='34px sans-serif';q.textAlign='center';q.fillText(K.ic,w/2,60);});
+      P(1.8,4.6,new THREE.MeshBasicMaterial({map:ban,transparent:true}),wx-s*.02,7,cz,0,-s*Math.PI/2);}}
+  /* chandeliers with one warm light */
+  [-12,2,16].forEach(cz=>{const r=new THREE.Mesh(new THREE.TorusGeometry(1.7,.12,8,28),gold);r.rotation.x=Math.PI/2;r.position.set(X,H-3,cz);g.add(r);const ch=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,3,6),gold);ch.position.set(X,H-1.5,cz);g.add(ch);
+    for(let i=0;i<10;i++){const a=i/10*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),new THREE.MeshBasicMaterial({color:0xfff2b0}));b.position.set(X+Math.cos(a)*1.7,H-2.75,cz+Math.sin(a)*1.7);g.add(b);}});
+  const pl=new THREE.PointLight(0xffe2a8,1.1,60,1.6);pl.position.set(X,H-3,Z);g.add(pl);
+  /* dais and throne */
+  const dz=Z-D/2+5;[[16,8,0xd8c8a8],[12,6,0xe8dcc0],[8,4.4,0xb0182a]].forEach(([w,d,c],i)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,.4,d),mat(c));b.position.set(X,.2+i*.4,dz);g.add(b);});
+  const ty=1.2,tz=dz-.6;const T=(w,h,d,m,x,y,z)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(x,y,z);g.add(b);return b;};
+  T(2.6,.8,2.2,gold,X,ty+.4,tz);T(2.6,4.6,.5,gold,X,ty+2.6,tz-1);T(2.1,.25,1.8,mat(0xb0182a),X,ty+.92,tz);T(1.9,3.4,.12,mat(0xb0182a),X,ty+2.7,tz-.72);T(.4,1.2,2.2,gold,X-1.3,ty+1.2,tz);T(.4,1.2,2.2,gold,X+1.3,ty+1.2,tz);
+  {const cr=emojiSprite('👑',1.4);cr.position.set(X,ty+5.6,tz-1);g.add(cr);}
+  for(const s of [-1,1]){T(1.7,.6,1.6,gold,X+s*3.6,ty+.3,tz+.4);T(1.7,2.8,.35,gold,X+s*3.6,ty+1.6,tz-.4);T(1.4,.18,1.3,mat(0x7a2a8a),X+s*3.6,ty+.66,tz+.4);
+    for(let i=0;i<3;i++){T(1.2,.8,.8,mat(0x8a5a2a),X+s*(10+i*1.6),.4,dz+1);T(1.25,.2,.85,gold,X+s*(10+i*1.6),.85,dz+1);}const gp=new THREE.Mesh(new THREE.ConeGeometry(.9,1,8),mat(0xffd25f));gp.position.set(X+s*11.6,1.3,dz+1);g.add(gp);}
+  {const big=canvasTex(128,160,(q,w,h)=>{fc.forEach((c,j)=>{q.fillStyle=c;q.fillRect(0,j*h/fc.length,w,h/fc.length+1);});q.strokeStyle='#d8b45a';q.lineWidth=8;q.strokeRect(4,4,w-8,h-8);});P(8,10,new THREE.MeshBasicMaterial({map:big}),X,H/2+1,Z-D/2+.06);
+    const em=emojiSprite(K.ic,3.4);em.position.set(X,H/2+1.6,Z-D/2+.5);g.add(em);}
+  /* council table (left) and war table (right) */
+  T(3,.9,8,mat(0x6a3a1a),X-12.5,.45,Z-6);T(3.2,.08,8.2,mat(0x2a6a3a),X-12.5,.94,Z-6);
+  for(let i=0;i<3;i++){miniPerson(g,X-14.6,Z-8.5+i*2.5,Math.PI/2,0x2a4a8a);T(.8,.5,.8,mat(0x5a3a20),X-14.6,.25,Z-8.5+i*2.5);}
+  const mapT=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#3a6a8a';q.fillRect(0,0,w,h);q.fillStyle='#c8b080';[[30,30,22],[90,40,18],[60,90,26],[100,100,14],[24,96,12]].forEach(([x,y,r])=>{q.beginPath();q.arc(x,y,r,0,7);q.fill();});q.fillStyle='#d8435b';q.fillRect(56,84,8,8);q.fillStyle='#2f4f9e';q.fillRect(86,36,8,8);});
+  T(5,.9,5,mat(0x3a2a1a),X+12.5,.45,Z-6);P(4.6,4.6,new THREE.MeshBasicMaterial({map:mapT}),X+12.5,.92,Z-6,-Math.PI/2);
+  for(let i=0;i<6;i++){const pc=new THREE.Mesh(new THREE.ConeGeometry(.15,.4,6),mat(i%2?0xd8435b:0x2f6fe0));pc.position.set(X+11+((i*7)%4),1.12,Z-7.5+((i*5)%4));g.add(pc);}
+  miniPerson(g,X+15.4,Z-6,-Math.PI/2,0x4a5d23);
+  try{const a=labelPlane('Dewan Menteri','Tugas & pejabat','#ffd25f');a.scale.setScalar(.6);a.position.set(X-12.5,3.4,Z-1.4);g.add(a);const b=labelPlane('Ruang Perang','Pasukan, senjata, serang','#ff8a8a');b.scale.setScalar(.6);b.position.set(X+12.5,3.4,Z-2.8);g.add(b);}catch(e){}
+  /* guards along the carpet and statues at the door */
+  for(let i=0;i<4;i++)for(const s of [-1,1]){const gd=miniPerson(g,X+s*3.4,Z-14+i*9,-s*Math.PI/2,gpHex(fc[0]));const hm=new THREE.Mesh(new THREE.BoxGeometry(.66,.35,.66),gold);hm.position.y=2.6;gd.add(hm);const sp=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,3,5),mat(0xcccccc));sp.position.set(.5,1.5,0);gd.add(sp);}
+  for(const s of [-1,1]){T(1.8,1.6,1.8,mat(0xe8e0d0),X+s*7,.8,Z+D/2-5);T(.9,2.2,.6,gold,X+s*7,2.7,Z+D/2-5);const hd=new THREE.Mesh(new THREE.SphereGeometry(.4,10,8),gold);hd.position.set(X+s*7,4.1,Z+D/2-5);g.add(hd);}
+  P(4.6,6.6,mat(0x5a2a10),X,3.3,Z+D/2-.06,0,Math.PI);
+  /* stations */
+  stationAdd('gpexit',X,Z+D/2-1.6,Math.PI,'Pintu keluar',{useDist:2.8,verb:'Keluar',btn:'KELUAR',act:()=>v44Leave(),ctx:()=>`<div class="ctx-head"><h3>🚪 Pintu istana</h3><small>Kembali ke ${esc(K.n)}</small></div>`});
+  stationAdd('gpthrone',X,dz+3.2,0,'Takhta',{useDist:3.2,verb:'Takhta',btn:'TAKHTA',act:()=>gpThrone(kd),ctx:()=>{let k=null;try{k=tkKing();}catch(e){}const mine=k&&k.kd===kd;return `<div class="ctx-head"><h3>👑 Takhta ${esc(K.n)}</h3><small>${mine?'Duduk di takhta dan perintah kerajaan':'Audiensi: suap, upeti, atau kudeta'}</small></div>`;}});
+  stationAdd('gpcouncil',X-10.6,Z-6,Math.PI/2,'Dewan Menteri',{useDist:3,verb:'Rapat',btn:'MENTERI',act:()=>openIstana('tugas'),ctx:()=>`<div class="ctx-head"><h3>🧑‍💼 Dewan Menteri</h3><small>Tugas pejabat dan urus rakyat otomatis</small></div>`});
+  stationAdd('gpwar',X+9.6,Z-6,-Math.PI/2,'Ruang Perang',{useDist:3,verb:'Strategi',btn:'PERANG',act:()=>openMilWin('kuat'),ctx:()=>`<div class="ctx-head"><h3>🗺️ Ruang Perang</h3><small>Kekuatan gabungan ⚔️ ${mlPow()} · serang kerajaan lain</small></div>`});
+  g.userData.kd=kd;return g;}
+function gpDrop(){const g=INT.built.gp52;if(!g)return;scene.remove(g);for(let i=stations.length-1;i>=0;i--)if(/^gp(exit|throne|council|war)$/.test(stations[i].type))stations.splice(i,1);
+  const {X,W,D}=GP52;for(let i=colliders.length-1;i>=0;i--){const c=colliders[i];if(c.x0>=X-W/2-1&&c.x1<=X+W/2+1&&c.z0>=-D/2-1&&c.z1<=D/2+1)colliders.splice(i,1);}INT.built.gp52=null;}
+function gpEnter(kd){if(busy||(modal&&modal.busy))return;try{if(!INT.built.gp52||INT.built.gp52.userData.kd!==kd){gpDrop();INT.built.gp52=gpBuild(kd);}}catch(e){console.error('gp52',e);return;}
+  if(Math.abs(you.pos.x)<2000)INT.ret={x:you.pos.x,z:you.pos.z,yaw:you.yaw};const K=gpKd(kd);
+  if(modal)closeGame();travelFxSafe('🏰','Istana '+K.n,'Masuk ke ruang takhta',()=>{tpTo(GP52.X,GP52.D/2-4,Math.PI);try{DYF.list.forEach(f=>f.av.root.position.set(GP52.X+1.5,0,GP52.D/2-3));}catch(e){}});
+  let k=null;try{k=tkKing();}catch(e){}logLine('sys',null,k&&k.kd===kd?`👑 Selamat datang kembali, Paduka. Istana ${K.n} menyambutmu.`:`🏰 Kamu memasuki Istana ${K.n}.`);}
+function gpThrone(kd){let k=null;try{k=tkKing();}catch(e){}if(k&&k.kd===kd){try{banner(`👑 BERSEMAYAM DI TAKHTA<small>${gpKd(kd).n}</small>`,'',2200);SFX.big();}catch(e){}setTimeout(()=>openIstana('takhta'),600);}else openIstana('takhta');}
+/* place palaces in kingdoms that had none */
+[['aurelia',46,42],['zahran',0,10],['hanseo',-32,4]].forEach(([id,dx,dzz])=>{const f=ZB[id];if(!f)return;ZB[id]=function(G,zc,k){f.apply(this,arguments);try{gpExterior(G,dx,zc+dzz,id);}catch(e){console.error('gp ext',id,e);}};});
+if(ZB.selatara){const f=ZB.selatara;ZB.selatara=function(G,zc,k){f.apply(this,arguments);try{cBox(G,5,7,.3,0x5a2a10,-60,3.5,zc+48.2);stationAdd('gpdoor',-60,zc+49.5,0,'Istana Selatara',{useDist:4,verb:'Masuk',btn:'ISTANA',act:()=>gpEnter('selatara'),ctx:()=>gpDoorCtx('selatara')});}catch(e){}};}
+k7Palace=(f=>function(K,x,z){f.apply(this,arguments);try{const s=stations[stations.length-1];if(s&&s.type==='kdp'){s.act=()=>gpEnter(K.id);s.verb='Masuk';}}catch(e){}})(k7Palace);
+/* attack other kingdoms as king, with your army joined (Markas Militer > Kekuatan) */
+XA.xMlAtk=t=>{let k=null;try{k=tkKing();}catch(e){}if(!k){showResult('Jadi raja dulu lewat kudeta di Istana');return;}XA.xTkBribe(k.kd+':'+t);try{MLW.redraw();}catch(e){}};
+{const draw0=openMilWin;openMilWin=function(tab){draw0.apply(this,arguments);try{const m=MLW.m;if(!m)return;const r0=m.refresh;m.refresh=function(){r0.apply(this,arguments);gpAtkInject();};gpAtkInject();}catch(e){}};}
+function gpAtkInject(){try{if(MLW.tab!=='kuat'||!MLW.m)return;const box=MLW.m.el.querySelector('.momain');if(!box||box.querySelector('.gpatk'))return;let k=null;try{k=tkKing();}catch(e){}const w=WS(),P=mlPow();
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;let h='<div class="gpatk"><div class="thd">Serang kerajaan lain</div>';
+  if(!k)h+=`<p class="muted">Jadi raja dulu (kudeta di Istana). Setelah itu pasukanmu digabung dengan pasukan kerajaanmu dan bisa menyerang kerajaan lain dari sini.</p>`;
+  else{const my=Math.round(w.k[k.kd].pow)+P,c=Math.round(bribeCost(k.kd)*.3),busyW=w.wars.length>=2||atWar(k.kd);
+    h+=`<div class="mocard prme"><div class="moic">👑</div><div class="mot"><b>Pasukan gabungan ${esc(kdN(k.kd))}: ⚔️ ${my.toLocaleString('id-ID')}</b><small>Kerajaan ${Math.round(w.k[k.kd].pow)} + militermu ${P} · biaya perintah 🪙 ${fmtBig(c)}${busyW?' · tunggu perang selesai':''}</small></div></div>`+
+      KDS.filter(x=>x[0]!==k.kd).map(([id,ic,nm])=>{const op=Math.round(w.k[id].pow),ch=Math.round(my/(my+op)*100);return `<div class="mocard"><div class="moic">${ic}</div><div class="mot"><b>${esc(nm)} · ⚔️ ${op}</b><small>Peluang menang tiap ronde ±${ch}% · ${w.k[id].wil} wilayah${atWar(id)?' · sedang perang':''}</small></div><div class="mob">${B('xMlAtk',id,'⚔️ Serang','mogo',busyW||atWar(id)||S.bal<c)}</div></div>`;}).join('');}
+  h+='</div>';const hero=box.querySelector('.prhero');if(hero)hero.insertAdjacentHTML('afterend',h);else box.insertAdjacentHTML('afterbegin',h);}catch(e){console.error('gpatk',e);}}
+/* ministers look after the people automatically */
+function tkAuto(){const s=tkS();s.auto=s.auto||{on:1,tax:0};return s.auto;}
+XA.xTkAuto=k=>{const a=tkAuto();a[k]=a[k]?0:1;try{SFX.pop();}catch(e){}savePF();ISW.redraw();};
+logLine=(f=>function(){if(window.__tkq)return;return f.apply(this,arguments);})(logLine);
+taskDone=(f=>function(role){const t=tkS().task[role],q=t&&t.auto;if(q)window.__tkq=1;try{return f.apply(this,arguments);}finally{if(q)window.__tkq=0;}})(taskDone);
+setInterval(()=>{try{if(!started)return;const a=tkAuto();let k=null;try{k=tkKing();}catch(e){}if(!a.on||!k)return;const s=tkS(),K=tkK(),now=Date.now();
+  const go=(r,id)=>{if(!id||!s.asg[r]||(s.task[r]&&s.task[r].end>now))return;window.__quiet=1;try{XA.xTkTask(id);}finally{setTimeout(()=>{window.__quiet=0;},0);}if(s.task[r]&&s.task[r].id===id){s.task[r].auto=1;s.autoN=(s.autoN||0)+1;}};
+  go('pns',K.rak<75?'rakyat':K.stab<75?'hukum':'irigasi');go('pgw',K.stab<85?'jaga':'kafilah');go('mat',K.stab<70?'bongkar':null);
+  go('keu',a.tax&&K.rak>65?'pajak':'audit');go('dag','rempah');go('prt','latih');}catch(e){console.error('tkauto',e);}},15000);
+taskTab=(f=>function(){const a=tkAuto(),K=tkK();let k=null;try{k=tkKing();}catch(e){}const s=tkS();
+  const B=(v,on,t)=>`<button class="${on?'mogo':'mog'}" data-xa2="xTkAuto" data-v="${v}">${t}</button>`;
+  const head=`<div class="mocard mocard2 ${a.on?'prme':''}"><div class="moic">🤖</div><div class="mot"><b>Menteri urus otomatis ${a.on?'· aktif':'· mati'}</b><small>${k?`Kesejahteraan ${K.rak} · kestabilan ${K.stab}. Penasihat urus rakyat dan hukum, pengawal jaga istana, telik sandi bongkar komplotan, panglima latih pasukan. Pemberontakan muncul kalau kestabilan di bawah 15.`:'Aktif saat kamu jadi raja.'}${s.autoN?` · ${s.autoN} tugas otomatis`:''}</small></div><div class="mob">${B('on',a.on,a.on?'Aktif':'Mati')}${B('tax',a.tax,a.tax?'Pajak: ya':'Pajak: tidak')}</div></div>`;
+  return head+f.apply(this,arguments);})(taskTab);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
