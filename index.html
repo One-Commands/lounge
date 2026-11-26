@@ -3396,7 +3396,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v32.1';
+const GAME_VER='v33';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6631,6 +6631,123 @@ makeAvatar=(f=>function(p){const a=f.apply(this,arguments);try{if(!p||!a||!a.bod
 }catch(e){console.warn('dress',e);}return a;})(makeAvatar);
 
 mmDraw=function(){};
+/* ================= v33: Menara Permata, private 35-floor tower (lobby, offices, function halls, apartments, private office on 35) ================= */
+const TW={z0:-8000,dz:70,hw:30,hd:20,n:'Menara Permata'};const twZ=k=>TW.z0-k*TW.dz;
+function twAt(z){if(z>-7950||z<-8400)return -1;const k=Math.round((TW.z0-z)/TW.dz);return k>=0&&k<5&&Math.abs(z-twZ(k))<TW.hd+2?k:-1;}
+const inTw=(x,z)=>{const k=twAt(z);return k>=0&&Math.abs(x)<TW.hw-.5&&Math.abs(z-twZ(k))<TW.hd-.5;};
+const twType=f=>f===1?0:f<=15?1:f===16||f===34?3:f<=33?2:4;
+const twName=f=>f===1?'Lobby':f<=15?'Kantor':f===16?'Function Hall':f===34?'Sky Lounge & Ballroom':f<=33?'Apartemen':'Kantor Pribadi';
+const twVal=f=>twType(f)===1?2.5e11+f*5e9:twType(f)===2?1.8e11+f*4e9:3e11;
+function twS(){PF.twr=PF.twr||{fl:{},ev:{}};return PF.twr;}
+const twF=f=>{const s=twS();return s.fl[f]=s.fl[f]||{st:'kosong'};};
+const TWC={f:35};let twGrps=[],twSign=null,twBuilt=false;
+inWorld=(f=>function(x,z){return inTw(x,z)||f.apply(this,arguments);})(inWorld);
+camBounds=(f=>function(t){const k=twAt(t.z);if(k>=0){const zc=twZ(k);return [-TW.hw+.6,TW.hw-.6,zc-TW.hd+.6,zc+TW.hd-.6,[6.4,4.2,4.2,7.4,6.2][k]];}return f.apply(this,arguments);})(camBounds);
+cityVis=(f=>function(){const k=you?twAt(you.pos.z):-1;if(k>=0){if(cityGrp)cityGrp.visible=false;zoneGrps.forEach(g=>g.visible=false);twGrps.forEach((g,i)=>g.visible=i===k);cityVisK='tw'+k;return;}
+  if(twGrps.length)twGrps.forEach(g=>g.visible=false);return f.apply(this,arguments);})(cityVis);
+function twFloorSignDraw(g,w,h){const f=TWC.f,s=twF(f);g.fillStyle='#14110d';g.fillRect(0,0,w,h);g.strokeStyle='#b89a5e';g.lineWidth=4;g.strokeRect(6,6,w-12,h-12);g.textAlign='center';
+  g.fillStyle='#e9d7a8';g.font='600 64px Fredoka, Nunito, sans-serif';g.fillText('LANTAI '+f,w/2,78);g.font='700 28px Nunito, sans-serif';g.fillStyle='#f4efe6';
+  g.fillText(twName(f).toUpperCase()+(s.st==='sewa'?' · '+(s.ten||'').toUpperCase():s.st==='jual'?' · MILIK '+(s.buyer||'').toUpperCase():''),w/2,120);}
+function twBuild(){if(twBuilt)return;twBuilt=true;
+  const M=c=>new THREE.MeshLambertMaterial({color:c}),light=new THREE.MeshBasicMaterial({color:0xfff6e6}),glass=new THREE.MeshBasicMaterial({color:0xbfe0f0,transparent:true,opacity:.18,depthWrite:false});
+  const WALNUT=0x4a3324,CREAM=0xf1ebe0,GOLD=0xb89a5e,LEATHER=0x2b2522,STONE=0xb9b0a3;
+  const shell=(g,zc,h,floorC,wallC)=>{gplane(g,TW.hw*2,TW.hd*2,M(floorC),0,zc,.01);const ce=new THREE.Mesh(new THREE.PlaneGeometry(TW.hw*2,TW.hd*2),new THREE.MeshBasicMaterial({color:0xf7f3ec}));ce.rotation.x=Math.PI/2;ce.position.set(0,h,zc);g.add(ce);
+    cBox(g,TW.hw*2,h,.5,wallC,0,h/2,zc+TW.hd+.25,true);cBox(g,.5,h,TW.hd*2,wallC,-TW.hw-.25,h/2,zc,true);cBox(g,.5,h,TW.hd*2,wallC,TW.hw+.25,h/2,zc,true);};
+  const windowWall=(g,zc,h)=>{cBox(g,TW.hw*2,.4,.5,0x2a2a30,0,.2,zc-TW.hd-.25,true);colliders.push({x0:-TW.hw,x1:TW.hw,z0:zc-TW.hd-.5,z1:zc-TW.hd,top:h});
+    const wv=new THREE.Mesh(new THREE.PlaneGeometry(TW.hw*2,h-.4),new THREE.MeshBasicMaterial({map:fTex('glass').em,color:0xa9cfe6}));wv.position.set(0,h/2+.2,zc-TW.hd-.3);g.add(wv);
+    for(let x=-TW.hw+6;x<TW.hw;x+=6)cBox(g,.2,h,.3,0x2a2a30,x,h/2,zc-TW.hd-.1);
+    const keys=['apt','glass','pent','office'];for(let i=0;i<12;i++){const x=-110+i*20,h2=40+(i*23)%60;tBox(g,12,h2,12,keys[i%4],0x1b1d26,x,h2/2-40,zc-TW.hd-60-(i%3)*15,false);}};
+  const lift=(g,zc,x)=>{for(let i=-1;i<=1;i++){cBox(g,2.4,3.4,.2,0x9aa0a8,x,1.7,zc+TW.hd-.1+0*i+(i*0),false);}
+    [-3.2,0,3.2].forEach(dx=>{cBox(g,2.6,3.6,.15,0xa9aeb5,x+dx,1.8,zc+TW.hd-.15);cBox(g,.04,3.4,.16,0x6b6f75,x+dx,1.7,zc+TW.hd-.25);cBox(g,2.9,.12,.2,GOLD,x+dx,3.7,zc+TW.hd-.2);});
+    stationAdd('twlift',x,zc+TW.hd-1.2,Math.PI,'Lift '+TW.n,{useDist:3,verb:'Naik',act:twLift,btn:'LIFT',ctx:()=>`<div class="ctx-head"><h3>🛗 Lift ${TW.n}</h3><small>Lantai ${TWC.f} · ${twName(TWC.f)}</small></div><div class="ctx-row"><button class="go" id="ctxGo">Pilih lantai (E)</button></div>`});};
+  const sofa=(g,x,z,ry,c)=>{const s=new THREE.Group();s.position.set(x,0,z);s.rotation.y=ry;g.add(s);cBox(s,3,.45,1.1,c||LEATHER,0,.25,0);cBox(s,3,.7,.25,c||LEATHER,0,.7,-.45);cBox(s,.25,.6,1.1,c||LEATHER,-1.45,.5,0);cBox(s,.25,.6,1.1,c||LEATHER,1.45,.5,0);colliders.push({x0:x-1.6,x1:x+1.6,z0:z-.7,z1:z+.7,top:1});};
+  const plant=(g,x,z,s=1)=>{cBox(g,.7*s,.8*s,.7*s,0x3a3a3a,x,.4*s,z,true);const t=new THREE.Mesh(new THREE.IcosahedronGeometry(.65*s,0),M(0x3f7a4a));t.position.set(x,1.3*s,z);g.add(t);const t2=t.clone();t2.scale.setScalar(.7);t2.position.y=1.9*s;g.add(t2);};
+  const ctable=(g,x,z)=>{cBox(g,1.6,.08,.9,0x1e1e22,x,.42,z,true);cBox(g,1.4,.36,.7,GOLD,x,.2,z);};
+  const lamp=(g,x,z,y)=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.06,16),light);l.position.set(x,y,z);g.add(l);};
+  for(let k=0;k<5;k++){const zc=twZ(k),g=new THREE.Group();g.visible=false;scene.add(g);twGrps.push(g);
+    if(k===0){/* LOBBY */const h=6.6;shell(g,zc,h,STONE,CREAM);cBox(g,TW.hw*2,h,.5,CREAM,0,h/2,zc-TW.hd-.25,true);
+      for(let x=-24;x<=24;x+=8)gplane(g,.25,TW.hd*2,M(0x8a7a62),x,zc,.015);gplane(g,16,10,M(0x3a2d26),0,zc-2,.02);gplane(g,15,9,M(0x9a8b76),0,zc-2,.025);
+      cBox(g,9,1.15,1.4,WALNUT,0,.58,zc-12,true);cBox(g,9.2,.08,1.6,GOLD,0,1.2,zc-12);cBox(g,9,1.4,.15,0xe9e2d6,0,.7,zc-11.25);miniPerson(g,-1.5,zc-13.2,0,0x1e1e22);miniPerson(g,1.8,zc-13.2,0,0x1e1e22);
+      cBox(g,16,4.2,.2,WALNUT,0,3.2,zc-TW.hd+.1);g.add(neon(TW.n.toUpperCase(),0,4.1,zc-TW.hd+.3,0,'#f4e6c4','#b89a5e',12,1.2));
+      for(const x of [-14,14])for(const z of [-8,4]){cBox(g,1.2,h,1.2,0xefe8dc,x,h/2,zc+z,true);cBox(g,1.3,.15,1.3,GOLD,x,1.2,zc+z);cBox(g,1.3,.15,1.3,GOLD,x,h-.4,zc+z);}
+      sofa(g,-21,zc-4,Math.PI/2);sofa(g,-21,zc+4,Math.PI/2);ctable(g,-18.5,zc);sofa(g,21,zc-4,-Math.PI/2);sofa(g,21,zc+4,-Math.PI/2);ctable(g,18.5,zc);
+      [[-27,-17],[27,-17],[-27,17],[27,17],[-8,-12],[8,-12]].forEach(([x,z])=>plant(g,x,zc+z,1.2));
+      for(let x=-18;x<=18;x+=9)for(const z of [-10,0,10]){const c=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.06,12),light);c.position.set(x,h-.05,zc+z);g.add(c);}
+      lift(g,zc,12);cBox(g,6,3.4,.2,0xbfe0f0,-14,1.7,zc+TW.hd-.1);g.add(neon('KELUAR',-14,3.8,zc+TW.hd-.3,Math.PI,'#f4efe6','#b89a5e',3,.6));
+      stationAdd('twexit',-14,zc+TW.hd-1.2,Math.PI,'Pintu keluar',{useDist:3,verb:'Keluar',act:()=>XA.xFly('home'),btn:'KELUAR',ctx:()=>`<div class="ctx-head"><h3>🚪 Keluar ${TW.n}</h3><small>Kembali ke Stasiun Sentral</small></div><div class="ctx-row"><button class="go" id="ctxGo">Keluar (E)</button></div>`});
+      stationAdd('twdesk',0,zc-11,0,'Resepsionis',{useDist:3,verb:'Tanya',act:()=>{showResult('🛎️ "Selamat datang, Pak. Lift pribadi ke lantai 35 sudah siap."');},btn:'TANYA',ctx:()=>`<div class="ctx-head"><h3>🛎️ Resepsionis</h3><small>${TW.n} · gedung milikmu, tidak bisa dijual</small></div><div class="ctx-row"><button class="go" id="ctxGo">Sapa (E)</button><button class="go alt" data-xa="xTwOpen" data-id="">Status gedung</button></div>`});}
+    if(k===1){/* OFFICE FLOOR */const h=4.2;shell(g,zc,h,0x5c6470,0xe9e6e0);windowWall(g,zc,h);
+      for(let r=0;r<3;r++)for(let c=0;c<5;c++){const x=-20+c*7,z=zc-10+r*6;cBox(g,4.4,.08,1.6,0xf4f4f2,x,.78,z,true);cBox(g,.1,.74,1.4,0x8a8f96,x-2.1,.37,z);cBox(g,.1,.74,1.4,0x8a8f96,x+2.1,.37,z);
+        [-1.1,1.1].forEach(dx=>{cBox(g,.9,.55,.06,0x16181c,x+dx,1.15,z-.35);cBox(g,.6,.9,.6,0x2a2d33,x+dx,.45,z+.7);});}
+      cBox(g,12,h,.12,0xbfe0f0,16,h/2,zc+6);cBox(g,.12,h,10,0xbfe0f0,10,h/2,zc+11);cBox(g,6,.1,2.4,WALNUT,17,.8,zc+12,true);for(let i=0;i<4;i++){cBox(g,.6,.9,.6,LEATHER,15+i*1.4,.45,zc+10.4);cBox(g,.6,.9,.6,LEATHER,15+i*1.4,.45,zc+13.6);}
+      for(let x=-24;x<=24;x+=8)for(const z of [-10,0,10])lamp(g,x,zc+z,h-.05);[[-27,16],[27,-16],[-27,-16]].forEach(([x,z])=>plant(g,x,zc+z));
+      for(let i=0;i<6;i++)miniPerson(g,-20+i*7,zc-9+(i%3)*6,0,[0x2a3450,0xf4f4f4,0x5a5f66][i%3]);lift(g,zc,0);
+      stationAdd('twfloor',-6,zc+14,Math.PI,'Kelola lantai',{useDist:3,verb:'Kelola',act:()=>XA.xTwOpen(),btn:'KELOLA',ctx:twFloorCtx});}
+    if(k===2){/* APARTMENT FLOOR */const h=4.2;shell(g,zc,h,0x8f7d6a,0xe4dccf);cBox(g,TW.hw*2,h,.5,0xefe9df,0,h/2,zc-TW.hd-.25,true);gplane(g,50,6,M(0x3c3f52),0,zc,.02);
+      for(let i=0;i<6;i++){const x=-20+(i%3)*20,f=i<3?-1:1,front=zc+f*3.2;cBox(g,1.8,3,.15,WALNUT,x,1.5,front);cBox(g,.08,.08,.1,GOLD,x+.6,1.4,front-f*.1);
+        cBox(g,2.4,.08,.2,GOLD,x,3.15,front);cBox(g,14,h,.2,0xefe9df,x+(x>0?3:x<0?-3:0)*0,h/2,zc+f*3.4-0);}
+      for(let x=-24;x<=24;x+=6)lamp(g,x,zc,h-.05);plant(g,-26,zc,1);plant(g,26,zc,1);lift(g,zc,0);
+      stationAdd('twfloor',-6,zc+14,Math.PI,'Kelola lantai',{useDist:3,verb:'Kelola',act:()=>XA.xTwOpen(),btn:'KELOLA',ctx:twFloorCtx});}
+    if(k===3){/* FUNCTION HALL / SKY BALLROOM */const h=7.2;shell(g,zc,h,0x3a2a2a,0xeae2d4);windowWall(g,zc,h);gplane(g,40,24,M(0x6a4a3a),0,zc,.02);
+      cBox(g,14,.9,5,0x241e1c,0,.45,zc-TW.hd+3.2,true);cBox(g,14.2,.08,5.2,GOLD,0,.92,zc-TW.hd+3.2);
+      for(let x=-18;x<=18;x+=9)for(const dz of [-4,4,11]){const t=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,.8,16),M(0xf6f2ea));t.position.set(x,.4,zc+dz);g.add(t);colliders.push({x0:x-1.5,x1:x+1.5,z0:zc+dz-1.5,z1:zc+dz+1.5,top:.8});
+        const cp=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.4,8),M(GOLD));cp.position.set(x,1,zc+dz);g.add(cp);for(let c=0;c<6;c++){const a=c/6*Math.PI*2;cBox(g,.5,.9,.5,0xd9cfbf,x+Math.cos(a)*2,.45,zc+dz+Math.sin(a)*2);}}
+      for(let x=-15;x<=15;x+=10){const ch=new THREE.Mesh(new THREE.CylinderGeometry(1.4,.4,1,10),new THREE.MeshBasicMaterial({color:0xfff2d6}));ch.position.set(x,h-.8,zc+4);g.add(ch);}
+      for(let i=0;i<5;i++)miniPerson(g,-12+i*6,zc+(i%2?-1:8),i);lift(g,zc,18);
+      stationAdd('twhall',-10,zc+14,Math.PI,'Sewakan hall',{useDist:3,verb:'Sewakan',act:()=>XA.xTwHall(),btn:'ACARA',ctx:()=>{const e=twS().ev[TWC.f]||0,ok=Date.now()-e>300000;return `<div class="ctx-head"><h3>🎉 ${twName(TWC.f)} · Lt ${TWC.f}</h3><small>${ok?'Siap disewakan untuk acara':'Acara berikutnya bisa '+Math.ceil((300000-(Date.now()-e))/60000)+' menit lagi'}</small></div><div class="ctx-row"><button class="go" id="ctxGo" ${ok?'':'disabled'}>Sewakan acara (E)</button></div>`;}});}
+    if(k===4){/* PRIVATE OFFICE, FLOOR 35 */const h=6;shell(g,zc,h,WALNUT,0x2e2620);windowWall(g,zc,h);
+      gplane(g,18,12,M(0x8c7a64),0,zc-6,.02);gplane(g,17,11,M(0x7a6852),0,zc-6,.025);
+      /* executive desk */cBox(g,6,.12,2.4,0x2a1d15,0,.95,zc-8,true);cBox(g,6,.88,.2,0x2a1d15,0,.45,zc-7);cBox(g,.2,.88,2.4,0x2a1d15,-2.9,.45,zc-8);cBox(g,.2,.88,2.4,0x2a1d15,2.9,.45,zc-8);cBox(g,4.6,.03,1.4,0x3a2e28,0,1.02,zc-8.2);
+      cBox(g,1.4,.9,.08,0x111216,-1.2,1.5,zc-8.8);cBox(g,1.4,.9,.08,0x111216,1.2,1.5,zc-8.8);cBox(g,.3,.4,.3,GOLD,2.4,1.2,zc-8);
+      cBox(g,1.2,.6,1.1,LEATHER,0,.5,zc-10);cBox(g,1.2,1.8,.25,LEATHER,0,1.3,zc-10.55);[-1.6,1.6].forEach(x=>{cBox(g,.9,.5,.9,0x5a3a2a,x,.45,zc-5.6);cBox(g,.9,.9,.2,0x5a3a2a,x,.95,zc-5.2);});
+      /* bookshelves on the left wall */for(let s=0;s<3;s++){const z=zc-12+s*6;cBox(g,1,h-.6,5,0x2a1d15,-TW.hw+.6,(h-.6)/2,z,true);for(let r=0;r<5;r++)for(let b=0;b<8;b++)cBox(g,.5,.7,.42,[0x6a2a2a,0x2a3a5a,0x3a5a3a,0x8a6a3a,0x4a2a4a][(r+b+s)%5],-TW.hw+1.15,.6+r*1.05,z-2.1+b*.6);}
+      /* lounge with sofas */sofa(g,14,zc+2,Math.PI,0x3a3230);sofa(g,14,zc+8,0,0x3a3230);sofa(g,18.4,zc+5,-Math.PI/2,0x3a3230);ctable(g,14,zc+5);gplane(g,9,7,M(0x8a7a66),15,zc+5,.02);
+      /* bar cabinet */cBox(g,6,1.1,1,0x1e1814,22,.55,zc-14,true);cBox(g,6,2.2,.3,0x1e1814,22,2.6,zc-15.4);cBox(g,5.8,.05,.25,0xfff0cc,22,2.2,zc-15.2,false,true);cBox(g,5.8,.05,.25,0xfff0cc,22,3.2,zc-15.2,false,true);
+      for(let i=0;i<10;i++)cBox(g,.18,.5,.18,[0x6a3a1a,0x2a5a3a,0xc9b07a,0x6a1a2a][i%4],19.6+i*.5,2.5+(i%2),zc-15.2);
+      /* art and sculpture */[-10,10].forEach(x=>{cBox(g,4,2.6,.1,GOLD,x,3.3,zc+TW.hd-.1);cBox(g,3.7,2.3,.12,[0x2a4a6a,0x7a5a3a][x>0?1:0],x,3.3,zc+TW.hd-.15);});
+      const sc=new THREE.Mesh(new THREE.TorusKnotGeometry(.5,.14,60,8),new THREE.MeshLambertMaterial({color:0xc9a85e,emissive:0x2a1e08}));sc.position.set(-8,1.9,zc+4);g.add(sc);cBox(g,1,1.2,1,0xf1ebe0,-8,.6,zc+4,true);
+      const gl=new THREE.Mesh(new THREE.SphereGeometry(.45,16,12),M(0x2a6a8a));gl.position.set(5.2,1.6,zc-9);g.add(gl);cBox(g,.1,.8,.1,GOLD,5.2,.9,zc-9);
+      /* trophy cabinet + safe */cBox(g,4,3.4,.8,0x2a1d15,-14,1.7,zc+TW.hd-.6,true);for(let i=0;i<4;i++){const t=new THREE.Mesh(new THREE.CylinderGeometry(.18,.1,.5,8),M(GOLD));t.position.set(-15.4+i*.95,2.2,zc+TW.hd-.9);g.add(t);}
+      cBox(g,1.6,1.8,1.4,0x3a3d42,26,.9,zc+14,true);cBox(g,.4,.4,.05,GOLD,26,1.1,zc+13.28);
+      for(let x=-20;x<=20;x+=10)for(const z of [-10,2,12])lamp(g,x,zc+z,h-.05);[[-27,17],[27,-6],[8,-17]].forEach(([x,z])=>plant(g,x,zc+z,1.3));
+      lift(g,zc,0);
+      stationAdd('twdeskP',0,zc-6.4,Math.PI,'Meja kerja',{useDist:2.8,verb:'Kerja',act:()=>{if(typeof openMgrOffice==='function')openMgrOffice();},btn:'MEJA',ctx:()=>`<div class="ctx-head"><h3>🖋️ Meja kerja pribadi</h3><small>Buka Kantor Manajer dan laporan bisnis</small></div><div class="ctx-row"><button class="go" id="ctxGo">Duduk (E)</button></div>`});
+      stationAdd('twsafe',26,zc+12.6,Math.PI,'Brankas',{useDist:2.6,verb:'Buka',act:()=>XA.xTwSafe(),btn:'BRANKAS',ctx:()=>`<div class="ctx-head"><h3>🔐 Brankas pribadi</h3><small>Kekayaan bersih ${fmtBig(Math.round(netWorth()))}</small></div><div class="ctx-row"><button class="go" id="ctxGo">Buka (E)</button></div>`});
+      stationAdd('twbar',22,zc-12.8,0,'Bar pribadi',{useDist:2.8,verb:'Minum',act:()=>{if(typeof XA.xCsv==='function'){const B=cityB();B.resto=Math.max(Date.now(),B.resto||0)+600000;savePF();showResult('🥃 Rileks di bar pribadi. Gaji kerja +15% selama 10 menit');SFX.coin();}},btn:'BAR',ctx:()=>`<div class="ctx-head"><h3>🥃 Bar pribadi</h3><small>Gratis untuk pemilik. Buff gaji +15% 10 menit.</small></div><div class="ctx-row"><button class="go" id="ctxGo">Rileks (E)</button></div>`});}
+    twSign=twSign||signTex(512,150,twFloorSignDraw);plane(g,4.6,1.35,new THREE.MeshBasicMaterial({map:twSign}),-4,3.0,zc+TW.hd-.3,Math.PI);}
+}
+function twFloorCtx(){const f=TWC.f,s=twF(f);return `<div class="ctx-head"><h3>${twType(f)===1?'🏢':'🏙️'} Lantai ${f} · ${twName(f)}</h3><small>${s.st==='kosong'?'Kosong · nilai '+fmtBig(twVal(f)):s.st==='cari'?'Sedang mencari penyewa...':s.st==='sewa'?'Disewa '+esc(s.ten)+' · '+fmtBig(s.rent)+'/hari':'Sudah dijual ke '+esc(s.buyer)}</small></div><div class="ctx-row"><button class="go" id="ctxGo">Kelola (E)</button></div>`;}
+function twGo(f){twBuild();TWC.f=f;const k=twType(f);if(twSign)redrawTex(twSign,twFloorSignDraw);const zc=twZ(k),lx=k===0?12:k===3?18:0;tpTo(lx,zc+TW.hd-3,Math.PI);cityVisK=null;
+  banner(`🏙️ ${TW.n.toUpperCase()} · LANTAI ${f}<small>${twName(f)}</small>`,'',1500);}
+XA.xTwr=()=>{twGo(1);};
+function twLift(){if(modal)return;xModal('🛗 Lift '+TW.n,(body)=>{const s=twS();
+  body.innerHTML=`<div class="aflr" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px">${Array.from({length:35},(_,j)=>{const f=35-j,st=twF(f).st,ic=f===35?'👑':f===1?'🛎️':twType(f)===3?'🎉':twType(f)===1?'🏢':'🏙️';
+    return `<button class="small ${f===TWC.f?'p':''}" data-tl="${f}" style="height:auto;padding:6px 4px;display:flex;flex-direction:column;align-items:center"><b>${ic} ${f}</b><small style="font-size:10.5px">${twName(f)}${st==='sewa'?' · disewa':st==='jual'?' · terjual':''}</small></button>`;}).join('')}</div>`;
+  body.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{closeGame();twGo(+b.dataset.tl);});},'');}
+/* floor management */
+XA.xTwOpen=()=>{xOpen('menara');};
+XA.xTwAct=v=>{const [a,fs]=String(v).split(':'),f=+fs,s=twF(f),val=twVal(f);
+  if(a==='cari'&&s.st==='kosong'){s.st='cari';s.t=Date.now()+20000+Math.random()*40000;showResult('🔎 Agen mencari penyewa untuk lantai '+f);}
+  if(a==='stop'&&s.st==='sewa'){twS().fl[f]={st:'kosong'};logLine('sys',null,`Sewa lantai ${f} diakhiri.`);}
+  if(a==='jual'&&(s.st==='kosong'||s.st==='sewa')){const ns=TYCOONS.concat(PF.rivals.map(r=>r.n)),buyer=ns[pick(ns.length)],price=Math.round(val*(1.1+Math.random()*.2));
+    if(npcCash(buyer)<price*.5){showResult(`${buyer} tidak sanggup membeli sekarang`);return;}S.bal+=price;oppW({n:buyer},-price);twS().fl[f]={st:'jual',buyer,price};logLine('sys',null,`🏙️ Lantai ${f} (${twName(f)}) terjual ke ${buyer} seharga ${fmtBig(price)}.`,'win');news.unshift(`${buyer} membeli lantai ${f} ${TW.n}.`);xpAdd(10);}
+  if(a==='beli'&&s.st==='jual'){const price=Math.round((s.price||val)*1.4);if(S.bal<price){SFX.error();showResult('Koin belum cukup');return;}S.bal-=price;oppW({n:s.buyer},price);logLine('sys',null,`🏙️ Lantai ${f} dibeli kembali dari ${s.buyer} seharga ${fmtBig(price)}.`);twS().fl[f]={st:'kosong'};}
+  SFX.pop();if(twSign)redrawTex(twSign,twFloorSignDraw);save();savePF();render();phoneRender();};
+setInterval(()=>{if(!started)return;const s=twS(),now=Date.now();let inc=0,ch=false;for(const f in s.fl){const x=s.fl[f];
+    if(x.st==='cari'&&now>x.t){const ns=['PT Nusantara Digital','Firma Hukum Adiputra','Bank Kencana','Studio Kreatif Lima','Konsultan Wiratama','Keluarga Santoso','Dr. Meiliana','Pak Darmawan','Keluarga Wijaya','Startup Garuda'];x.st='sewa';x.ten=ns[pick(ns.length)];x.rent=Math.round(twVal(+f)*.012);ch=true;logLine('sys',null,`🏙️ Lantai ${f} ${TW.n} disewa ${x.ten} (${fmtBig(x.rent)}/hari).`,'win');}
+    if(x.st==='sewa')inc+=x.rent/5;}
+  if(inc){S.bal+=Math.round(inc*xMult());s.tot=(s.tot||0)+inc;}if(ch){if(twSign)redrawTex(twSign,twFloorSignDraw);savePF();}},60000);
+XA.xTwHall=()=>{const s=twS(),f=TWC.f,e=s.ev[f]||0;if(Date.now()-e<300000)return;s.ev[f]=Date.now();const got=Math.round(3e11*.004*xMult()),evs=['pernikahan mewah','gala dinner perusahaan','peluncuran produk','konser privat','seminar bisnis'];
+  S.bal+=got;logLine('sys',null,`🎉 ${twName(f)} lantai ${f} disewa untuk ${evs[pick(evs.length)]}. +${fmtBig(got)}.`,'win');SFX.win();xpAdd(5);save();savePF();render();};
+XA.xTwSafe=()=>{xModal('🔐 Brankas Pribadi',(body)=>{const nw=netWorth();body.innerHTML=`<div class="wallet"><small>Kekayaan bersih</small><b>${fmtBig(Math.round(nw))}</b><div class="row"><span>Koin tunai</span><span>${fmtBig(Math.round(S.bal))}</span></div><div class="row"><span>Saham & crypto</span><span>${fmtBig(Math.round(portVal()))}</span></div><div class="row"><span>Properti</span><span>${fmtBig(Math.round(propVal?propVal():0))}</span></div><div class="row"><span>Pendapatan sewa menara</span><span>${fmtBig(Math.round(twS().tot||0))} total</span></div></div>`;});};
+xView('menara',{t:TW.n,s:'Menara',ic:'🏙️',bg:'linear-gradient(135deg,#2e2620,#b89a5e)',r:()=>{const s=twS();let rent=0,sold=0,tenants=0;for(let f=2;f<=33;f++){const x=twF(f);if(x.st==='sewa'){rent+=x.rent;tenants++;}if(x.st==='jual')sold++;}
+  const row=f=>{const x=twF(f),t=twType(f);if(t!==1&&t!==2)return '';return `<div class="chap ${x.st==='sewa'?'now':''}"><span style="font-size:20px">${t===1?'🏢':'🏙️'}</span><div><b>Lantai ${f} · ${twName(f)}</b><small>${x.st==='kosong'?'Kosong · nilai '+fmtBig(twVal(f)):x.st==='cari'?'Mencari penyewa...':x.st==='sewa'?'Disewa '+esc(x.ten)+' · '+fmtBig(x.rent)+'/hari':'Milik '+esc(x.buyer)}</small></div><div class="bk" style="margin:0">${x.st==='kosong'?`<button data-xa="xTwAct" data-id="cari:${f}">Sewakan</button><button class="p" data-xa="xTwAct" data-id="jual:${f}">Jual</button>`:x.st==='sewa'?`<button data-xa="xTwAct" data-id="stop:${f}">Akhiri</button><button class="p" data-xa="xTwAct" data-id="jual:${f}">Jual</button>`:x.st==='jual'?`<button data-xa="xTwAct" data-id="beli:${f}">Beli lagi</button>`:''}</div></div>`;};
+  return `<div class="wallet"><small>Gedung milikmu · tidak bisa dijual utuh</small><b>${TW.n} · 35 lantai</b><div class="row"><span>Lantai disewa</span><span>${tenants}</span></div><div class="row"><span>Pendapatan sewa</span><span>${fmtBig(rent)}/hari</span></div><div class="row"><span>Lantai terjual</span><span>${sold}</span></div><div class="bk" style="margin-top:6px"><button class="p" data-xa="xTwGo" data-id="1">🛎️ Ke lobby</button><button class="p" data-xa="xTwGo" data-id="35">👑 Ke kantor pribadi (Lt 35)</button></div></div>
+   <div class="thd">Lantai apartemen (17–33)</div>${Array.from({length:17},(_,j)=>row(33-j)).join('')}<div class="thd">Lantai kantor (2–15)</div>${Array.from({length:14},(_,j)=>row(15-j)).join('')}
+   <p class="news">Lt 1 lobby, Lt 16 Function Hall, Lt 34 Sky Lounge & Ballroom, Lt 35 kantor pribadimu. Hall bisa disewakan untuk acara tiap 5 menit.</p>`;}});
+XA.xTwGo=v=>{closePhone();twGo(+v);};
+tripSections=(f=>function(){const S=f.apply(this,arguments);S.unshift({h:'Milikmu',rows:[{col:'#b89a5e',n:'🏙️ '+TW.n,sub:'Kantor pribadi 35 lantai',fee:'Gratis',a:'xTwr',id:'1'}]});return S;})(tripSections);
+
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(boot,boot);
