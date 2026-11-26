@@ -3490,7 +3490,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v46';
+const GAME_VER='v47';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8172,6 +8172,72 @@ function openPrWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
 XA.xPrTab=t=>{PRW.tab=t;PRW.redraw();};
 XA.xPrOpen=()=>{closePhone();setTimeout(()=>openPrWin(),30);};
 xView('prestise',{t:'Prestise',s:'Prestise',ic:'⭐',bg:'linear-gradient(135deg,#ffe08a,#c9862a)',r:()=>{setTimeout(()=>{if(phView==='prestise'){phView='home';closePhone();openPrWin();}},20);return '<p class="muted">Membuka jendela Prestise...</p>';}});
+
+/* ================= v47: IPO perusahaan NPC (jendela IPO Bursa sendiri) ================= */
+const NI47={MAX:16,SLOT:900000,OPEN:360000,PRE:['Arunika','Bumi','Cakra','Dirgantara','Elang','Fajar','Gemilang','Harapan','Indah','Jagat','Kirana','Lintang','Mega','Nirwana','Oasis','Pelangi','Rajawali','Surya','Tirta','Wijaya'],
+  SEC:[['tech','💻','Digital'],['retail','🛍️','Niaga'],['property','🏗️','Properti'],['bank','🏦','Finansial'],['consumer','🍜','Pangan'],['energy','⚡','Energi'],['health','🏥','Sehat']]};
+function niS(){const s=PF.nipo=PF.nipo||{};s.list=s.list||[];s.h=s.h||[];return s;}
+function niLog(ic,t,c){const s=niS();s.h.unshift({ic,t,c:c||'',at:Date.now()});s.h=s.h.slice(0,30);}
+function niRnd(seed){let x=(seed*2654435761)>>>0;return ()=>{x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;return (x%100000)/100000;};}
+/* the offer for a 15-minute slot is fixed by the slot number, so it is the same after a reload */
+function niOffer(slot){const r=niRnd(slot+7);const pre=NI47.PRE[Math.floor(r()*NI47.PRE.length)],sec=NI47.SEC[Math.floor(r()*NI47.SEC.length)];
+  const owners=TYCOONS.concat((PF.rivals||[]).map(x=>x.n)),o=owners[Math.floor(r()*owners.length)];
+  const cap=Math.round((2+r()*38)*1e12/1e9)*1e9,p0=[500,1000,1500,2500,5000][Math.floor(r()*5)];
+  let id=(pre.slice(0,2)+sec[2].slice(0,2)).toUpperCase(),k=0;while(MK.find(a=>a.id===id)||niS().list.find(d=>d.id===id)){id=(pre.slice(0,2)+sec[2][0]+String.fromCharCode(65+(k++%26))).toUpperCase();}
+  return {slot,id,n:`${pre} ${sec[2]} Tbk`,sec:sec[0],ic:sec[1],o,cap,p0,over:1.5+r()*6.5,pop:-.15+r()*.5};}
+function niBook(){const s=niS(),slot=Math.floor(Date.now()/NI47.SLOT),start=slot*NI47.SLOT;
+  if(s.book&&s.book.slot!==slot&&!s.book.done)niClose(s.book);
+  if(s.book&&s.book.slot===slot)return s.book;
+  if(s.list.length>=NI47.MAX||Date.now()-start>NI47.OPEN)return s.book||null;
+  s.book={...niOffer(slot),start,end:start+NI47.OPEN,ord:0,done:0};niLog('🛎️',`${s.book.o} membuka masa penawaran IPO ${s.book.n} (${s.book.id}).`);
+  try{logLine('sys',null,`🛎️ IPO baru: ${s.book.n} milik ${s.book.o}. Pesan saham di app IPO Bursa sebelum ditutup.`,'win');}catch(e){}savePF();
+  return s.book;}
+function niOffVal(b){return Math.round(Math.round(b.cap/b.p0)*FLOAT*b.p0);}
+function niMake(d){if(MK.find(a=>a.id===d.id))return;ipoMake({id:d.id,n:d.n,sec:d.sec,p0:d.p0,cap:d.cap});const a=MK.find(x=>x.id===d.id);if(!a)return;a.npo=1;a.c='#7fd4ff';
+  if(!(PF.px&&PF.px[d.id])){a.p=a.open=d.lp||d.p0;a.h=a.h.map(()=>a.p);}a.f=d.p0;PF.corp=PF.corp||{};if(!PF.corp[d.id])PF.corp[d.id]={o:d.o,me:0,cf:CTRL,off:null,tw:0,blk:[]};}
+niS().list.forEach(d=>{try{niMake(d);}catch(e){console.error('ni',e);}});
+function niClose(b){if(!b||b.done)return;b.done=1;const s=niS();if(s.list.length>=NI47.MAX){if(b.ord){S.bal+=b.ord;niLog('↩️',`IPO ${b.id} batal, dana 🪙 ${fmtBig(b.ord)} dikembalikan.`);}return;}
+  const sh=Math.round(b.cap/b.p0),off=Math.round(sh*FLOAT),lp=Math.max(1,Math.round(b.p0*(1+b.pop)));
+  let q=0;if(b.ord>0){const want=Math.floor(b.ord/b.p0);q=Math.min(off,Math.floor(want/b.over));const paid=q*b.p0,ref=b.ord-paid;S.bal+=ref;
+    if(q>0){PF.hold[b.id]=(PF.hold[b.id]||0)+q;PF.cost=PF.cost||{};PF.cost[b.id]=(PF.cost[b.id]||0)+paid;}
+    b.got=q;b.ref=ref;niLog('📩',`Penjatahan ${b.id}: pesanan ${b.over.toFixed(1).replace('.',',')}x kelebihan permintaan. Kamu dapat ${fmt(q)} lembar (🪙 ${fmtBig(paid)}), sisa 🪙 ${fmtBig(ref)} dikembalikan.`,'up');}
+  const d={id:b.id,n:b.n,sec:b.sec,ic:b.ic,o:b.o,cap:b.cap,p0:b.p0,lp,t:Date.now()};s.list.push(d);niMake(d);
+  try{oppW({n:b.o},Math.round(off*b.p0*.95));}catch(e){}
+  const ch=Math.round(b.pop*100);niLog(ch>=0?'📈':'📉',`${b.id} melantai di bursa. Hari pertama ${ch>=0?'+':''}${ch}% dari harga IPO.`,ch>=0?'up':'dn');
+  try{logLine('sys',null,`🔔 ${b.n} (${b.id}) resmi melantai. Harga IPO 🪙 ${fmt(b.p0)}, dibuka 🪙 ${fmt(lp)} (${ch>=0?'+':''}${ch}%).${q?` Kamu dapat ${fmt(q)} lembar.`:''}`,ch>=0?'win':'lose');banner(`🔔 IPO ${b.id}<small>${ch>=0?'+':''}${ch}% di hari pertama</small>`,'',2600);}catch(e){}
+  try{capFix([MK.find(a=>a.id===b.id)]);}catch(e){}savePF();save();}
+XA.xNiOrd=pc=>{const b=niBook();if(!b||b.done||Date.now()>b.end){showResult('Masa penawaran sudah tutup');return;}const off=niOffVal(b),left=off-b.ord,amt=Math.min(left,Math.round(off*(+pc)/100));
+  if(amt<b.p0){showResult('Pesananmu sudah penuh');return;}if(S.bal<amt){showResult('Koin kurang');return;}S.bal-=amt;b.ord+=amt;niLog('📝',`Pesan saham ${b.id} senilai 🪙 ${fmtBig(amt)}.`);SFX.chip();savePF();NIW.redraw();};
+XA.xNiCancel=()=>{const b=niBook();if(!b||b.done||!b.ord)return;S.bal+=b.ord;niLog('↩️',`Pesanan ${b.id} dibatalkan, 🪙 ${fmtBig(b.ord)} kembali.`);b.ord=0;SFX.pop();savePF();NIW.redraw();};
+setInterval(()=>{try{if(!started)return;const s=niS();if(s.book&&!s.book.done&&Date.now()>s.book.end)niClose(s.book);niBook();NIW.redraw();}catch(e){console.error('ni',e);}},5000);
+/* IPO Bursa window */
+const NIW={tab:'buka',redraw(){if(NIW.m&&modal===NIW.m)NIW.m.refresh();}};
+function openIpoWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)NIW.tab=tab;try{niBook();}catch(e){}
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'IPO Bursa'},busy:false,refresh(){draw();}};modal=m;NIW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns)=>`<div class="mocard"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const s=niS(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
+    if(NIW.tab==='buka'){const b=s.book,slotS=Math.floor(Date.now()/NI47.SLOT)*NI47.SLOT;
+      if(s.list.length>=NI47.MAX)body=`<p class="muted">Bursa sedang penuh (${NI47.MAX} perusahaan baru). Belum ada IPO baru.</p>`;
+      else if(b&&!b.done&&Date.now()<b.end){const off=niOffVal(b),min=Math.ceil((b.end-Date.now())/60000);
+        body=card(b.ic,`${b.n} · ${b.id}`,`Pemilik ${esc(b.o)} pegang 60%. 40% dijual ke publik.<br>Harga IPO 🪙 ${fmt(b.p0)} per lembar · nilai penawaran 🪙 ${fmtBig(off)} · ditutup ${min} menit lagi`)+
+          card('📝','Pesananmu',b.ord?`🪙 ${fmtBig(b.ord)} (${(b.ord/off*100).toFixed(1).replace('.',',')}% dari penawaran)`:'Belum pesan',
+            [1,5,25,100].map(p=>B('xNiOrd',p,p+'%','mogo',b.ord>=off)).join('')+(b.ord?B('xNiCancel','','Batal'):''))+
+          `<p class="muted">Kalau peminatnya banyak, saham dibagi rata sesuai pesanan dan sisa uang dikembalikan. Harga hari pertama bisa naik atau turun, tidak ada yang tahu sebelumnya.</p>`;}
+      else{const nx=Math.ceil((slotS+NI47.SLOT-Date.now())/60000);body=(b&&b.done?card('📩',`IPO terakhir: ${b.id}`,b.got?`Kamu dapat ${fmt(b.got)} lembar.`:b.ord?'Pesananmu tidak kebagian.':'Kamu tidak ikut pesan.'):'')+`<p class="muted">IPO berikutnya dibuka sekitar ${nx} menit lagi. Tiap 15 menit ada perusahaan NPC baru yang melantai.</p>`;}}
+    else if(NIW.tab==='daftar'){body=s.list.length?s.list.slice().reverse().map(d=>{const a=MK.find(x=>x.id===d.id);if(!a)return'';const ch=(a.p/d.p0-1)*100,mine=PF.hold[d.id]||0;
+      return card(d.ic||'🏢',`${d.id} · ${esc(d.n)}`,`Pemilik ${esc(d.o)} · harga 🪙 ${fmt(Math.round(a.p))} (<span class="${ch>=0?'up':'dn'}">${ch>=0?'+':''}${ch.toFixed(1).replace('.',',')}%</span> dari IPO)${mine?` · punyamu ${fmt(Math.floor(mine))} lembar`:''}`);}).join('')+'<p class="muted">Jual beli saham ini lewat app Saham seperti saham lain.</p>':'<p class="muted">Belum ada perusahaan NPC yang IPO.</p>';}
+    else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="IPO Bursa"><div class="mohead"><b>🛎️ IPO Bursa</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['buka','🛎️','Penawaran'],['daftar','📋','Sudah IPO'],['log','📜','Catatan']].map(([k,ic,n])=>`<button class="${k===NIW.tab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){NIW.tab=t.dataset.tab;SFX.pop();draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+XA.xNiOpen=()=>{closePhone();setTimeout(()=>openIpoWin(),30);};
+xView('ipobursa',{t:'IPO Bursa',s:'IPO Bursa',ic:'🛎️',bg:'linear-gradient(135deg,#7fd4ff,#2a6adf)',r:()=>{setTimeout(()=>{if(phView==='ipobursa'){phView='home';closePhone();openIpoWin();}},20);return '<p class="muted">Membuka jendela IPO Bursa...</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
