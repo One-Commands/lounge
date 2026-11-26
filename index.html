@@ -3394,7 +3394,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v31';
+const GAME_VER='v32';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6567,6 +6567,30 @@ xView('event',{t:'Kalender Event',s:'Event',ic:'📅',bg:'linear-gradient(135deg
   const UP=[['🎄','Festival Natal','18–26 Desember'],['🎆','Tahun Baru','30 Desember – 2 Januari'],['🇮🇩','Pekan Kemerdekaan','14–20 Agustus'],['🛍️','Pekan Belanja Akhir Bulan','24–31 tiap bulan'],['🎉','Akhir Pekan Ceria','Tiap Sabtu dan Minggu']];
   return `<div class="thd">Sedang berlangsung</div>`+(E.map(e=>`<div class="chap now"><span style="font-size:26px">${e[0]}</span><div><b>${e[1]}</b><small>${e[2]}</small></div></div>`).join('')||'<p class="muted">Tidak ada event hari ini.</p>')+
   `<div class="thd">Jadwal</div>`+UP.map(e=>`<div class="chap"><span style="font-size:22px">${e[0]}</span><div><b>${e[1]}</b><small>${e[2]}</small></div></div>`).join('');}});
+
+/* ================= v32: pohon keahlian, rekor pribadi, hall of fame, rekap ================= */
+const SKT=[['inv','📈','Investor','Bunga investasi dan dividen +3% per tingkat'],['biz','🏢','Pengusaha','Pemasukan bisnis +3% per tingkat'],['cuan','🎰','Penjudi','Cuan main +3% per tingkat (duel tetap 50:50)'],['job','💼','Pekerja','Gaji kerja +5% per tingkat']];
+function skS(){PF.sk=PF.sk||{inv:0,biz:0,cuan:0,job:0};return PF.sk;}
+const skPts=()=>{const s=skS();return Math.max(0,(lvS().lv-1)-(s.inv+s.biz+s.cuan+s.job));};
+buffs=(f=>function(){const r=f.apply(this,arguments);try{const s=skS();r.inv=(r.inv||0)+s.inv*3;r.bonus=(r.bonus||0)+s.cuan*3;r.job=(r.job||0)+s.job*5;}catch(e){}return r;})(buffs);
+xMult=(f=>function(){let m=f.apply(this,arguments);try{m*=1+skS().biz*.03;}catch(e){}return m;})(xMult);
+XA.xSkill=k=>{const s=skS();if(skPts()<=0||(s[k]||0)>=10)return;s[k]=(s[k]||0)+1;SFX.coin();logLine('sys',null,`🌳 Keahlian ${SKT.find(x=>x[0]===k)[2]} naik ke tingkat ${s[k]}.`,'win');savePF();phoneRender();};
+XA.xSkReset=()=>{const cost=Math.round(Math.max(1e6,netWorth()*.002));if(S.bal<cost)return;S.bal-=cost;PF.sk={inv:0,biz:0,cuan:0,job:0};SFX.pop();save();savePF();render();phoneRender();};
+xView('keahlian',{t:'Pohon Keahlian',s:'Keahlian',ic:'🌳',bg:'linear-gradient(135deg,#8ef0a8,#1f7a45)',dot:()=>skPts(),r:()=>{const s=skS(),p=skPts();
+  return `<div class="wallet"><small>Poin keahlian</small><b>${p} poin</b><div class="row"><span>Dapat 1 poin tiap naik level</span><span>Lv ${lvS().lv}</span></div></div>`+
+  SKT.map(([k,ic,n,d])=>`<div class="chap"><span style="font-size:26px">${ic}</span><div><b>${n} · tingkat ${s[k]||0}/10</b><small>${d}</small><div class="xpbar"><i style="width:${(s[k]||0)*10}%"></i></div></div><button class="small p" data-xa="xSkill" data-id="${k}" ${p>0&&(s[k]||0)<10?'':'disabled'}>+1</button></div>`).join('')+
+  `<div class="bk"><button data-xa="xSkReset">Atur ulang · 🪙 ${fmtBig(Math.round(Math.max(1e6,netWorth()*.002)))}</button></div>`;}});
+/* Q28-Q29: records and hall of fame */
+function recS(){PF.rec=PF.rec||{nw:0,gain:0,rank:99,t0:Date.now()};return PF.rec;}
+{let last=null;setInterval(()=>{if(!started)return;const r=recS(),nw=netWorth();if(nw>r.nw){r.nw=nw;r.nwT=Date.now();}if(last!==null&&nw-last>r.gain){r.gain=nw-last;r.gainT=Date.now();}last=nw;
+  try{const rk=ranking().findIndex(x=>x.me)+1;if(rk&&rk<r.rank){r.rank=rk;if(rk===1){logLine('sys',null,'🏆 REKOR BARU: kamu orang terkaya di kota!','win');try{banner('🏆 ORANG TERKAYA DI KOTA<small>Namamu masuk Hall of Fame</small>','',3000);SFX.win();}catch(e){}}}}catch(e){}},60000);}
+xView('hof',{t:'Hall of Fame',s:'Rekor',ic:'🏛️',bg:'linear-gradient(135deg,#ffd25f,#7a4a00)',r:()=>{const r=recS(),R=ranking().slice(0,5),_n=netWorth(),_rk=ranking().findIndex(x=>x.me)+1;if(_n>r.nw){r.nw=_n;r.nwT=Date.now();}if(_rk&&_rk<r.rank)r.rank=_rk;const d=t=>t?new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'short'}):'-';
+  return `<div class="wallet"><small>Rekor pribadi</small><div class="row"><span>Kekayaan tertinggi</span><span>${fmtBig(Math.round(r.nw))} · ${d(r.nwT)}</span></div><div class="row"><span>Untung terbesar dalam 1 menit</span><span>${fmtBig(Math.round(r.gain))} · ${d(r.gainT)}</span></div><div class="row"><span>Peringkat terbaik</span><span>#${r.rank===99?'-':r.rank}</span></div><div class="row"><span>Level</span><span>${lvS().lv}</span></div><div class="row"><span>Menang / kalah</span><span>${fmt(S.wins)} / ${fmt(S.losses)}</span></div></div>
+   <div class="thd">Hall of Fame kota</div>`+R.map((x,i)=>`<div class="chap ${x.me?'now':''}"><span style="font-size:22px">${['🥇','🥈','🥉','🏅','🏅'][i]}</span><div><b>${esc(x.me?'Kamu':x.n)}</b><small>${fmtBig(Math.round(x.w||0))}</small></div></div>`).join('');}});
+/* Q30 + M29: session recap when opening profile/HoF: tracked since this play session */
+const SESS={t:Date.now(),nw:null};setTimeout(function sb(){if(!started){setTimeout(sb,2000);return;}SESS.nw=netWorth();},3000);
+xView('rekap',{t:'Rekap Main',s:'Rekap',ic:'📊',bg:'linear-gradient(135deg,#6cc0ff,#b46bff)',r:()=>{const min=Math.round((Date.now()-SESS.t)/60000),d=netWorth()-(SESS.nw||netWorth());
+  return `<div class="wallet"><small>Sesi ini</small><b>${min} menit bermain</b><div class="row"><span>Perubahan kekayaan</span><span class="${d>=0?'up':'dn'}">${d>=0?'+':'-'}${fmtBig(Math.abs(Math.round(d)))}</span></div><div class="row"><span>Level sekarang</span><span>${lvS().lv}</span></div><div class="row"><span>Properti</span><span>${MEGA.filter(M=>megaS(M).me).length}</span></div><div class="row"><span>Reputasi</span><span>${fmt((PF.rep||{}).pts||0)}</span></div></div><p class="news">${d>=0?'Mantap, kekayaanmu bertambah sesi ini. Lanjutkan!':'Sesi ini lagi turun. Coba cek saran Kantor Manajer atau pasang stop loss.'}</p>`;}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
