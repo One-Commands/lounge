@@ -368,7 +368,7 @@ body.txs .modal>.panel,body.txs .phone.shopPh .ph-body{zoom:.9}body.txl .modal>.
 .phone.shopPh .thd{margin-top:14px}
 .fxr{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #eadfca;border-radius:14px;padding:10px 12px;margin:8px 0;flex-wrap:wrap}
 .fxf{font-size:24px}.fxn{flex:1;min-width:120px;display:flex;flex-direction:column}.fxn small{color:#7a6f86}.fxp{text-align:right;font-weight:700;min-width:90px}
-.fxb{display:flex;gap:8px;flex-wrap:wrap}.fxb .small{min-height:40px}
+.fxwar{background:#e5484d;color:#fff;border-radius:8px;padding:1px 6px;font-size:11px;margin-left:4px}.fxb{display:flex;gap:8px;flex-wrap:wrap}.fxb .small{min-height:40px}
 .rk .w .usd{display:block;font-size:.95em}.rk .w .kc{display:block;font-size:.7em;color:#8a7f94;font-weight:600}
 
 #ntfBtn{position:absolute;z-index:4;display:flex;align-items:center;gap:6px;border:2px solid #fff;border-radius:14px;padding:6px 12px;background:linear-gradient(180deg,#4f8df0,#2f6fd6);color:#fff;font:700 13px Fredoka,Nunito,sans-serif;box-shadow:0 4px 0 #1d4ea8;cursor:pointer}
@@ -3424,7 +3424,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v34';
+const GAME_VER='v34.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6865,12 +6865,13 @@ envTick=(f=>function(dt){f.apply(this,arguments);try{skyDomes();const zk=zoneAt(
   SKYD.sun.material.color.setRGB(1,.85+.1*Math.min(1,sh*3),.6+.3*Math.min(1,sh*3));}catch(e){}})(envTick);
 
 /* ================= v34: forex (Valas, 20 currencies), USD leaderboard ================= */
-const FXC=[['USD','🇺🇸','Dolar AS',1],['EUR','🇪🇺','Euro',1.08],['GBP','🇬🇧','Pound Inggris',1.27],['JPY','🇯🇵','Yen Jepang',.0067],['CNY','🇨🇳','Yuan Tiongkok',.138],['SGD','🇸🇬','Dolar Singapura',.74],
-  ['MYR','🇲🇾','Ringgit Malaysia',.213],['AUD','🇦🇺','Dolar Australia',.66],['CHF','🇨🇭','Franc Swiss',1.13],['KRW','🇰🇷','Won Korea',.00073],['SAR','🇸🇦','Riyal Saudi',.267],['AED','🇦🇪','Dirham UEA',.272],
-  ['HKD','🇭🇰','Dolar Hong Kong',.128],['THB','🇹🇭','Baht Thailand',.028],['CAD','🇨🇦','Dolar Kanada',.73],['INR','🇮🇳','Rupee India',.012],['NZD','🇳🇿','Dolar Selandia Baru',.6],['PHP','🇵🇭','Peso Filipina',.0175],
-  ['TWD','🇹🇼','Dolar Taiwan',.031],['VND','🇻🇳','Dong Vietnam',.00004]];
+const FXC=[['USD','💵','Dolar AS (mata uang dunia)',1],['NWR','👑','Keping Emas · Nirwana Agung',1.6,'nirwana'],['SLT','🏝️','Kerang · Selatara',.42,'selatara'],['AUR','🏰','Florin · Aurelia',1.15,'aurelia'],
+  ['ZHR','🕌','Dinar · Zahran',2.4,'zahran'],['HSW','🏙️','Won · Hanseo',.0008,'hanseo'],['BHS','🌊','Ringgit · Kesultanan Bahari Samudra',.24,'bahari'],['TLY','🐉','Yuan · Kekaisaran Tianlong',.14,'tianlong'],
+  ['NBR','🏜️','Deben · Kerajaan Nubara',.05,'nubara'],['AND','🏔️','Inti · Kerajaan Andara',.3,'andara'],['NRK','❄️','Krona · Kerajaan Nordheim',.1,'nordheim'],['VLR','🍷','Lira · Republik Valoria',1.05],
+  ['KLD','🦌','Pound · Kaledonia',1.25],['SKR','🌸','Yen · Sakuraya',.0068],['ARN','🐘','Rupee · Arunika',.012],['SMR','🛕','Baht · Siamara',.029],['KNG','🦘','Dolar · Kangara',.65],
+  ['HLV','⛰️','Franc · Helvetara',1.12],['MRD','🌵','Peso · Meridia',.055],['MTR','💎','Dolar · Pulau Mutiara',.75]];
 const FX_BASE=20000;
-function fxS(){PF.fx=PF.fx||{h:{},r:{},o:{},d:mDay};const F=PF.fx;FXC.forEach(([c,,,u])=>{if(!F.r[c])F.r[c]=FX_BASE*u;if(!F.o[c])F.o[c]=F.r[c];});return F;}
+function fxS(){PF.fx=PF.fx||{h:{},r:{},o:{},d:mDay};const F=PF.fx;if(!F.v2){F.v2=1;Object.keys(F.h).forEach(c=>{if(c!=='USD'){S.bal+=Math.floor((F.h[c]||0)*(F.r[c]||0));delete F.h[c];}});F.r={USD:F.r.USD};F.o={};}FXC.forEach(([c,,,u])=>{if(!F.r[c])F.r[c]=FX_BASE*u;if(!F.o[c])F.o[c]=F.r[c];});return F;}
 const fxRate=c=>fxS().r[c];const usdRate=()=>fxRate('USD')||FX_BASE;
 function fxVal(){const F=fxS();return Object.keys(F.h).reduce((s,c)=>s+(F.h[c]||0)*(F.r[c]||0),0);}
 bizVal=(f=>function(){return f.apply(this,arguments)+fxVal();})(bizVal);
@@ -6879,6 +6880,12 @@ setInterval(()=>{if(!started)return;const F=fxS();if(F.d!==mDay){F.d=mDay;FXC.fo
   if(Math.random()<.03){const [c,fl,n]=FXC[pick(FXC.length)],up=Math.random()<.5,m=.01+Math.random()*.025;F.r[c]*=up?1+m:1-m;const t=`💱 ${fl} ${n} ${up?'menguat':'melemah'} ${(m*100).toFixed(1)}% terhadap koin.`;news.unshift(t);news=news.slice(0,6);logLine('sys',null,t,up?'win':'lose');}},10000);
 const fmtUSD=n=>{const A=Math.abs(n);const f=(v,s)=>'US$ '+v.toLocaleString('id-ID',{maximumFractionDigits:2})+s;if(A>=1e12)return f(n/1e12,' T');if(A>=1e9)return f(n/1e9,' M');if(A>=1e6)return f(n/1e6,' jt');return 'US$ '+Math.round(n).toLocaleString('id-ID');};
 const toUSD=n=>n/usdRate();
+
+const fxOfK=k=>(FXC.find(x=>x[4]===k)||[])[0];
+function fxWarTick(){try{const F=fxS(),w=WS();(w.wars||[]).forEach(v=>{[v.a,v.b].forEach(k=>{const c=fxOfK(k);if(c&&F.r[c])F.r[c]*=1-(.0006+Math.random()*.0012);});});}catch(e){}}
+setInterval(()=>{if(started)fxWarTick();},10000);
+warStart=(f=>function(a,b){const n0=WS().wars.length;const r=f.apply(this,arguments);try{if(WS().wars.length>n0){const F=fxS();[a,b].forEach(k=>{const c=fxOfK(k);if(c){F.r[c]*=.96;}});const ca=fxOfK(a),cb=fxOfK(b);logLine('sys',null,`💱 Perang pecah: kurs ${ca||''} dan ${cb||''} anjlok 4%. Dolar AS dan mata uang negara netral jadi incaran.`,'lose');F.r.USD*=1.01;}}catch(e){}return r;})(warStart);
+warEnd=(f=>function(v,ws,peace){const r=f.apply(this,arguments);try{const F=fxS(),W=v[ws],L=v[ws==='a'?'b':'a'],cw=fxOfK(W),cl=fxOfK(L);if(peace){[cw,cl].forEach(c=>{if(c)F.r[c]*=1.03;});logLine('sys',null,`💱 Damai tercapai: ${cw} dan ${cl} pulih 3%.`,'win');}else{const up=.03+Math.random()*.03,dn=.08+Math.random()*.07;if(cw)F.r[cw]*=1+up;if(cl)F.r[cl]*=1-dn;logLine('sys',null,`💱 Usai perang: ${cw} menguat ${(up*100).toFixed(1)}%, ${cl} melemah ${(dn*100).toFixed(1)}%.`,'win');}}catch(e){}return r;})(warEnd);
 let fxAmt=1e9;
 XA.xFxAmt=v=>{fxAmt=+v;phoneRender();};
 XA.xFx=id=>{const [k,c]=id.split(':'),F=fxS(),r=F.r[c];if(!r)return;
@@ -6889,8 +6896,8 @@ xView('valas',{t:'Valas',s:'Valas',ic:'💱',bg:'linear-gradient(135deg,#3ddc84,
   const amts=[[1e8,'100 jt'],[1e9,'1 M'],[1e10,'10 M'],[1e11,'100 M'],[1e12,'1 T'],[1e13,'10 T']];
   return `<div class="wallet"><small>Kurs acuan</small><b>1 USD = 🪙 ${fmt(Math.round(usdRate()))}</b><div class="row"><span>Total valasmu</span><span>🪙 ${fmtBig(Math.round(tot))} · ${fmtUSD(toUSD(tot))}</span></div><div class="row"><span>Biaya tukar</span><span>0,25% beli dan jual</span></div></div>
   <div class="thd">Nominal sekali beli</div><div class="srow fxamt">${amts.map(([v,l])=>`<button class="small${fxAmt===v?' p':''}" data-xa="xFxAmt" data-id="${v}">🪙 ${l}</button>`).join('')}</div>
-  <div class="thd">20 mata uang</div>`+FXC.map(([c,fl,n])=>{const r=F.r[c],ch=(r/F.o[c]-1)*100,h=F.h[c]||0;
-    return `<div class="fxr"><span class="fxf">${fl}</span><div class="fxn"><b>${c}</b><small>${n}${h>0?` · punya ${fmtBig(Math.round(h))} (🪙 ${fmtBig(Math.round(h*r))})`:''}</small></div><div class="fxp">🪙 ${r>=100?fmt(Math.round(r)):r.toLocaleString('id-ID',{maximumFractionDigits:2})}<br><span class="${ch>=0?'up':'dn'}">${ch>=0?'+':''}${ch.toFixed(2)}%</span></div>
+  <div class="thd">20 mata uang negara dan kerajaan</div><p class="muted" style="margin:0 0 6px">Negaramu (Republik Nusantara Raya) netral dan memakai koin. Kalau dua kerajaan berperang, kurs keduanya melemah. Pemenang menguat, yang kalah anjlok.</p>`+FXC.map(([c,fl,n])=>{const r=F.r[c],ch=(r/F.o[c]-1)*100,h=F.h[c]||0;
+    return `<div class="fxr"><span class="fxf">${fl}</span><div class="fxn"><b>${c}${(()=>{try{const k=(FXC.find(x=>x[0]===c)||[])[4];return k&&WS().wars.some(v=>v.a===k||v.b===k)?' <span class="fxwar">⚔️ perang</span>':'';}catch(e){return '';}})()}</b><small>${n}${h>0?` · punya ${fmtBig(Math.round(h))} (🪙 ${fmtBig(Math.round(h*r))})`:''}</small></div><div class="fxp">🪙 ${r>=100?fmt(Math.round(r)):r.toLocaleString('id-ID',{maximumFractionDigits:2})}<br><span class="${ch>=0?'up':'dn'}">${ch>=0?'+':''}${ch.toFixed(2)}%</span></div>
       <div class="fxb"><button class="small p" data-xa="xFx" data-id="b:${c}">Beli</button>${h>0?`<button class="small" data-xa="xFx" data-id="s50:${c}">Jual ½</button><button class="small" data-xa="xFx" data-id="s:${c}">Jual semua</button>`:''}</div></div>`;}).join('');}});
 
 /* ================= v34: challenges & info go to a notification button instead of popping up ================= */
