@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v58';
+const GAME_VER='v59';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9540,6 +9540,95 @@ function openGfWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
     if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
   el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
 xView('gf58',{t:'Perayaan',s:'Perayaan',ic:'🎉',bg:'linear-gradient(135deg,#d8435b,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='gf58'){phView='home';closePhone();openGfWin();}},20);return '<p class="muted">Membuka Perayaan Kerajaan...</p>';}});
+
+/* ================= v59: diplomasi — hubungan, aliansi, pakta damai, pernikahan kerajaan, jalur dagang, dewan kerajaan ================= */
+const DP59={HEIRS:['Pangeran Arkana','Putri Laksmi','Pangeran Elric','Putri Seruni','Pangeran Hayun','Putri Amarilis','Pangeran Theo','Putri Kamaniya','Pangeran Ravindra','Putri Isolde','Pangeran Daewon','Putri Zahira']};
+function dpS(){const s=PF.dp59=PF.dp59||{};s.rel=s.rel||{};s.ally=s.ally||{};s.pact=s.pact||{};s.trade=s.trade||{};s.h=s.h||[];s.npc=s.npc||[];s.cd=s.cd||{};s.dec=s.dec||[];return s;}
+function dpLog(ic,t,c){const s=dpS();s.h.unshift({ic,t,c:c||'',at:Date.now()});s.h=s.h.slice(0,50);}
+function dpRel(kd){const s=dpS();let r=s.rel[kd]||0;if(s.wed&&s.wed.kd===kd)r=Math.max(r,50);return Math.max(-100,Math.min(100,Math.round(r)));}
+function dpAddRel(kd,v){const s=dpS();s.rel[kd]=Math.max(-100,Math.min(100,(s.rel[kd]||0)+v));}
+function dpMy(){const k=tkKing();return k?k.kd:null;}
+function dpAlly(kd){const s=dpS();return (s.ally[kd]||0)>Date.now()||!!(s.wed&&s.wed.kd===kd);}
+function dpPact(kd){const s=dpS();return (s.pact[kd]||0)>Date.now()||dpAlly(kd);}
+function dpCost(m){return Math.round(Math.max(m*1e9,netWorth()*m*.0008));}
+function dpTradeMax(){let lv=0;try{lv=kgS().lv.pasar||0;}catch(e){}return 1+Math.floor(lv/5)+(dpS().wed?1:0);}
+function dpTrades(){const s=dpS(),my=dpMy();return Object.keys(s.trade).filter(kd=>s.trade[kd]&&kd!==my);}
+function dpNpcAllied(a,b){return dpS().npc.some(p=>(p[0]===a&&p[1]===b)||(p[0]===b&&p[1]===a));}
+/* wars respect pacts and alliances */
+warStart=(f=>function(a,b){try{const my=dpMy();if(my&&((a===my&&dpPact(b))||(b===my&&dpPact(a)))){const o=a===my?b:a;if(a===my)showResult(`Kamu punya ${dpAlly(o)?'aliansi':'pakta damai'} dengan ${kdN(o)}`);else dpLog('🕊️',`${kdN(a)} batal menyerangmu karena pakta damai.`,'up');return;}
+  if(dpNpcAllied(a,b))return;}catch(e){}return f.apply(this,arguments);})(warStart);
+/* allies send troops when your kingdom fights */
+warPow=(f=>function(v,side){let p=f.apply(this,arguments);try{const my=dpMy();if(my&&v[side]===my){const w=WS();Object.keys(w.k).forEach(kd=>{if(kd!==my&&dpAlly(kd)&&!atWar(kd))p+=w.k[kd].pow*.15;});}}catch(e){}return p;})(warPow);
+function dpAllyHelp(){const my=dpMy();if(!my)return 0;const w=WS();let p=0;Object.keys(w.k).forEach(kd=>{if(kd!==my&&dpAlly(kd)&&!atWar(kd))p+=w.k[kd].pow*.15;});return Math.round(p);}
+/* actions */
+XA.xDpEnvoy=kd=>{const s=dpS();if(Date.now()-(s.cd['e'+kd]||0)<180000){showResult('Utusan ke kerajaan ini bisa lagi '+Math.ceil((180000-(Date.now()-(s.cd['e'+kd]||0)))/60000)+' menit lagi');return;}const c=dpCost(4);if(!xPay(c))return;s.cd['e'+kd]=Date.now();
+  let v=10;try{v+=Math.round(offStat('utu')/10);}catch(e){}dpAddRel(kd,v);dpLog('📜',`Utusan membawa hadiah ke ${kdN(kd)} (🪙 ${fmtBig(c)}). Hubungan +${v} → ${dpRel(kd)}.`);try{SFX.coin();}catch(e){}savePF();DPW.redraw();};
+XA.xDpPact=kd=>{const my=dpMy();if(!my){showResult('Jadilah raja dulu untuk membuat pakta');return;}if(dpRel(kd)<10){showResult('Butuh hubungan minimal 10');return;}if(atWar(kd)&&WS().wars.some(v=>(v.a===kd&&v.b===my)||(v.b===kd&&v.a===my))){showResult('Sedang perang dengan kerajaan ini');return;}
+  const c=dpCost(8);if(!xPay(c))return;dpS().pact[kd]=Date.now()+60*60000;dpAddRel(kd,5);dpLog('🕊️',`Pakta damai 60 menit dengan ${kdN(kd)}. Mereka tidak akan menyerangmu.`,'up');try{SFX.big();}catch(e){}savePF();DPW.redraw();};
+XA.xDpAlly=kd=>{const my=dpMy();if(!my){showResult('Jadilah raja dulu untuk membuat aliansi');return;}if(dpRel(kd)<40){showResult('Butuh hubungan minimal 40');return;}
+  const c=dpCost(25);if(!xPay(c))return;dpS().ally[kd]=Date.now()+60*60000;dpAddRel(kd,8);dpLog('🤝',`Aliansi 60 menit dengan ${kdN(kd)}! Saat kerajaanmu berperang, mereka mengirim 15% kekuatannya.`,'up');
+  try{banner(`🤝 ALIANSI<small>${kdN(my)} & ${kdN(kd)}</small>`,'',2400);SFX.big();}catch(e){}savePF();DPW.redraw();};
+XA.xDpTrade=kd=>{const s=dpS(),my=dpMy();if(s.trade[kd]){delete s.trade[kd];dpLog('🛑',`Jalur dagang dengan ${kdN(kd)} ditutup.`);savePF();DPW.redraw();return;}
+  if(!my){showResult('Jadilah raja dulu untuk membuka jalur dagang');return;}if(dpRel(kd)<20){showResult('Butuh hubungan minimal 20');return;}if(dpTrades().length>=dpTradeMax()){showResult(`Maksimal ${dpTradeMax()} jalur dagang. Naikkan Pasar di Kerajaanku (tiap 5 level +1).`);return;}
+  const c=dpCost(6);if(!xPay(c))return;s.trade[kd]=Date.now();dpAddRel(kd,4);dpLog('🐫',`Jalur dagang dibuka dengan ${kdN(kd)}. Kafilah membawa koin dan sumber daya tiap menit.`,'up');try{SFX.coin();}catch(e){}savePF();DPW.redraw();};
+XA.xDpWed=kd=>{const s=dpS(),my=dpMy();if(!my){showResult('Jadilah raja dulu');return;}if(s.wed){showResult('Kerajaanmu sudah terikat pernikahan dengan '+kdN(s.wed.kd));return;}if(dpRel(kd)<60){showResult('Butuh hubungan minimal 60');return;}
+  const c=dpCost(60);if(!xPay(c))return;const ch=Math.min(.95,.45+dpRel(kd)/200);if(Math.random()>ch){dpAddRel(kd,-15);dpLog('💔',`Lamaran ke ${kdN(kd)} ditolak (mahar 🪙 ${fmtBig(c)} hangus). Hubungan turun 15.`,'dn');try{SFX.error();}catch(e){}savePF();DPW.redraw();return;}
+  let h=0;for(const ch2 of kd)h=(h*31+ch2.charCodeAt(0))>>>0;const sp=DP59.HEIRS[(h+Date.now())%DP59.HEIRS.length];s.wed={kd,sp,since:Date.now()};dpAddRel(kd,30);
+  dpLog('💍',`Pernikahan kerajaan! ${sp} dari ${kdN(kd)} menikah dengan keluargamu. Aliansi permanen, +1 jalur dagang.`,'up');
+  try{banner(`💍 PERNIKAHAN KERAJAAN<small>${sp} · ${kdN(kd)}</small>`,'',3600);SFX.big();for(let i=0;i<12;i++)setTimeout(()=>firework(you.pos.x+(Math.random()-.5)*24,16+Math.random()*10,you.pos.z+(Math.random()-.5)*24),i*260);}catch(e){}
+  try{const g=gfS();g.fest=Math.max(g.fest,Date.now()+3*60000);if(gfIn())gfParade();gfBells();}catch(e){}try{const K=tkK();K.rak=Math.min(100,K.rak+10);K.stab=Math.min(100,K.stab+8);}catch(e){}savePF();DPW.redraw();};
+/* royal council: proposals that wait for your decision, or the ministers decide when automation is on */
+const DP_COUNCIL=[
+  ['🌾','Petani minta saluran irigasi baru.',[['Danai',s=>{if(!xPay(dpCost(3)))return false;try{const K=tkK();K.rak=Math.min(100,K.rak+6);kgS().r.food+=15000;}catch(e){}return 'Irigasi dibangun. Rakyat +6, pangan +15.000.';}],['Tolak',s=>{try{tkK().rak=Math.max(0,tkK().rak-4);}catch(e){}return 'Petani kecewa. Rakyat −4.';}]]],
+  ['🕊️','Utusan {kd} mengusulkan pakta damai.',[['Terima',(s,kd)=>{s.pact[kd]=Date.now()+30*60000;dpAddRel(kd,10);return `Pakta damai 30 menit dengan ${kdN(kd)}.`;}],['Tolak',(s,kd)=>{dpAddRel(kd,-6);return `${kdN(kd)} tersinggung. Hubungan −6.`;}]]],
+  ['💰','Bangsawan mengusulkan pajak istimewa.',[['Pungut',s=>{const v=Math.round(Math.max(1e10,netWorth()*.002));S.bal+=v;try{tkK().rak=Math.max(0,tkK().rak-5);}catch(e){}return `Kas bertambah 🪙 ${fmtBig(v)}. Rakyat −5.`;}],['Tolak',s=>{try{tkK().rak=Math.min(100,tkK().rak+3);}catch(e){}return 'Rakyat lega. Rakyat +3.';}]]],
+  ['🕵️','Telik sandi melapor ada komplotan konglomerat jahat.',[['Tangkap',s=>{if(!xPay(dpCost(4)))return false;try{const ev=TYCOONS.filter(n=>!plGood(n)&&plFree(n));if(ev.length){const n=ev[pick(ev.length)];plS().t[n].pw=Math.max(0,plS().t[n].pw-20);try{tkK().stab=Math.min(100,tkK().stab+4);}catch(e){}return `Kaki tangan ${n} ditangkap. Pengaruhnya −20, kestabilan +4.`;}}catch(e){}return 'Komplotan bubar sebelum ditangkap.';}],['Abaikan',s=>{try{tkK().stab=Math.max(30,tkK().stab-5);}catch(e){}return 'Komplotan dibiarkan. Kestabilan −5.';}]]],
+  ['🐫','Pedagang {kd} meminta jalur dagang.',[['Buka',(s,kd)=>{if(dpTrades().length>=dpTradeMax())return 'Jalur dagang sudah penuh, permintaan dicatat. Hubungan +3.';s.trade[kd]=Date.now();dpAddRel(kd,6);return `Jalur dagang dengan ${kdN(kd)} dibuka.`;}],['Tolak',(s,kd)=>{dpAddRel(kd,-3);return 'Pedagang pulang. Hubungan −3.';}]]],
+  ['🤒','Wabah demam di desa pinggiran.',[['Kirim tabib',s=>{if(!xPay(dpCost(2)))return false;try{tkK().rak=Math.min(100,tkK().rak+5);}catch(e){}return 'Tabib istana menyembuhkan warga. Rakyat +5.';}],['Karantina',s=>{try{const K=tkK();K.stab=Math.min(100,K.stab+2);K.rak=Math.max(0,K.rak-3);}catch(e){}return 'Desa dikarantina. Kestabilan +2, rakyat −3.';}]]],
+  ['🎉','Rakyat ingin festival panen.',[['Adakan',s=>{try{gfS().fest=Math.max(gfS().fest,Date.now()+3*60000);tkK().rak=Math.min(100,tkK().rak+6);}catch(e){}return 'Festival panen 3 menit dimulai. Rakyat +6.';}],['Simpan dana',s=>{const v=Math.round(Math.max(5e9,netWorth()*.0008));S.bal+=v;return `Dana festival disimpan: 🪙 ${fmtBig(v)}.`;}]]],
+  ['⚔️','Panglima usul latihan gabungan dengan {kd}.',[['Setujui',(s,kd)=>{dpAddRel(kd,8);try{tkK().stab=Math.min(100,tkK().stab+3);}catch(e){}return `Latihan gabungan dengan ${kdN(kd)}. Hubungan +8, kestabilan +3.`;}],['Tunda',(s,kd)=>'Latihan ditunda.']]],
+  ['🏛️','Dewan bangsawan meminta kursi lebih banyak.',[['Beri kursi',s=>{try{const K=tkK();K.stab=Math.min(100,K.stab+6);K.rak=Math.max(0,K.rak-2);}catch(e){}return 'Bangsawan puas. Kestabilan +6, rakyat −2.';}],['Tolak',s=>{try{tkK().stab=Math.max(30,tkK().stab-4);}catch(e){}return 'Bangsawan menggerutu. Kestabilan −4.';}]]]];
+function dpCouncil(){const s=dpS(),my=dpMy();if(!my)return;if(s.dec.length>=2)return;const others=KDS.map(k=>k[0]).filter(x=>x!==my),kd=others[pick(others.length)];const i=pick(DP_COUNCIL.length);s.dec.push({i,kd,at:Date.now()});dpLog('🏛️','Dewan kerajaan: '+DP_COUNCIL[i][1].replace('{kd}',kdN(kd)));}
+XA.xDpDec=v=>{const [id,o]=String(v).split(':'),s=dpS(),d=s.dec.find(x=>String(x.at)===id);if(!d)return;const C=DP_COUNCIL[d.i],r=C[2][+o||0][1](s,d.kd);if(r===false)return;s.dec=s.dec.filter(x=>x!==d);dpLog(C[0],`Kamu memilih “${C[2][+o||0][0]}”. ${r}`,'up');try{SFX.pop();}catch(e){}savePF();DPW.redraw();};
+/* ticking: trade caravans, relations drift, NPC alliances, council */
+function dpTick(){const s=dpS(),my=dpMy(),now=Date.now();
+  if(now-(s.tt||0)>=60000){s.tt=now;const tr=dpTrades();if(tr.length&&my){let kg=null;try{kg=kgS();}catch(e){}let tot=0;tr.forEach(kd=>{if(WS().wars.some(v=>(v.a===kd&&v.b===my)||(v.b===kd&&v.a===my)))return;const v=Math.round(Math.max(2e8,netWorth()*.00004)*(1+dpRel(kd)/200));tot+=v;if(kg){kg.r.food+=1500;kg.r.wood+=1200;kg.r.stone+=800;kg.r.gold+=200;}dpAddRel(kd,.5);});if(tot){S.bal+=tot;s.earn=(s.earn||0)+tot;}}
+    KDS.forEach(([kd])=>{const r=s.rel[kd]||0;if(r>0&&!dpAlly(kd))s.rel[kd]=Math.max(0,r-.4);else if(r<0)s.rel[kd]=Math.min(0,r+.6);});}
+  if(now-(s.nt||0)>=180000){s.nt=now;s.npc=s.npc.filter(p=>p[2]>now);if(Math.random()<.5&&s.npc.length<3){const ids=KDS.map(k=>k[0]).filter(x=>x!==my);const a=ids[pick(ids.length)],b=ids.filter(x=>x!==a)[pick(ids.length-1)];if(!dpNpcAllied(a,b)){s.npc.push([a,b,now+20*60000]);dpLog('📯',`${kdN(a)} dan ${kdN(b)} menandatangani aliansi. Mereka tidak akan saling serang 20 menit.`);}}}
+  if(my&&now-(s.ct||0)>=150000){s.ct=now;dpCouncil();}
+  try{if(tkAuto().on&&s.dec.length){const d=s.dec[0];if(now-d.at>90000){const C=DP_COUNCIL[d.i];window.__tkq=1;const r=C[2][0][1](s,d.kd);window.__tkq=0;if(r!==false){s.dec.shift();dpLog('🤖',`Dewan memutuskan “${C[2][0][0]}” otomatis. ${r}`);}else{s.dec.shift();}}}}catch(e){window.__tkq=0;}
+  /* war against you hurts relations */
+  if(my)WS().wars.forEach(v=>{if(v.a===my||v.b===my){const o=v.a===my?v.b:v.a;if(!v.dpr){v.dpr=1;dpAddRel(o,-25);}}});
+  savePF();DPW.redraw();}
+setInterval(()=>{try{if(started)dpTick();}catch(e){console.error('dp59',e);}},10000);
+/* window */
+const DPW={tab:'hub',redraw(){if(DPW.m&&modal===DPW.m&&!GA.busy)DPW.m.refresh();}};
+function openDpWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)DPW.tab=tab;
+  const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Diplomasi'},busy:false,refresh(){draw();}};modal=m;DPW.m=m;
+  const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);};
+  const card=(ic,t,sub,btns,cls)=>`<div class="mocard ${cls||''}"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
+  const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
+  const draw=()=>{const s=dpS(),my=dpMy(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0,w=WS();let body='';
+    if(DPW.tab==='hub'){body=`<div class="prhero"><div class="prlv" style="font-size:24px">🕊️</div><div><small>${my?'Raja '+esc(kdN(my)):'Kamu belum jadi raja · utusan tetap bisa dikirim'}</small><b>${Object.keys(w.k).filter(kd=>kd!==my&&dpAlly(kd)).length} sekutu · ${dpTrades().length}/${dpTradeMax()} jalur dagang</b><small>${s.wed?`💍 ${esc(s.wed.sp)} dari ${esc(kdN(s.wed.kd))} · `:''}Bantuan sekutu saat perang ⚔️ ${dpAllyHelp()} · hasil dagang total 🪙 ${fmtBig(s.earn||0)}</small></div></div>`+
+      KDS.filter(([id])=>id!==my).map(([id,ic,nm])=>{const r=dpRel(id),al=dpAlly(id),pa=dpPact(id),trd=!!s.trade[id],wed=s.wed&&s.wed.kd===id,war=my&&w.wars.some(v=>(v.a===id&&v.b===my)||(v.b===id&&v.a===my));
+        const bar=`<div style="height:6px;background:#eadfc4;border-radius:6px;overflow:hidden;margin:4px 0;max-width:240px;position:relative"><i style="position:absolute;left:${r<0?50+r/2:50}%;width:${Math.abs(r)/2}%;height:100%;background:${r<0?'#e0566a':'#3ddc84'}"></i><i style="position:absolute;left:50%;width:1px;height:100%;background:#8a7a5a"></i></div>`;
+        const chips=[wed?'💍 ikatan pernikahan':'',al&&!wed?`🤝 sekutu ${Math.ceil((s.ally[id]-Date.now())/60000)} mnt`:'',pa&&!al?`🕊️ pakta ${Math.ceil((s.pact[id]-Date.now())/60000)} mnt`:'',trd?'🐫 jalur dagang':'',war?'<span class="dn">⚔️ perang denganmu</span>':'',s.npc.filter(p=>p[0]===id||p[1]===id).map(p=>'📯 bersekutu dengan '+esc(kdN(p[0]===id?p[1]:p[0]))).join(' ')].filter(Boolean).join(' · ');
+        const btn=B('xDpEnvoy',id,'📜 Utusan','mogo')+(my?B('xDpPact',id,'🕊️ Pakta','mog',pa||r<10)+B('xDpAlly',id,'🤝 Aliansi','mog',al||r<40)+B('xDpTrade',id,trd?'🛑 Tutup dagang':'🐫 Dagang','mog',!trd&&r<20)+(s.wed?'':B('xDpWed',id,'💍 Lamar','mog',r<60)):'');
+        return card(ic,`${esc(nm)} · hubungan ${r>0?'+':''}${r}`,`${bar}${chips||'Netral'}<br><span class="muted">Pakta ≥10 · dagang ≥20 · aliansi ≥40 · pernikahan ≥60</span>`,btn,al?'prme':'');}).join('')+
+      `<p class="muted">Terinspirasi diplomasi di game strategi seperti Crusader Kings dan Civilization: pakta damai, aliansi, pernikahan kerajaan, dan jalur dagang. Sekutu menambah kekuatanmu saat perang, tapi perang tetap murni peluang sesuai kekuatan dan duel tetap 50:50.</p>`;}
+    else if(DPW.tab==='dewan'){body=my?(s.dec.length?s.dec.map(d=>{const C=DP_COUNCIL[d.i];return card(C[0],C[1].replace('{kd}',esc(kdN(d.kd))),`Usulan masuk ${Math.max(1,Math.round((Date.now()-d.at)/60000))} menit lalu${tkAuto().on?' · kalau tidak dipilih, menteri memutuskan otomatis setelah 1,5 menit':''}`,C[2].map((o,i)=>B('xDpDec',d.at+':'+i,o[0],i?'mog':'mogo')).join(''));}).join(''):'<p class="muted">Belum ada usulan. Dewan kerajaan bersidang kira-kira tiap 2,5 menit.</p>'):'<p class="muted">Dewan kerajaan hanya bersidang kalau kamu jadi raja.</p>';
+      body+=s.h.filter(x=>x.ic==='🤖'||x.c==='up').slice(0,6).map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join('');}
+    else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan diplomasi.</p>';
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Diplomasi"><div class="mohead"><b>🕊️ Diplomasi</b><span class="mobal">🪙 ${fmtBig(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+      <div class="mowrap"><div class="moside">${[['hub','🕊️','Hubungan'],['dewan','🏛️','Dewan'+(s.dec.length?' ('+s.dec.length+')':'')],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===DPW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
+    el.querySelector('.momain').scrollTop=sc;};
+  el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
+    if(t.dataset.tab){DPW.tab=t.dataset.tab;try{SFX.pop();}catch(e){}draw();el.querySelector('.momain').scrollTop=0;return;}
+    if(t.dataset.xa2&&XA[t.dataset.xa2]){XA[t.dataset.xa2](t.dataset.v);}});
+  el.addEventListener('pointerdown',e=>{if(e.target===el)close();});draw();}
+xView('dp59',{t:'Diplomasi',s:'Diplomasi',ic:'🕊️',bg:'linear-gradient(135deg,#2f6fd6,#9ad0ff)',dot:()=>dpS().dec.length,r:()=>{setTimeout(()=>{if(phView==='dp59'){phView='home';closePhone();openDpWin();}},20);return '<p class="muted">Membuka Diplomasi...</p>';}});
+/* a station in the throne hall grounds: the royal council chamber */
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{stationAdd('gkdip',GK.X+14,GK.Z+131,0,'Balai Diplomasi',{useDist:4,verb:'Diplomasi',btn:'DIPLOMASI',act:()=>openDpWin(dpS().dec.length?'dewan':'hub'),ctx:()=>`<div class="ctx-head"><h3>🕊️ Balai Diplomasi</h3><small>${dpS().dec.length?dpS().dec.length+' usulan dewan menunggu':'Utusan, pakta, aliansi, dagang, pernikahan'}</small></div>`});}catch(e){}return g;})(gkBuild);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
