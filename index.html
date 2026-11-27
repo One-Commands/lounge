@@ -1802,8 +1802,8 @@ const EVENTS=[
 function fireEvent(){const [t,eff]=EVENTS[pick(EVENTS.length)];const ups=[],dns=[];
   MK.forEach(a=>{let pc=0;for(const k in eff){if(k===a.sec||k===a.t)pc+=eff[k];}if(!pc)return;pc*=.6+Math.random()*.8;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*(1+pc));a.f=(a.f||a.p)*(1+pc*.7);a.tr+=pc*.2;a.h[a.h.length-1]=a.p;(pc>0?ups:dns).push(a.id);});
   const msg=`${t}. ${ups.length?'Naik: '+ups.slice(0,5).join(', ')+'.':''} ${dns.length?'Turun: '+dns.slice(0,5).join(', ')+'.':''}`.trim();news.unshift(msg);news=news.slice(0,8);logLine('sys',null,'📰 '+msg);}
-let PF={hold:{},cost:{}};const ecoClean=()=>{for(const k in PF.hold||{}){const a=MK.find(x=>x.id===k);if(a&&PF.hold[k]>a.sh){const lim=a.sh,f=lim/PF.hold[k];PF.hold[k]=a.t==='saham'?Math.floor(lim):lim;if(PF.cost)PF.cost[k]=(PF.cost[k]||0)*f;}if(!(PF.hold[k]<1e12)||(a&&!(PF.hold[k]*(a.p0||a.p)<1e15))){PF.hold[k]=0;if(PF.cost)PF.cost[k]=0;}}};
-try{const s=JSON.parse(localStorage.getItem('lounge-vegas-hp')||'null');if(s&&s.hold){PF=s;if(!s.v23)window.__pfOld=1;if(s.px)MK.forEach(a=>{if(s.px[a.id])a.p=Math.min(a.p*20,Math.max(minP(a),s.px[a.id]));});}}catch(e){}
+let PF={hold:{},cost:{}};const ecoClean=()=>{for(const k in PF.hold||{}){const a=MK.find(x=>x.id===k);if(a&&PF.hold[k]>a.sh){const lim=a.sh,f=lim/PF.hold[k];PF.hold[k]=a.t==='saham'?Math.floor(lim):lim;if(PF.cost)PF.cost[k]=(PF.cost[k]||0)*f;}if(!(PF.hold[k]<1e12)||(a&&!(PF.hold[k]*(a.p0||a.p)<1e15*(PF.mkx||1)))){PF.hold[k]=0;if(PF.cost)PF.cost[k]=0;}}};
+try{const s=JSON.parse(localStorage.getItem('lounge-vegas-hp')||'null');if(s&&s.hold){PF=s;if(!s.v23)window.__pfOld=1;{const X=+s.mkx||1;MK.forEach(a=>{if(X!==1){['p','p0','b0','f','open'].forEach(k=>{if(a[k])a[k]*=X;});if(a.liq)a.liq*=X;if(Array.isArray(a.h))a.h=a.h.map(v=>v*X);}a.__mkx=X;});}if(s.px)MK.forEach(a=>{if(s.px[a.id])a.p=Math.min(a.p*20,Math.max(minP(a),s.px[a.id]));});}}catch(e){}
 function savePF(){try{localStorage.setItem('lounge-vegas-hp',JSON.stringify(Object.assign({},PF,{aidT:PF.aidT||0,rankBest:PF.rankBest||99,dia:PF.dia||0,tix:PF.tix||0,bonds:PF.bonds||[],corp:PF.corp||{},tyW:PF.tyW||{},biz:PF.biz||null,mail:PF.mail||[],px:Object.fromEntries(MK.map(a=>[a.id,a.p]))})));}catch(e){}}
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
 MK.forEach(a=>{a.tr=0;a.h=[];let p=a.p;const tmp=[p];for(let i=0;i<59;i++){p=p/Math.exp(a.v*.6*gauss());tmp.push(p);}a.h=tmp.reverse();a.h[a.h.length-1]=a.p;a.open=a.p;a.f=a.p;});
@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v60.1';
+const GAME_VER='v60.2';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9668,6 +9668,33 @@ openGfWin=(f=>function(){const r=f.apply(this,arguments);knavHook();return r;})(
 openDpWin=(f=>function(){const r=f.apply(this,arguments);knavHook();return r;})(openDpWin);
 openIstana=(f=>function(){const r=f.apply(this,arguments);try{knavHook();}catch(e){}return r;})(openIstana);
 xHud=(f=>function(){const r=f.apply(this,arguments);try{if(hudPill&&INT.built&&INT.built.gp52&&you&&Math.abs(you.pos.x-GP52.X)<GP52.W){const a='📍 '+NEGARA.kota;if(hudPill.innerHTML.includes(a))hudPill.innerHTML=hudPill.innerHTML.replace(a,'🏯 Ruang Takhta');}}catch(e){}return r;})(xHud);
+
+/* ================= v60.2: harga saham & crypto mengikuti kekayaan; muat data tidak mereset NPC ================= */
+/* PF.mkx is the market scale. Base fields of every asset are multiplied by it, so caps relative to p0 keep working. */
+function mkFix(){const X=PF.mkx||1;MK.forEach(a=>{if(a.__mkx===X)return;const r=X/(a.__mkx||1);if(r!==1){const fromPx=!!(PF.px&&PF.px[a.id]&&a.__mkx===undefined&&Math.abs(PF.px[a.id]-a.p)<1e-6*Math.max(1,a.p));
+    ['p0','b0'].forEach(k=>{if(a[k])a[k]*=r;});if(a.liq)a.liq*=r;if(!fromPx){['p','open'].forEach(k=>{if(a[k])a[k]*=r;});if(Array.isArray(a.h))a.h=a.h.map(v=>v*r);if(a.f)a.f*=r;}else{if(a.f&&Math.abs(a.f-a.p)>1e-6*a.p)a.f*=r;if(Array.isArray(a.h))a.h=a.h.map(v=>v<a.p/(r*.5)?v*r:v);}}a.__mkx=X;});}
+savePF=(f=>function(){try{mkFix();}catch(e){}return f.apply(this,arguments);})(savePF);
+function mkRescale(r){if(!(r>1.0001)||!isFinite(r))return;mkFix();PF.mkx=(PF.mkx||1)*r;
+  MK.forEach(a=>{['p','p0','b0','f','open'].forEach(k=>{if(a[k])a[k]*=r;});if(a.liq)a.liq*=r;if(Array.isArray(a.h))a.h=a.h.map(v=>v*r);a.__mkx=PF.mkx;});
+  for(const k in PF.cost||{})PF.cost[k]*=r;(PF.lim||[]).forEach(o=>{if(o.px)o.px*=r;});(PF.ord||[]).forEach(o=>{if(o.px)o.px*=r;});
+  for(const k in PF.ohlc||{})(PF.ohlc[k]||[]).forEach(row=>{if(Array.isArray(row))for(let i=0;i<4;i++)if(typeof row[i]==='number')row[i]*=r;});
+  try{if(typeof tebak!=='undefined'&&tebak&&tebak.p0)tebak.p0*=r;}catch(e){}}
+function mkBase(){let ty=0;try{ty=Math.max(...TYCOONS.map(n=>tyBase(n)+((PF.tyW||{})[n]||0)));}catch(e){}return Math.max(S.bal+((PF.bank&&PF.bank.save)||0),ty);}
+function mkCap(){return MK.filter(a=>a.t==='saham').reduce((s,a)=>s+a.p*a.sh,0);}
+function mkTick(first){const cap=mkCap(),tg=mkBase()*1.0;if(!(cap>0)||cap>=tg*.8)return;const r=first?tg/cap:Math.min(tg/cap,1.25);
+  const before=portVal();mkRescale(r);const after=portVal();
+  if(r>1.02){try{logLine('sys',null,`📈 Pasar saham & crypto menyesuaikan kekayaan zaman: harga naik ×${r>=100?fmtBig(Math.round(r)):r.toFixed(2)}. Portofoliomu ${fmtBig(Math.round(before))} → ${fmtBig(Math.round(after))}.`,'win');}catch(e){}}
+  savePF();save();try{phoneRender();}catch(e){}}
+{let t0=0;setInterval(()=>{try{if(!started)return;mkFix();if(!t0){t0=1;mkTick(true);return;}mkTick(false);}catch(e){console.error('mk81',e);}},60000);setTimeout(()=>{try{if(started){mkFix();mkTick(true);t0=1;}}catch(e){}},6000);}
+/* loading a save slot restores only your own data; NPC wealth, holdings and prices stay as they are now */
+snap=(f=>function(){const d=f.apply(this,arguments);try{d.PF.mkx=PF.mkx||1;}catch(e){}return d;})(snap);
+applySnap=(f=>function(d){const keep={rivals:PF.rivals,tyW:PF.tyW,npcH:PF.npcH,pl57:PF.pl57},px=Object.fromEntries(MK.map(a=>[a.id,a.p]));
+  try{if(d&&d.PF){const r=(PF.mkx||1)/(+d.PF.mkx||1);if(r!==1&&d.PF.cost){d.PF.cost=Object.assign({},d.PF.cost);for(const k in d.PF.cost)d.PF.cost[k]*=r;}delete d.PF.px;}}catch(e){}
+  const res=f.apply(this,arguments);try{PF.rivals=keep.rivals;PF.tyW=keep.tyW;if(keep.npcH)PF.npcH=keep.npcH;if(keep.pl57)PF.pl57=keep.pl57;MK.forEach(a=>{if(px[a.id])a.p=px[a.id];});try{capFix&&capFix(MK.filter(a=>a.t==='saham'));}catch(e){}savePF();}catch(e){}return res;})(applySnap);
+/* loading from the cloud or a code reloads the page; keep NPC state across that reload too */
+accApplyBlob=(f=>function(o,why){try{sessionStorage.setItem('npc-keep',JSON.stringify({rivals:PF.rivals,tyW:PF.tyW,npcH:PF.npcH,pl57:PF.pl57,t:Date.now()}));}catch(e){}return f.apply(this,arguments);})(accApplyBlob);
+{const iv=setInterval(()=>{try{if(!started)return;clearInterval(iv);const k=sessionStorage.getItem('npc-keep');if(!k)return;sessionStorage.removeItem('npc-keep');const o=JSON.parse(k);if(Date.now()-(o.t||0)>120000)return;
+  if(Array.isArray(o.rivals)&&o.rivals.length)PF.rivals=o.rivals;if(o.tyW)PF.tyW=o.tyW;if(o.npcH)PF.npcH=o.npcH;if(o.pl57)PF.pl57=o.pl57;savePF();try{logLine('sys',null,'☁️ Progresmu dimuat. Kekayaan NPC tetap seperti sebelumnya.');}catch(e){}}catch(e){}},500);}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
