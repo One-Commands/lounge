@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v76';
+const GAME_VER='v77';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10638,6 +10638,61 @@ xView('balap76',{t:'Balap',s:'Sirkuit Permata',ic:'🏁',bg:'linear-gradient(135
 PLACES.sirkuit=['🏁 Sirkuit Permata',null];
 XA.xTaxi=(f=>function(id){if(id!=='sirkuit')return f.apply(this,arguments);const p=XS().vip?0:25000;if(p&&!xPay(p))return;closePhone();tpTo(0,zoneZ(RC76.k)+62,Math.PI);banner('🏁 SIRKUIT PERMATA<small>Daftar balapan di pit</small>','',2000);xSave();})(XA.xTaxi);
 goPlace=(f=>function(id){if(id==='sirkuit'){tpTo(0,zoneZ(RC76.k)+62,Math.PI);return;}return f.apply(this,arguments);})(goPlace);
+
+/* ================= v77: Panggung & Happy Hour — Teater Permata (sulap, band, tari), bottle service, Happy Hour ================= */
+ZN.push({id:'teater77',n:'🎭 Teater Permata',sp:[0,20,Math.PI],under:1,ceil:11});
+const TH77={k:ZN.length-1,shows:[['sulap','🎩','Sulap Pak Darmo','Pesulap legendaris kota menghilangkan koin emas di udara.'],['band','🎸','Band Kilau Senja','Band rock lokal membawakan lagu-lagu pesta.'],['tari','💃','Tari Cahaya Nusantara','Penari dengan kostum berkilau menari serempak.']],per:10*60e3,len:2*60e3,perf:[],props:{}};
+function th77(){return PF.th77=PF.th77||{hhT:0,seen:0,bot:0,last:0};}
+function showNow(){const t=Date.now()%TH77.per,i=Math.floor(Date.now()/TH77.per)%3;return {i,S:TH77.shows[i],on:t<TH77.len,left:t<TH77.len?TH77.len-t:TH77.per-t};}
+function hhOn(){const c=gameClock();return (c.h>=20&&c.h<21)||Date.now()<th77().hhT;}
+function botP(){return Math.max(1e5,Math.round(netWorth()*.0005));}
+ZB.teater77=(G,zc,k)=>{const W=24,D=24;gplane(G,W*2,D*2,new THREE.MeshLambertMaterial({color:0x3a0f1f}),0,zc,.004);
+  cBox(G,W*2,11,.6,0x2a0a14,0,5.5,zc-D,true);cBox(G,W*2,11,.6,0x2a0a14,0,5.5,zc+D,true);cBox(G,.6,11,D*2,0x2a0a14,-W,5.5,zc,true);cBox(G,.6,11,D*2,0x2a0a14,W,5.5,zc,true);
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(W*2,D*2),mat(0x120408));ceil.rotation.x=Math.PI/2;ceil.position.set(0,11,zc);G.add(ceil);
+  /* stage */
+  cBox(G,30,1.4,12,0x5a3a20,0,.7,zc-16,true);cBox(G,30.4,.12,12.4,0xd8a648,0,1.42,zc-16);cBox(G,34,10,.4,0x7a0a1a,0,5,zc-22.6);
+  [-16,16].forEach(x=>{cBox(G,3,10,1,0x9a0a24,x,5,zc-10.6);cBox(G,3.2,.4,1.2,0xd8a648,x,10,zc-10.6);});cBox(G,35,1.2,1,0x9a0a24,0,10.2,zc-10.6);
+  G.add(neon('TEATER PERMATA',0,8.6,zc-22.3,0,'#fff1c8','#ffb21c',12,1.4));
+  /* seats */
+  for(let r=0;r<5;r++)for(let c=-5;c<=5;c++){if(c===0)continue;cBox(G,1.6,.6,1.2,0x9a0a24,c*2.2,.5+r*.35,zc+2+r*3,false);cBox(G,1.6,1,.3,0x9a0a24,c*2.2,1.1+r*.35,zc+2.7+r*3,false);}
+  for(let i=0;i<16;i++){try{miniPerson(G,((i%8)-3.5)*4.4+(i%2?1:-1),zc+2.4+Math.floor(i/8)*6,Math.PI,[0xd8435b,0x2f6fe0,0xffd25f,0x2f9e5a,0xffffff,0x9b59b6][i%6]);}catch(e){}}
+  /* performers: 6 dancers, a band of 3, a magician */
+  const P=TH77.props;P.dancers=[];for(let i=0;i<6;i++){const g=new THREE.Group();g.position.set(-10+i*4,1.4,zc-15);G.add(g);try{miniPerson(g,0,0,0,[0xff5fb8,0xffd25f,0x7df3ff][i%3]);}catch(e){cBox(g,.6,1.6,.4,0xff5fb8,0,.8,0);}P.dancers.push(g);}
+  P.band=new THREE.Group();G.add(P.band);[[-6,0xd8435b],[0,0x2f6fe0],[6,0xffd25f]].forEach(([x,c],i)=>{try{miniPerson(P.band,x,zc-17,0,c);}catch(e){}if(i===1){cBox(P.band,2.4,1,1.6,0x30343c,x,1.9,zc-19,false);}else{cBox(P.band,.25,1.2,.12,0x8a5a32,x+.5,2.4,zc-16.7,false);}});P.band.position.y=1.4;
+  P.mag=new THREE.Group();G.add(P.mag);try{miniPerson(P.mag,0,zc-15,0,0x111111);}catch(e){}cBox(P.mag,.9,.6,.9,0x111111,0,3.6,zc-15,false);cBox(P.mag,1.3,.08,1.3,0x111111,0,3.3,zc-15,false);P.mag.position.y=1.4;
+  /* spotlights */
+  P.spots=[];[-10,0,10].forEach(x=>{const c=new THREE.Mesh(new THREE.ConeGeometry(2.6,10,16,1,true),new THREE.MeshBasicMaterial({color:0xfff1c0,transparent:true,opacity:.14,side:THREE.DoubleSide,depthWrite:false}));c.position.set(x,6.4,zc-15);G.add(c);P.spots.push(c);});
+  /* bar + exit */
+  cBox(G,1.4,1.2,10,0x3a1424,W-2.2,.6,zc+10,true);cBox(G,1.6,.12,10.2,0xd8a648,W-2.2,1.26,zc+10);try{miniPerson(G,W-.9,zc+10,-Math.PI/2,0xffffff);}catch(e){}
+  stationAdd('th77',W-4,zc+10,-Math.PI/2,'Bar Teater',{useDist:3,verb:'Pesan',btn:'BAR',act:()=>XA.xBot77(),ctx:()=>`<div class="ctx-head"><h3>🍾 Bottle service</h3><small>Hoki +6 dan bonus +4 selama 20 menit · ${zKC(botP())}</small></div><div class="ctx-row">${bzB('xBot77',1,'🍾 Pesan')}</div>`});
+  stationAdd('th77',0,zc+20,Math.PI,'Pintu keluar teater',{useDist:3,verb:'Keluar',btn:'KELUAR',act:()=>thOut(),ctx:()=>`<div class="ctx-head"><h3>🚪 Keluar</h3><small>Kembali ke Lounge Vegas</small></div><div class="ctx-row">${bzB('xTh77Out',1,'Keluar')}</div>`});
+  stationAdd('th77',0,zc-6,Math.PI,'Jadwal pertunjukan',{useDist:5,verb:'Lihat',btn:'JADWAL',act:()=>openThWin(),ctx:()=>{const n=showNow();return `<div class="ctx-head"><h3>${n.S[1]} ${n.on?'Sedang tampil':'Berikutnya'}: ${esc(n.S[2])}</h3><small>${n.on?'Tonton sampai selesai untuk tiket Happy Hour!':'Mulai dalam '+Math.ceil(n.left/60000)+' menit'}</small></div><div class="ctx-row">${bzB('xTh77',1,'Jadwal')}</div>`;}});
+  zAnim.push({k,f:()=>thAnim()});};
+function thAnim(){const P=TH77.props;if(!P.dancers)return;const n=showNow(),t=performance.now()/1000;P.dancers.forEach((g,i)=>{g.visible=n.on&&n.S[0]==='tari';if(g.visible){g.position.y=1.4+Math.abs(Math.sin(t*4+i))*.6;g.rotation.y=Math.sin(t*2+i)*1.2;}});
+  P.band.visible=n.on&&n.S[0]==='band';if(P.band.visible)P.band.position.y=1.4+Math.abs(Math.sin(t*6))*.15;P.mag.visible=n.on&&n.S[0]==='sulap';if(P.mag.visible)P.mag.rotation.y=Math.sin(t)*.4;
+  P.spots.forEach((c,i)=>{c.visible=n.on;c.rotation.z=Math.sin(t*1.5+i)*.25;c.material.color.setHSL(((t*.1+i*.3)%1),.8,.7);});
+  if(n.on&&n.S[0]==='sulap'&&Math.floor(t*2)%7===0&&(TH77.lb||0)!==Math.floor(t*2)){TH77.lb=Math.floor(t*2);try{burst(new THREE.Vector3(0,4,zoneZ(TH77.k)-15),30);}catch(e){}}}
+/* watching a show: stay inside for the last 30 s of it -> Happy Hour ticket */
+setInterval(()=>{try{if(!started)return;const n=showNow(),s=th77(),id=Math.floor(Date.now()/TH77.per);const inside=zoneAt(you.pos.z)===TH77.k;
+  if(inside&&n.on&&s.st!==id){s.st=id;banner(`${n.S[1]} ${n.S[2].toUpperCase()}<small>${n.S[3]}</small>`,'',2600);try{[523,659,784,1047].forEach((f,i)=>tone(f,.18,'triangle',.08,i*.18));}catch(e){}}
+  if(inside&&n.on&&n.left<30000&&s.seen!==id){s.seen=id;s.hhT=Date.now()+5*60e3;try{xpAdd(25,'Nonton pertunjukan');}catch(e){}logLine('sys',null,`🎭 Kamu menonton ${n.S[2]}. Happy Hour pribadi aktif 5 menit: kemenangan meja +10%!`,'win');banner('🍹 HAPPY HOUR<small>Kemenangan meja +10% selama 5 menit</small>','resb',2600);savePF();}}catch(e){}},2000);
+remeRound=(f=>async function(t){const b0=S.bal,h0=S.hist[S.hist.length-1];const r=await f.apply(this,arguments);try{const last=S.hist[S.hist.length-1];if(last&&last!==h0&&last.w&&hhOn()){const gain=S.bal-b0;if(gain>0){const x=Math.round(gain*.1);S.bal+=x;logLine('sys',null,`🍹 Happy Hour: bonus +${zKC(x)}.`,'win');}}}catch(e){}return r;})(remeRound);
+XA.xBot77=()=>{const s=th77();if(Date.now()<s.bot){showResult('🍾 Botolmu masih ada di meja');return;}if(!xPay(botP()))return;s.bot=Date.now()+20*60e3;SFX.coin();banner('🍾 BOTTLE SERVICE<small>Hoki +6 · bonus +4 selama 20 menit</small>','',2000);savePF();};
+buffs=(f=>function(){const r=f.apply(this,arguments);try{if(Date.now()<th77().bot){r.luck=(r.luck||0)+6;r.bonus=(r.bonus||0)+4;}}catch(e){}return r;})(buffs);
+function thIn(){const p=XS().vip?0:50000;if(p&&!xPay(p))return;const zc=zoneZ(TH77.k);tpTo(0,zc+14,Math.PI);const n=showNow();banner(`🎭 TEATER PERMATA<small>${n.on?n.S[1]+' Sedang tampil: '+n.S[2]:'Pertunjukan berikutnya '+Math.ceil(n.left/60000)+' menit lagi'}</small>`,'',2400);}
+function thOut(){tpTo(-25,ROOM-7,Math.PI);}
+XA.xTh77In=()=>thIn();XA.xTh77Out=()=>thOut();XA.xTh77=()=>openThWin();
+function openThWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);const n=showNow(),cur=Math.floor(Date.now()/TH77.per);
+  const rows=[0,1,2,3,4].map(j=>{const id=cur+j,S0=TH77.shows[id%3],st=new Date(id*TH77.per);return `<div class="row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span>${S0[1]} <b>${esc(S0[2])}</b><br><small class="muted">${esc(S0[3])}</small></span><span>${j===0&&n.on?'<b class="up">TAMPIL</b>':st.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</span></div>`;}).join('');
+  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Teater"><div class="mohead"><b>🎭 Teater Permata</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  <div class="wallet"><small>Happy Hour</small><b>${hhOn()?'🍹 AKTIF · kemenangan +10%':'Belum aktif'}</b><div class="row"><span>Happy Hour kota</span><span>jam 20.00–21.00 (jam game)</span></div><div class="row"><span>Happy Hour pribadi</span><span>${Date.now()<th77().hhT?Math.ceil((th77().hhT-Date.now())/60000)+' menit lagi':'tonton pertunjukan sampai selesai'}</span></div></div>
+  <p class="sec-t">Jadwal (tiap 10 menit, durasi 2 menit)</p>${rows}<div class="ctx-row" style="margin-top:8px"><button class="pbtn" data-a="in">🎟️ Masuk teater ${XS().vip?'(gratis)':'· '+zKC(50000)}</button></div></div></div>`;
+  modal={el,st:{label:'Teater'},busy:false,refresh(){}};const close=()=>{el.remove();modal=null;};el.querySelector('.moclose').onclick=close;el.querySelector('[data-a="in"]').onclick=()=>{close();thIn();};}
+xView('teater77',{t:'Teater',s:'Jadwal & Happy Hour',ic:'🎭',bg:'linear-gradient(135deg,#7a0a1a,#ffb21c)',r:()=>{setTimeout(()=>{if(phView==='teater77'){phView='home';closePhone();openThWin();}},20);return '<p class="muted">Membuka...</p>';}});
+/* theatre door in the casino front wall, left of the lift */
+buildHostTables=(f=>function(){const r=f.apply(this,arguments);try{box(3.6,4.6,.3,mat(0x9a0a24),-25,2.3,ROOM-.25,false);box(3,4,.32,mat(0x3a0a14),-25,2,ROOM-.25,false);box(.06,4,.34,mat(0xd8a648),-25,2,ROOM-.25,false);
+  neon('🎭 TEATER PERMATA',-25,5.2,ROOM-.45,Math.PI,'#fff1c8','#ffb21c',6,.7);
+  stationAdd('th77',-25,ROOM-1.8,Math.PI,'Teater Permata',{useDist:3,verb:'Masuk',btn:'TEATER',act:()=>thIn(),ctx:()=>{const n=showNow();return `<div class="ctx-head"><h3>🎭 Teater Permata</h3><small>${n.on?n.S[1]+' Sedang tampil: '+esc(n.S[2]):'Berikutnya '+esc(n.S[2])+' dalam '+Math.ceil(n.left/60000)+' menit'}${hhOn()?' · 🍹 Happy Hour aktif':''}</small></div><div class="ctx-row">${bzB('xTh77In',1,'🎟️ Masuk')}${bzB('xTh77',1,'Jadwal')}</div>`;}});}catch(e){console.error('th77 door',e);}return r;})(buildHostTables);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
