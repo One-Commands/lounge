@@ -684,8 +684,9 @@ try{const p=sessionStorage.getItem('acct-pending');if(p){const o=JSON.parse(p);f
 const $=id=>document.getElementById(id);
 const stage=$('stage'),ov=$('ov');
 if(!window.THREE){stage.insertAdjacentHTML('beforeend','<div class="err">Mesin 3D gagal dimuat. Muat ulang halaman.</div>');return;}
-const fmt=n=>n.toLocaleString('id-ID');
-const fmtBig=n=>{n=Math.floor(n);const A=Math.abs(n);if(A<1e9)return fmt(n);if(A<1e12)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A<1e15)return (n/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';return Math.round(n/1e12).toLocaleString('id-ID')+' T';};
+function BIGU(n){const U=[[1e33,'Ds'],[1e30,'No'],[1e27,'Ok'],[1e24,'Sp'],[1e21,'Sk'],[1e18,'Kn'],[1e15,'Kd']],A=Math.abs(n);for(const [v,u] of U)if(A>=v)return (n/v).toLocaleString('id-ID',{maximumFractionDigits:A/v>=100?1:2})+' '+u;return Math.round(n).toLocaleString('id-ID');}
+const fmt=n=>(typeof n==='number'&&Math.abs(n)>=1e15&&isFinite(n))?BIGU(n):n.toLocaleString('id-ID');
+const fmtBig=n=>{n=Math.floor(n);const A=Math.abs(n);if(A<1e9)return fmt(n);if(A<1e12)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A<1e15)return (n/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';return BIGU(n);};
 const HOST="Bang Rio";
 
 /* ---------- state ---------- */
@@ -1802,7 +1803,7 @@ const EVENTS=[
 function fireEvent(){const [t,eff]=EVENTS[pick(EVENTS.length)];const ups=[],dns=[];
   MK.forEach(a=>{let pc=0;for(const k in eff){if(k===a.sec||k===a.t)pc+=eff[k];}if(!pc)return;pc*=.6+Math.random()*.8;a.p=Math.max(a.t==='crypto'?.0001:1,a.p*(1+pc));a.f=(a.f||a.p)*(1+pc*.7);a.tr+=pc*.2;a.h[a.h.length-1]=a.p;(pc>0?ups:dns).push(a.id);});
   const msg=`${t}. ${ups.length?'Naik: '+ups.slice(0,5).join(', ')+'.':''} ${dns.length?'Turun: '+dns.slice(0,5).join(', ')+'.':''}`.trim();news.unshift(msg);news=news.slice(0,8);logLine('sys',null,'📰 '+msg);}
-let PF={hold:{},cost:{}};const ecoClean=()=>{for(const k in PF.hold||{}){const a=MK.find(x=>x.id===k);if(a&&PF.hold[k]>a.sh){const lim=a.sh,f=lim/PF.hold[k];PF.hold[k]=a.t==='saham'?Math.floor(lim):lim;if(PF.cost)PF.cost[k]=(PF.cost[k]||0)*f;}if(!(PF.hold[k]<1e12)||(a&&!(PF.hold[k]*(a.p0||a.p)<1e15*(PF.mkx||1)))){PF.hold[k]=0;if(PF.cost)PF.cost[k]=0;}}};
+let PF={hold:{},cost:{}};const ecoClean=()=>{for(const k in PF.hold||{}){const a=MK.find(x=>x.id===k);if(a&&PF.hold[k]>a.sh){const lim=a.sh,f=lim/PF.hold[k];PF.hold[k]=a.t==='saham'?Math.floor(lim):lim;if(PF.cost)PF.cost[k]=(PF.cost[k]||0)*f;}if(!(PF.hold[k]<1e30)||(a&&!(PF.hold[k]*(a.p0||a.p)<1e15*(PF.mkx||1)))){PF.hold[k]=0;if(PF.cost)PF.cost[k]=0;}}};
 try{const s=JSON.parse(localStorage.getItem('lounge-vegas-hp')||'null');if(s&&s.hold){PF=s;if(!s.v23)window.__pfOld=1;{const X=+s.mkx||1;MK.forEach(a=>{if(X!==1){['p','p0','b0','f','open'].forEach(k=>{if(a[k])a[k]*=X;});if(a.liq)a.liq*=X;if(Array.isArray(a.h))a.h=a.h.map(v=>v*X);}a.__mkx=X;});}if(s.px)MK.forEach(a=>{if(s.px[a.id])a.p=Math.min(a.p*20,Math.max(minP(a),s.px[a.id]));});}}catch(e){}
 function savePF(){try{localStorage.setItem('lounge-vegas-hp',JSON.stringify(Object.assign({},PF,{aidT:PF.aidT||0,rankBest:PF.rankBest||99,dia:PF.dia||0,tix:PF.tix||0,bonds:PF.bonds||[],corp:PF.corp||{},tyW:PF.tyW||{},biz:PF.biz||null,mail:PF.mail||[],px:Object.fromEntries(MK.map(a=>[a.id,a.p]))})));}catch(e){}}
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
@@ -1890,7 +1891,7 @@ function phoneRender(){
   const titles={home:'',rank:'Ranking',bank:'Bank Merdeka',toko:'Toko Aksesoris',crypto:'Crypto',saham:'Saham',detail:phAsset?phAsset.n:'',jobs:'Kerja sampingan',guide:'Panduan kasino',biz:'Bisnis & Properti',mail:'Inbox',quest:'Quest harian',wallet:'Dompet'};
   let body='';
   if(phView==='home'){
-    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${fmt(Math.round(net))}</b>${nwRows()}</div>
+    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${fmt(Math.round(net))}</b>${Math.abs(net)>=1e15?'<small style="opacity:.7">Kd kuadriliun = 1.000 T · Kn kuintiliun · Sk sekstiliun · Sp septiliun · Ok oktiliun · No noniliun · Ds desiliun (tiap satuan 1.000× sebelumnya)</small>':''}${nwRows()}</div>
       <div class="apps">
         <button class="app" data-v="crypto"><i style="background:linear-gradient(135deg,#f7931a,#b25b00)">₿</i>Crypto</button>
         <button class="app" data-v="saham"><i style="background:linear-gradient(135deg,#3ddc84,#137a44)">📈</i>Saham</button>
@@ -3562,7 +3563,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v60.5';
+const GAME_VER='v60.6';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7027,7 +7028,7 @@ bizVal=(f=>function(){return f.apply(this,arguments)+fxVal();})(bizVal);
 setInterval(()=>{if(!started)return;const F=fxS();if(F.d!==mDay){F.d=mDay;FXC.forEach(([c])=>F.o[c]=F.r[c]);}
   const g=(Math.random()-.5)*.0012;FXC.forEach(([c,,,u])=>{const base=FX_BASE*u,r=F.r[c];let nr=r*(1+g*(c==='USD'?1:.6)+(Math.random()-.5)*.003);nr+= (base-nr)*.004;F.r[c]=Math.max(base*.6,Math.min(base*1.6,nr));});
   if(Math.random()<.03){const [c,fl,n]=FXC[pick(FXC.length)],up=Math.random()<.5,m=.01+Math.random()*.025;F.r[c]*=up?1+m:1-m;const t=`💱 ${fl} ${n} ${up?'menguat':'melemah'} ${(m*100).toFixed(1)}% terhadap koin.`;news.unshift(t);news=news.slice(0,6);logLine('sys',null,t,up?'win':'lose');}},10000);
-const fmtUSD=n=>{const A=Math.abs(n);const f=(v,s)=>'US$ '+v.toLocaleString('id-ID',{maximumFractionDigits:2})+s;if(A>=1e12)return f(n/1e12,' T');if(A>=1e9)return f(n/1e9,' M');if(A>=1e6)return f(n/1e6,' jt');return 'US$ '+Math.round(n).toLocaleString('id-ID');};
+const fmtUSD=n=>{const A=Math.abs(n);const f=(v,s)=>'US$ '+v.toLocaleString('id-ID',{maximumFractionDigits:2})+s;if(A>=1e15)return 'US$ '+BIGU(n);if(A>=1e12)return f(n/1e12,' T');if(A>=1e9)return f(n/1e9,' M');if(A>=1e6)return f(n/1e6,' jt');return 'US$ '+Math.round(n).toLocaleString('id-ID');};
 const toUSD=n=>n/usdRate();
 
 const fxOfK=k=>(FXC.find(x=>x[4]===k)||[])[0];
@@ -8000,12 +8001,13 @@ phoneRender=(f=>function(){try{const ph=$('phone');if(ph&&!ph.classList.contains
 /* taps that start a redraw on pointerdown still count: mark user intent from pointerup too */
 document.addEventListener('pointerup',e=>{if(e.target&&e.target.closest&&e.target.closest('#phone')){window.__phF=1;setTimeout(()=>{window.__phF=0;},350);}},true);
 
+function npcPct(n){const out=[];try{const H=(npcH()[n])||{};MK.forEach(a=>{if(a.t!=='saham'||!(a.sh>0))return;const c=PF.corp&&PF.corp[a.id];let q=0,ctl=false;if(c&&c.o===n&&!c.me){q+=cfOf(a)*a.sh;ctl=true;}if(c&&c.blk)c.blk.forEach(b=>{if(b.n===n&&b.q>0)q+=b.q;});if(H[a.id]>0)q+=H[a.id];if(q>0){const f=q/a.sh;out.push({id:a.id,f,c:ctl,p:(f>=.1?(f*100).toFixed(0):(f*100).toFixed(f>=.01?1:2))+'%'});}});}catch(e){}return out.sort((x,y)=>y.f-x.f);}
 /* v43.1: Ranking gets its own full-screen window (like Kantor Manajer), separate from the phone */
 let rkWOpen=null,rkWTab='rank';
 function openRankWin(){if(modal)return;closePhone();for(const k in keys)keys[k]=false;
   const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Ranking'},busy:false,refresh(){draw();}};modal=m;
   const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);clearInterval(m.iv);};
-  const row=(r,i)=>`<div class="rkw ${r.me?'me':''}" data-n="${esc(r.n)}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${r.co&&r.co.length?' · 🏢 '+r.co.join(', '):''}${r.mg?' · 🏬 '+r.mg+' mall':''}${r.me&&r.st&&r.st.length?' · 📈 '+r.st.slice(0,6).join(', ')+(r.st.length>6?` +${r.st.length-6} lainnya`:''):''}${r.me&&!(r.co&&r.co.length)&&!(r.st&&r.st.length)?' · belum pegang saham':''}</small></div>
+  const row=(r,i)=>`<div class="rkw ${r.me?'me':''}" data-n="${esc(r.n)}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${!r.me&&npcPct(r.n).length?' · 📈 '+npcPct(r.n).slice(0,6).map(x=>x.id+' '+x.p+(x.c?' 👑':'')).join(', ')+(npcPct(r.n).length>6?` +${npcPct(r.n).length-6} lainnya`:''):(r.co&&r.co.length?' · 🏢 '+r.co.join(', '):'')}${r.mg?' · 🏬 '+r.mg+' mall':''}${r.me&&r.st&&r.st.length?' · 📈 '+r.st.slice(0,6).join(', ')+(r.st.length>6?` +${r.st.length-6} lainnya`:''):''}${r.me&&!(r.co&&r.co.length)&&!(r.st&&r.st.length)?' · belum pegang saham':''}</small></div>
     <span class="w"><b>${fmtUSD(toUSD(r.w))}</b><small>🪙 ${fmtBig(r.w)}</small></span><div class="rkb"><button class="mog" data-h="${esc(r.n)}">${rkWOpen===r.n?'Tutup':'📋 Harta'}</button>${r.me?'':`${r.only?'':`<button class="mog" data-du="${esc(r.n)}">Duel</button>`}<button class="mogo" data-ad="${esc(r.n)}">⚔️ Aset</button>`}</div></div>
     ${rkWOpen===r.n?`<div class="harta rkh"><h5>📋 Rincian harta ${esc(r.me?'kamu':r.n)}</h5>${r.me?hartaMe():hartaNpc(r.n)}</div>`:''}`;
   const draw=()=>{try{draw0();}catch(e){console.error('rank draw',e);el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ranking"><div class="mohead"><b>🏆 Ranking</b><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain"><p class="muted">Ranking gagal dimuat, data sedang diperbaiki otomatis. Tutup lalu buka lagi.</p><small>${esc(String(e&&e.message||e))}</small></div></div>`;try{rkHeal(1);}catch(_){}}};
@@ -8642,7 +8644,7 @@ setImpact=(f=>function(a,p2){const L=MPX.last;if(!L||L.id!==a.id||performance.no
   v-=steps*.1;P[a.id]=v;const mv=Math.max(-.2,Math.min(.2,steps*.008*(1+Math.random()*.25)));a.p=Math.max(minP(a),a.p*(1+mv));a.f=(a.f||a.p)*(1+mv*.05);a.h[a.h.length-1]=a.p;return mv;})(setImpact);
 setInterval(()=>{const P=PF.mpr;if(!P)return;for(const k in P){P[k]*=.92;if(Math.abs(P[k])<1e-4)delete P[k];}},60000);
 /* 2) valas: any amount (type it with jt / M / T) or a share of your balance */
-function parseKoin(s){s=String(s||'').trim().toLowerCase().replace(/\s+/g,'').replace(/\./g,'').replace(',','.');const m=s.match(/^([\d.]+)(rb|ribu|jt|juta|m|miliar|t|triliun)?$/);if(!m)return 0;const n=parseFloat(m[1]);const u={rb:1e3,ribu:1e3,jt:1e6,juta:1e6,m:1e9,miliar:1e9,t:1e12,triliun:1e12}[m[2]]||1;return Math.floor(n*u);}
+function parseKoin(s){s=String(s||'').trim().toLowerCase().replace(/\s+/g,'').replace(/\./g,'').replace(',','.');const m=s.match(/^([\d.]+)(rb|ribu|jt|juta|m|miliar|t|triliun|kd|kn|sk|sp|ok|no|ds)?$/);if(!m)return 0;const n=parseFloat(m[1]);const u={rb:1e3,ribu:1e3,jt:1e6,juta:1e6,m:1e9,miliar:1e9,t:1e12,triliun:1e12,kd:1e15,kn:1e18,sk:1e21,sp:1e24,ok:1e27,no:1e30,ds:1e33}[m[2]]||1;return Math.floor(n*u);}
 let FXIN='';
 XA.xFxIn=()=>{const el=document.getElementById('fxIn');const v=parseKoin(el?el.value:FXIN);if(v<1000){showResult('Tulis nominal, contoh: 2,5 T atau 750 M');return;}fxAmt=v;FXIN='';SFX.chip();phoneRender();};
 XA.xFxPct=p=>{fxAmt=Math.max(1000,Math.floor(S.bal*(+p)/100));SFX.chip();phoneRender();};
@@ -9685,7 +9687,7 @@ function mkRescale(r){if(!(r>1.0001)||!isFinite(r))return;mkFix();PF.mkx=(PF.mkx
   try{if(typeof tebak!=='undefined'&&tebak&&tebak.p0)tebak.p0*=r;}catch(e){}}
 function mkBase(){let ty=0;try{ty=Math.max(...TYCOONS.map(n=>tyBase(n)+((PF.tyW||{})[n]||0)));}catch(e){}return Math.max(S.bal+((PF.bank&&PF.bank.save)||0),ty);}
 function mkCap(){return MK.filter(a=>a.t==='saham').reduce((s,a)=>s+a.p*a.sh,0);}
-function mkTick(first){const cap=mkCap(),tg=mkBase()*1.0;if(!(cap>0)||cap>=tg*.8)return;const r=first?tg/cap:Math.min(tg/cap,1.25);
+function mkTick(first){if(PF.mkDone||(PF.mkx||1)>1.5){PF.mkDone=1;return;}const cap=mkCap(),tg=mkBase()*1.0;if(!(cap>0)||cap>=tg*.8)return;const r=tg/cap;PF.mkDone=1;
   const before=portVal();mkRescale(r);const after=portVal();
   if(r>1.02){try{logLine('sys',null,`📈 Pasar saham & crypto menyesuaikan kekayaan zaman: harga naik ×${r>=100?fmtBig(Math.round(r)):r.toFixed(2)}. Portofoliomu ${fmtBig(Math.round(before))} → ${fmtBig(Math.round(after))}.`,'win');}catch(e){}}
   savePF();save();try{phoneRender();}catch(e){}}
