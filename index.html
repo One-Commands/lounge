@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v79';
+const GAME_VER='v80';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10801,6 +10801,48 @@ function openAlWin(){if(modal)return;closePhone();const el=document.createElemen
   modal={el,st:{label:'Album'},busy:false,refresh(){draw();}};draw();}
 XA.xAl79=()=>openAlWin();
 xView('album79',{t:'Album',s:'Koleksi stiker',ic:'📒',bg:'linear-gradient(135deg,#d8a648,#fff1c8)',r:()=>{setTimeout(()=>{if(phView==='album79'){phView='home';closePhone();openAlWin();}},20);return '<p class="muted">Membuka album...</p>';}});
+
+/* ================= v80: Ekspedisi Kerajaan — kirim tim ke kerajaan, pemimpin dari pejabat gacha, harta & artefak ================= */
+const EX80={max:3,fund:[['🎒','Kecil',.01,5],['🧭','Sedang',.03,15],['🐪','Besar',.08,30]],loot:['Mahkota perunggu','Peta harta kuno','Prasasti batu','Keris pusaka','Guci giok','Topeng emas','Kompas antik','Gulungan sutra','Permata biru','Pedang naga']};
+function ex80(){const s=PF.ex80=PF.ex80||{run:[],h:[],art:{},ok:0,n:0};return s;}
+function exCost(i){return Math.max(1e6,Math.round(netWorth()*EX80.fund[i][2]));}
+function exLeader(id){try{return tkS().off.find(o=>o.id===id)||null;}catch(e){return null;}}
+function exBusy(id){return ex80().run.some(r=>r.ld===id);}
+function exChance(kd,fi,ld){let c=.45+fi*.12;if(ld)c+=ld.st/100*.3+ld.lv*.02;try{if(atWar(kd))c-=.2;}catch(e){}try{const r=plS().rel?plS().rel[kd]:0;c+=(r||0)/400;}catch(e){}try{const d=PF.dp59&&PF.dp59.rel&&PF.dp59.rel[kd];if(d)c+=d/500;}catch(e){}return Math.max(.1,Math.min(.95,c));}
+XA.xEx80=arg=>{const [kd,fi0,ld]=String(arg).split(':');const fi=+fi0,s=ex80();if(s.run.length>=EX80.max){showResult('Maksimal 3 ekspedisi berjalan');return;}if(!KDS.find(k=>k[0]===kd))return;if(ld&&exBusy(ld)){showResult('Pemimpin ini sedang memimpin ekspedisi lain');return;}
+  const c=exCost(fi);if(!xPay(c))return;const L=ld?exLeader(ld):null;const r={id:Date.now().toString(36),kd,fi,ld:L?L.id:null,ln:L?L.n:'Pemandu sewaan',c,ch:exChance(kd,fi,L),t0:Date.now(),end:Date.now()+EX80.fund[fi][3]*60e3};s.run.push(r);s.n++;
+  logLine('sys',null,`🧭 Ekspedisi ${EX80.fund[fi][1]} berangkat ke ${kdN(kd)} dipimpin ${r.ln} (peluang ${Math.round(r.ch*100)}%, ${EX80.fund[fi][3]} menit).`);SFX.whoosh&&SFX.whoosh();savePF();if(modal&&modal.refresh)modal.refresh();};
+function exTick(){if(!started)return;const s=ex80(),now=Date.now();const done=s.run.filter(r=>now>=r.end);if(!done.length)return;s.run=s.run.filter(r=>now<r.end);
+  done.forEach(r=>{const ok=Math.random()<r.ch;let msg,got=0,art=null;if(ok){const m=1.3+Math.random()*1.2+r.fi*.4;got=Math.round(r.c*m);S.bal+=got;s.ok++;if(Math.random()<.35+r.fi*.15){art=EX80.loot[Math.floor(Math.random()*EX80.loot.length)];s.art[art]=(s.art[art]||0)+1;}
+      const dia=Math.random()<.3?5+r.fi*10:0;if(dia)PF.dia=(PF.dia||0)+dia;try{const i=AL79.kdMap[r.kd];if(i!==undefined&&Math.random()<.5)alGive(3,i,'ekspedisi',true);}catch(e){}
+      msg=`🧭 Ekspedisi ke ${kdN(r.kd)} BERHASIL! Pulang membawa ${zKC(got)}${art?', artefak "'+art+'"':''}${dia?', '+dia+' 💎':''}.`;try{xpAdd(30+r.fi*30,'Ekspedisi');}catch(e){}}
+    else{got=Math.round(r.c*.3);S.bal+=got;msg=`🧭 Ekspedisi ke ${kdN(r.kd)} gagal. ${r.ln} pulang dengan sisa bekal ${zKC(got)}.`;}
+    s.h.unshift({kd:r.kd,ok,got,c:r.c,art,t:now});s.h=s.h.slice(0,12);logLine('sys',null,msg,ok?'win':'lose');try{banner(`🧭 EKSPEDISI ${ok?'BERHASIL':'GAGAL'}<small>${kdN(r.kd)}${ok?' · +'+zKF(got):''}</small>`,ok?'resb':'',2600);ok?SFX.coin():SFX.lose();}catch(e){}});savePF();if(modal&&modal.refresh&&modal.st&&modal.st.label==='Ekspedisi')modal.refresh();}
+setInterval(()=>{try{exTick();}catch(e){console.error('ex80',e);}},5000);
+/* artefacts count toward net worth (collectors pay well) */
+function exArtVal(){const s=ex80();let n=0;for(const k in s.art)n+=s.art[k];return n*Math.max(5e6,1e7);}
+XA.xExSell=name=>{const s=ex80();if(!s.art[name])return;const v=Math.round(Math.max(5e6,netWorth()*.004)*(1+Math.random()));s.art[name]--;if(!s.art[name])delete s.art[name];S.bal+=v;showResult(`🏺 "${name}" dijual ke kolektor: +${zKC(v)}`);SFX.coin();savePF();if(modal&&modal.refresh)modal.refresh();};
+let exSel={kd:null,fi:0,ld:''};
+function openExWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);let iv=null;
+  const draw=()=>{const s=ex80(),now=Date.now();if(!exSel.kd)exSel.kd=KDS[0][0];const offs=(()=>{try{return tkS().off.slice().sort((a,b)=>b.st-a.st);}catch(e){return [];}})();const L=exSel.ld?exLeader(exSel.ld):null;
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ekspedisi"><div class="mohead"><b>🧭 Ekspedisi Kerajaan</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <p class="muted">Kirim tim mencari harta di kerajaan lain. Peluang naik dengan dana lebih besar, pemimpin pejabat bertier tinggi dan hubungan baik. Kerajaan yang sedang perang lebih berbahaya.</p>
+    <p class="sec-t">Berjalan (${s.run.length}/${EX80.max})</p>${s.run.length?s.run.map(r=>{const p=Math.min(1,(now-r.t0)/(r.end-r.t0));return `<div class="wallet" style="margin-top:6px"><small>${EX80.fund[r.fi][0]} ${EX80.fund[r.fi][1]} · ${esc(r.ln)} · peluang ${Math.round(r.ch*100)}%</small><b>${kdN(r.kd)}</b><div style="height:8px;border-radius:6px;background:rgba(255,255,255,.2);margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.round(p*100)}%;background:linear-gradient(90deg,#ffd25f,#ff9f43)"></div></div><small>${Math.ceil((r.end-now)/60000)} menit lagi</small></div>`;}).join(''):'<p class="muted">Belum ada ekspedisi.</p>'}
+    <p class="sec-t">Tujuan</p><div class="ctx-row" style="flex-wrap:wrap">${KDS.map(k=>`<button class="pbtn ${exSel.kd===k[0]?'':'alt'}" data-kd="${k[0]}">${k[1]} ${esc(k[2])}${(()=>{try{return atWar(k[0])?' ⚔️':'';}catch(e){return '';}})()}</button>`).join('')}</div>
+    <p class="sec-t">Dana</p><div class="ctx-row" style="flex-wrap:wrap">${EX80.fund.map((f,i)=>`<button class="pbtn ${exSel.fi===i?'':'alt'}" data-fi="${i}">${f[0]} ${f[1]} · ${zKC(exCost(i))} · ${f[3]} mnt</button>`).join('')}</div>
+    <p class="sec-t">Pemimpin</p><div class="ctx-row" style="flex-wrap:wrap"><button class="pbtn ${!exSel.ld?'':'alt'}" data-ld="">🧑 Pemandu sewaan</button>${offs.slice(0,10).map(o=>`<button class="pbtn ${exSel.ld===o.id?'':'alt'}" data-ld="${o.id}" ${exBusy(o.id)?'disabled':''}>${esc(o.n)} · ${o.tier} (${o.st})</button>`).join('')}</div>${offs.length?'':'<p class="muted">Punya pejabat dari gacha Istana? Mereka bisa memimpin ekspedisi.</p>'}
+    <div class="ctx-row" style="margin-top:8px"><button class="pbtn" data-a="go">🚀 Berangkat · peluang ${Math.round(exChance(exSel.kd,exSel.fi,L)*100)}%</button></div>
+    <p class="sec-t">Artefak (${Object.values(s.art).reduce((a,b)=>a+b,0)})</p><div class="ctx-row" style="flex-wrap:wrap">${Object.keys(s.art).length?Object.entries(s.art).map(([n,c])=>`<button class="pbtn alt" data-art="${esc(n)}">🏺 ${esc(n)} x${c} · jual</button>`).join(''):'<span class="muted">Belum ada.</span>'}</div>
+    <p class="sec-t">Riwayat · ${s.ok}/${s.n} berhasil</p>${s.h.map(h=>`<div class="row" style="padding:2px 0"><small>${h.ok?'✅':'❌'} ${kdN(h.kd)} · ${h.ok?'+'+zKC(h.got):'sisa '+zKC(h.got)}${h.art?' · 🏺 '+esc(h.art):''}</small></div>`).join('')}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{clearInterval(iv);el.remove();modal=null;};el.querySelectorAll('[data-kd]').forEach(b=>b.onclick=()=>{exSel.kd=b.dataset.kd;draw();});el.querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>{exSel.fi=+b.dataset.fi;draw();});
+    el.querySelectorAll('[data-ld]').forEach(b=>b.onclick=()=>{exSel.ld=b.dataset.ld;draw();});el.querySelector('[data-a="go"]').onclick=()=>XA.xEx80(`${exSel.kd}:${exSel.fi}:${exSel.ld||''}`);el.querySelectorAll('[data-art]').forEach(b=>b.onclick=()=>XA.xExSell(b.dataset.art));};
+  modal={el,st:{label:'Ekspedisi'},busy:false,refresh(){draw();}};draw();iv=setInterval(()=>{if(!el.isConnected){clearInterval(iv);return;}if(ex80().run.length)draw();},15000);}
+XA.xExWin=()=>openExWin();
+xView('ekspedisi80',{t:'Ekspedisi',s:'Cari harta di kerajaan',ic:'🧭',bg:'linear-gradient(135deg,#8a5a32,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='ekspedisi80'){phView='home';closePhone();openExWin();}},20);return '<p class="muted">Membuka...</p>';}});
+/* expedition board in the palace grounds of Nusantara (Balai Kota as a fallback) */
+setTimeout(function ex80Boot(){if(typeof cityGrp==='undefined'||!cityGrp||!started){setTimeout(ex80Boot,2000);return;}try{const [x,z]=typeof mbFind==='function'?mbFind(-8,-96):[ -8,-90];const g=new THREE.Group();g.position.set(x,0,z);cityGrp.add(g);
+  cBox(g,3.2,2.2,.2,0x8a5a32,0,2,0);cBox(g,3,2,.05,0xf2e6c8,0,2,.12,false,true);[-1.5,1.5].forEach(a=>cBox(g,.18,3,.18,0x5a4030,a,1.5,0));const n=neon('🧭 EKSPEDISI',0,0,0,0,'#ffffff','#ffd25f',4,.6);n.position.set(x,3.5,z+.2);cityGrp.add(n);
+  stationAdd('ex80',x,z+1.6,0,'Papan Ekspedisi',{useDist:2.8,verb:'Lihat',btn:'EKSPEDISI',act:()=>openExWin(),ctx:()=>`<div class="ctx-head"><h3>🧭 Ekspedisi Kerajaan</h3><small>${ex80().run.length} berjalan · ${ex80().ok} berhasil</small></div><div class="ctx-row">${bzB('xExWin',1,'Buka')}</div>`});}catch(e){console.error('ex80 board',e);}},3500);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
