@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v62';
+const GAME_VER='v63';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9961,6 +9961,47 @@ function mkTakeover(){MK.forEach(a=>{if(a.t!=='saham')return;const c=PF.corp&&PF
     cfPop(`🎯 ${esc(c.o)} terdesak di ${esc(a.id)}`,`Kamu sudah memegang ${(mine/a.sh*100).toFixed(1)}% ${esc(a.n)}. ${esc(c.o)} menawarkan seluruh kendalinya (${(their/a.sh*100).toFixed(1)}%) ke kamu dengan harga pasar ${zKC(price)}, tanpa premi.`,
       [['Ambil alih',()=>{const c2=PF.corp[a.id];if(!c2||c2.me)return;if(!xPay(price))return;const prev=c2.o;oppW({n:prev},price);c2.me=1;c2.o='Kamu';c2.off=null;SFX.big();banner(`🎯 AMBIL ALIH ${a.id}<small>dari ${esc(prev)}</small>`,'',2600);logLine('sys',null,`🎯 Kamu mengambil alih ${a.n} dari ${prev} seharga ${fmK(price)}.`,'win');save();savePF();}],['Nanti',()=>{}]],0);}});}
 setInterval(()=>{try{if(started)mkTakeover();}catch(e){console.error('mt62',e);}},10000);
+
+/* ================= v63: Bursa Lanjutan — Indeks IKP & sektor, laporan kuartal, rights issue, akuisisi ================= */
+const SECN63={bank:'🏦 Perbankan',property:'🏗️ Properti',consumer:'🛒 Konsumer',telco:'📡 Telekomunikasi',tech:'💻 Teknologi',shipping:'🚢 Pelayaran',retail:'🏬 Ritel',mining:'⛏️ Tambang',gold:'🥇 Emas',auto:'🚗 Otomotif',airline:'✈️ Penerbangan & Hotel',agri:'🌾 Agrikultur',energy:'⚡ Energi',food:'🍜 Makanan',health:'🏥 Kesehatan',media:'📺 Media',other:'📦 Lainnya'};
+function ixS(){const s=PF.ix63=PF.ix63||{h:[],rep:[],ev:[]};if(!s.base){const c=mkCap();if(c>0)s.base=c/(PF.mkx||1);}return s;}
+function ixVal(){const s=ixS();return s.base?mkCap()/((PF.mkx||1)*s.base)*1000:1000;}
+function ixOpen(){return MK.filter(a=>a.t==='saham').reduce((t,a)=>t+(a.open||a.p)*a.sh,0);}
+function secStats(){const M={};MK.forEach(a=>{if(a.t!=='saham')return;const k=a.sec||'other',m=M[k]=M[k]||{c:0,o:0,n:0,ids:[]};m.c+=a.p*a.sh;m.o+=(a.open||a.p)*a.sh;m.n++;m.ids.push(a.id);});return Object.entries(M).map(([k,m])=>({k,n:SECN63[k]||k,cap:m.c,ch:m.o>0?m.c/m.o-1:0,cnt:m.n,ids:m.ids})).sort((x,y)=>y.cap-x.cap);}
+function ixNote(ic,t,cls,held){const s=ixS();s.ev.unshift({ic,t,at:Date.now()});s.ev=s.ev.slice(0,14);const m=`${ic} ${t}`;try{news.unshift(m);news=news.slice(0,6);}catch(e){}if(held)logLine('sys',null,m,cls||'');}
+const held63=a=>(PF.hold[a.id]||0)>0||(PF.corp&&PF.corp[a.id]&&PF.corp[a.id].me);
+/* quarterly reports */
+function ixReports(){const L=MK.filter(a=>a.t==='saham');for(let i=0;i<4;i++){const a=L[pick(L.length)],C=(typeof ceoS==='function'&&ceoS()[a.id])||null,sk=C?C.sk/100:0,beat=Math.random()<.45+sk*.3,m=.015+Math.random()*.05;
+    if(beat){a.p*=1+m;a.f=(a.f||a.p)*(1+m*.5);}else{a.p*=1-m;a.f=(a.f||a.p)*(1-m*.4);}if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;
+    const lab=(a.p*a.sh*.004*(.6+Math.random()*.8))*(beat?1:-.3);ixS().rep.unshift({id:a.id,n:a.n,beat,m,lab,at:Date.now()});ixS().rep=ixS().rep.slice(0,16);
+    ixNote('📊',`Laporan kuartal ${a.n}: laba ${beat?'melampaui':'meleset dari'} target (${lab>=0?'+':''}${fmK(Math.round(lab))}). Saham ${beat?'+':'−'}${(m*100).toFixed(1)}%.`,beat?'win':'lose',held63(a));}savePF();}
+setInterval(()=>{try{if(started)ixReports();}catch(e){console.error('ix63r',e);}},480000);
+/* rights issue: new shares at a 20% discount; holders who subscribe keep their share of the company */
+function rightsIssue(a,r){const p0=a.p,c=PF.corp&&PF.corp[a.id],cf0=c&&c.me?cfOf(a):0,h0=PF.hold[a.id]||0,own=cf0+h0/a.sh,q=a.sh*r,cost=Math.round(own*q*p0*.8);
+  const apply=sub=>{shShrink(a,-r);const g=1+.8*r;PF.ceoG=PF.ceoG||{};PF.ceoG[a.id]=(PF.ceoG[a.id]||1)*g;['p0','b0','f'].forEach(k=>{if(a[k])a[k]*=g;});a.__cg=PF.ceoG[a.id];a.p*=g;if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;
+    if(sub){if(c&&c.me)c.cf=cf0;if(h0>0){const add=Math.floor(h0*r);PF.hold[a.id]=h0+add;PF.cost[a.id]=(PF.cost[a.id]||0)+add*p0*.8;}}try{capFix([a]);}catch(e){}savePF();save();};
+  if(own>0&&cost>0&&!modal&&!document.querySelector('.mpinv.cfp')){cfPop(`📜 Rights issue ${esc(a.id)}`,`${esc(a.n)} menerbitkan ${(r*100).toFixed(0)}% saham baru dengan diskon 20%. Kepemilikanmu ${(own*100).toFixed(1)}%. Tebus haknya supaya porsimu tidak berkurang.`,
+      [[`Tebus (${zKC(cost)})`,()=>{if(!xPay(cost)){apply(false);return;}apply(true);SFX.coin();logLine('sys',null,`📜 Kamu menebus rights issue ${a.id} seharga ${fmK(cost)}. Porsimu tetap ${(own*100).toFixed(1)}%.`,'win');}],
+       ['Lewati',()=>{apply(false);logLine('sys',null,`📜 Kamu melewatkan rights issue ${a.id}. Porsimu terdilusi jadi ${(own/(1+r)*100).toFixed(1)}%.`);}]],0);
+    ixNote('📜',`${a.n} mengumumkan rights issue ${(r*100).toFixed(0)}% dengan diskon 20%.`,'',false);return;}
+  apply(false);ixNote('📜',`${a.n} menerbitkan rights issue ${(r*100).toFixed(0)}% dengan diskon 20%. Harga per lembar menyesuaikan.`,'',false);}
+/* acquisitions: a bigger company buys a smaller one at a premium */
+function ixAcq(){const L=MK.filter(a=>a.t==='saham');const a=L[pick(L.length)],same=L.filter(b=>b!==a&&(b.sec===a.sec||Math.random()<.3));if(!same.length)return;const b=same[pick(same.length)];const [big,small]=a.p*a.sh>=b.p*b.sh?[a,b]:[b,a];
+  const prem=.12+Math.random()*.15,dn=.01+Math.random()*.03;small.p*=1+prem;small.f=(small.f||small.p)*(1+prem*.8);big.p*=1-dn;[big,small].forEach(x=>{if(Array.isArray(x.h)&&x.h.length)x.h[x.h.length-1]=x.p;});
+  ixNote('🤝',`${big.n} mengakuisisi ${(25+Math.random()*30).toFixed(0)}% saham ${small.n}. Saham ${small.id} +${(prem*100).toFixed(1)}%, ${big.id} −${(dn*100).toFixed(1)}%.`,'win',held63(big)||held63(small));savePF();}
+setInterval(()=>{try{if(!started)return;const s=ixS();const v=ixVal();s.h.push(+v.toFixed(2));if(s.h.length>120)s.h=s.h.slice(-120);
+  if(Math.random()<.06){const L=MK.filter(a=>a.t==='saham');rightsIssue(L[pick(L.length)],[.1,.15,.2][pick(3)]);}
+  if(Math.random()<.05)ixAcq();savePF();}catch(e){console.error('ix63',e);}},30000);
+/* window */
+function ixSpark(h,w,hh){if(!h||h.length<2)return '';const mn=Math.min(...h),mx=Math.max(...h),r=mx-mn||1;const pts=h.map((v,i)=>`${(i/(h.length-1)*w).toFixed(1)},${(hh-(v-mn)/r*(hh-4)-2).toFixed(1)}`).join(' ');const up=h[h.length-1]>=h[0];
+  return `<svg viewBox="0 0 ${w} ${hh}" width="100%" height="${hh}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${up?'#1f9d55':'#d8435b'}" stroke-width="2.5" stroke-linejoin="round"/></svg>`;}
+function openIxWin(){xModal('📊 Bursa Kota Permata',b=>{const s=ixS(),v=ixVal(),o=ixOpen(),ch=o>0?mkCap()/o-1:0,S2=secStats(),ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'baru saja':m+' mnt lalu';};
+  b.innerHTML=`<div class="wallet"><small>Indeks IKP (Indeks Kota Permata)</small><b style="font-size:26px">${v.toLocaleString('id-ID',{maximumFractionDigits:2})}</b> <span class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${(ch*100).toFixed(2)}% hari ini</span>${ixSpark(s.h,300,60)}<div class="row"><span class="muted">Kapitalisasi pasar</span><span>${zKC(Math.round(mkCap()))}</span></div></div>
+   <div class="wallet"><small>Sektor</small>${S2.map(x=>`<div class="row"><span>${x.n} <span class="muted">(${x.cnt})</span></span><span class="${x.ch>=0?'up':'dn'}">${x.ch>=0?'+':''}${(x.ch*100).toFixed(2)}%</span><span class="muted">${zKC(Math.round(x.cap))}</span></div>`).join('')}</div>
+   <div class="wallet"><small>📊 Laporan kuartal terbaru</small>${s.rep.length?s.rep.slice(0,8).map(r=>`<div class="row"><span>${esc(r.id)} ${r.beat?'✅ melampaui':'❌ meleset'}</span><span class="${r.beat?'up':'dn'}">${r.beat?'+':'−'}${(r.m*100).toFixed(1)}%</span><span class="muted">${ago(r.at)}</span></div>`).join(''):'<div class="row"><span class="muted">Laporan pertama keluar dalam beberapa menit.</span></div>'}</div>
+   <div class="wallet"><small>📰 Aksi korporasi</small>${s.ev.length?s.ev.slice(0,8).map(e=>`<div class="row"><span>${e.ic} ${esc(e.t)}</span><span class="muted">${ago(e.at)}</span></div>`).join(''):'<div class="row"><span class="muted">Belum ada rights issue atau akuisisi.</span></div>'}</div>`;});}
+xView('bursa63',{t:'Bursa',s:'Indeks & sektor',ic:'📊',bg:'linear-gradient(135deg,#1f9d55,#9be8b8)',r:()=>{setTimeout(()=>{if(phView==='bursa63'){phView='home';closePhone();openIxWin();}},20);return '<p class="muted">Membuka Bursa...</p>';}});
+setInterval(()=>{try{if(modal&&modal.st&&modal.st.label==='📊 Bursa Kota Permata')modal.refresh();}catch(e){}},5000);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
