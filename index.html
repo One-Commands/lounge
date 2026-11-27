@@ -992,10 +992,7 @@ const reme=n=>(Math.floor(n/10)+n%10)%10;
 const wheels=[];
 // x,z,facing yaw, base height, label, kind
 const wheelDefs=[
-  {id:'w1',x:-11,z:ROOM-4,ry:Math.PI,y:0,label:'BEBAS'},
-  {id:'w2',x:11,z:ROOM-4,ry:Math.PI,y:0,label:'BEBAS'},
-  {id:'w3',x:-30,z:ROOM-4,ry:Math.PI,y:0,label:'BEBAS'},
-  {id:'w4',x:30,z:ROOM-4,ry:Math.PI,y:0,label:'BEBAS'}
+  /* v60.9.2: free wheels removed at stev's request */
 ];
 function wheelTexture(d){
   return canvasTex(512,512,(g,w,h)=>{
@@ -1155,7 +1152,7 @@ function buildCharacters(){
   you=mkEnt('Kamu',0,ROOM-6,youPal(),{label:'Kamu',color:'#59b7ff'});
   you.yaw=Math.PI;
   ents=[you];
-  TABLES.forEach(t=>{const h=mkEnt(t.host,t.x!=null?t.x+2.2:ROOM-3.8,t.z,Object.assign({pants:0x111118,vest:true},t.pal),{label:'Host '+t.host,color:'#ffc83d',isHost:true});h.pos.y=.3;h.yaw=-Math.PI/2;t.hostEnt=h;ents.push(h);});
+  TABLES.forEach(t=>{const hp=tP(t,2.2,0);const h=mkEnt(t.host,hp[0],hp[1],Object.assign({pants:0x111118,vest:true},t.pal),{label:'Host '+t.host,color:'#ffc83d',isHost:true});h.pos.y=.3;h.yaw=tYaw(t,true);t.hostEnt=h;ents.push(h);});
   host=TABLES[0].hostEnt;
   npcs=[];
   // wandering guests
@@ -1165,7 +1162,7 @@ function buildCharacters(){
   const slotSt=stations.filter(s=>s.type==='slot');
   for(let i=0;i<14;i++){const s=slotSt[(i*3+1)%slotSt.length];const n=mkNpc(s.use.x,s.use.z,'slot');n.yaw=Math.atan2(s.pos.x-s.use.x,s.pos.z-s.use.z);n.ai.st=s;}
   stations.filter(s=>['blackjack','roulette','dice'].includes(s.type)).forEach(s=>{[-1.4,1.4].forEach(off=>{if(Math.random()<.5){const n=mkNpc(s.use.x+off,s.use.z-.3,'table');n.yaw=Math.atan2(s.pos.x-n.pos.x,s.pos.z-1.5-n.pos.z);n.ai.st=s;}});});
-  TABLES.forEach(t=>{const bx=t.x!=null?t.x-2.8:ROOM-8.8;(t.multi?[-1.2,-2.6,1.4]:[-1.2]).forEach(o=>{const n=mkNpc(bx,t.z+o,'table');n.yaw=Math.PI/2;n.ai.tbl=t;});});
+  TABLES.forEach(t=>{(t.multi?[-1.2,-2.6,1.4]:[-1.2]).forEach(o=>{const p=tP(t,-2.8,o);const n=mkNpc(p[0],p[1],'table');n.yaw=tYaw(t,false);n.ai.tbl=t;});});
   // security & waiters
   const sec=(x,z,yaw,patrol)=>{const e=mkEnt('Security',x,z,{skin:SKINS[pick(SKINS.length)],hair:0x111111,shirt:0x0e0e14,pants:0x0e0e14,glasses:true,vest:true,earpiece:true},{label:'Security',color:'#ff9a9a',ai:{goal:null,cool:0,role:patrol?'patrol':'guard',wp:patrol,wi:0}});e.yaw=yaw;npcs.push(e);ents.push(e);return e;};
   sec(-3.6,ROOM-2.6,Math.PI,null);sec(3.6,ROOM-2.6,Math.PI,null);sec(30,-ROOM+3,Math.PI,null);sec(4.2,ROOM+2.2,0,null);
@@ -1192,7 +1189,7 @@ function npcThink(n,dt){
   if(a.cool>0){a.cool-=dt;moveEnt(n,0,0,false,dt,false);return;}
   if(!a.goal){
     if(a.role==='patrol'){const p=a.wp[a.wi%a.wp.length];a.wi++;a.goal={type:'walk',x:p[0],z:p[1]};}
-    else if(a.role==='wander'&&Math.random()<.35){const fw=floorWheels();const w=fw[pick(fw.length)];a.goal={type:'wheel',w,x:w.use.x,z:w.use.z};}
+    else if(a.role==='wander'&&Math.random()<.35&&floorWheels().length){const fw=floorWheels();const w=fw[pick(fw.length)];a.goal={type:'wheel',w,x:w.use.x,z:w.use.z};}
     else{const p=OPEN[pick(OPEN.length)];a.goal={type:'walk',x:p[0]+(Math.random()-.5)*2,z:p[1]+(Math.random()-.5)*2};}
     a.stuck=0;
   }
@@ -1370,28 +1367,35 @@ const TABLES=[
   {id:'t2',kind:'reme',name:'Reme VIP',host:'Koh Hendra',z:-17,min:500,big:4,vip:true,col:'#ffd25f',glow:'#ffb21c',pal:{skin:'#f0c8a0',hair:0x111111,shirt:0x4a0f1c,glasses:true}},
   {id:'t3',kind:'qeme',name:'Meja Qeme',host:'Mas Dodi',z:-2,min:10,big:3,col:'#7df3ff',glow:'#22c8ff',pal:{skin:'#b97a4a',hair:0x1a1008,shirt:0x14304a,cap:0x111118}},
   {id:'t4',kind:'qeme',name:'Qeme VIP',host:'Tante Mira',z:13,min:500,big:4,vip:true,col:'#d6a8ff',glow:'#b46bff',pal:{skin:'#f3cfae',hair:0x5a1a3a,shirt:0x2a1840,bun:true}},
-  {id:'t5',kind:'leme',name:'Meja Leme',host:'Bu Wulan',x:10,z:34.5,min:10,big:5,col:'#9dff8a',glow:'#3ddc5a',pal:{skin:'#d9a070',hair:0x2a1408,shirt:0x123a22,glasses:true}},
-  {id:'t6',kind:'leme',name:'Leme VIP',host:'Om Benny',x:27,z:34.5,min:500,big:6,vip:true,col:'#7dffd2',glow:'#1fd6a0',pal:{skin:'#f0c8a0',hair:0x111111,shirt:0x0a3a2a,hat:true}},
+  {id:'t5',kind:'leme',name:'Meja Leme',host:'Bu Wulan',x:11,z:42,rz:1,min:10,big:5,col:'#9dff8a',glow:'#3ddc5a',pal:{skin:'#d9a070',hair:0x2a1408,shirt:0x123a22,glasses:true}},
+  {id:'t6',kind:'leme',name:'Leme VIP',host:'Om Benny',x:27,z:42,rz:1,min:500,big:6,vip:true,col:'#7dffd2',glow:'#1fd6a0',pal:{skin:'#f0c8a0',hair:0x111111,shirt:0x0a3a2a,hat:true}},
   {id:'t7',kind:'reme',multi:true,name:'Meja Bersama VIP',host:'Mbak Kirana',z:27,min:500,big:4,vip:true,col:'#ffb0e0',glow:'#ff5fb8',pal:{skin:'#f3cfae',hair:0x3a1a10,shirt:0x5a0f3a,bun:true}}
 ];
 TABLES.forEach(t=>{t.val=t.kind==='qeme'?qeme:reme;t.sp=t.kind==='qeme'?9:0;t.KIND=t.kind.toUpperCase();});
 let betTable=null;
+/* table-local coords: lx toward the host, lz along the table. t.rz turns a table so the host has his back to the back wall */
+function tP(t,lx,lz){const cx=t.x!=null?t.x:ROOM-6;return t.rz?[cx-lz,t.z+lx]:[cx+lx,t.z+lz];}
+function tYaw(t,host){return t.rz?(host?Math.PI:0):(host?-Math.PI/2:Math.PI/2);}
 function buildHostTables(){
   TABLES.forEach((t,i)=>{
-    const z=t.z,TX=t.x!=null?t.x:ROOM-6,mid=t.x!=null;
+    const z=t.z,R=!!t.rz,mid=t.x!=null&&!R,P=(lx,lz)=>tP(t,lx,lz);
+    const SB=(w,h,d,m,lx,lz)=>{const [x,zz]=P(lx,lz);return R?solidBox(d,h,w,m,x,zz):solidBox(w,h,d,m,x,zz);};
+    const BX=(w,h,d,m,lx,y,lz,sh)=>{const [x,zz]=P(lx,lz);return R?box(d,h,w,m,x,y,zz,sh):box(w,h,d,m,x,y,zz,sh);};
     // floor rug
-    const rug=new THREE.Mesh(new THREE.PlaneGeometry(9,10),mat(t.vip?0x3a1030:0x1b2650));rug.rotation.x=-Math.PI/2;rug.position.set(TX-1.5,.012,z);rug.receiveShadow=true;scene.add(rug);
-    const rugB=new THREE.Mesh(new THREE.PlaneGeometry(9.3,10.3),mat(0xc8963c));rugB.rotation.x=-Math.PI/2;rugB.position.set(TX-1.5,.011,z);scene.add(rugB);
-    // table along z, host behind it (east), player in front (west)
-    solidBox(1.8,1,6,mat(0x5a3518),TX,z);box(2,.12,6.2,mat(0xffc83d),TX,1.04,z,false);box(1.6,.06,5.8,mat(t.vip?0x7a1530:0x1f8a4c),TX,1.12,z,false);
-    solidBox(2,.3,4,mat(0x3a2050),TX+2.2,z);
-    t.stack=new THREE.Group();t.stack.position.set(TX-.4,1.15,z+1.2);scene.add(t.stack);
-    if(mid){box(.25,3,7.6,mat(0x2a1a10),TX+3.75,5.9,z,false);box(.3,4.4,.3,mat(0xd8a648),TX+3.75,2.2,z-3.4,false);box(.3,4.4,.3,mat(0xd8a648),TX+3.75,2.2,z+3.4,false);}
-    neon(t.name.toUpperCase(),mid?TX+3.6:ROOM-.06,6.6,z,-Math.PI/2,t.col,t.glow,7,1.5);
-    neon(t.multi?'REME · QEME · LEME · MIN '+fmt(t.min):`${t.KIND} 0-36 · MIN ${fmt(t.min)}`,mid?TX+3.6:ROOM-.06,5.2,z,-Math.PI/2,'#fff1c8','#ffb21c',7,.7);
-    if(t.vip){rope(TX-4.8,z-4.6,TX-4.8,z-1.2);rope(TX-4.8,z+4.6,TX-4.8,z+3.9);}
-    t.hw=makeWheel({id:'h'+i,x:TX+1.6,z:z-3.9,ry:-Math.PI/2,y:0,label:t.KIND,role:'host',table:t});
-    t.pw=makeWheel({id:'p'+i,x:TX-1.6,z:z+3.4,ry:-Math.PI/2,y:0,label:t.KIND,role:'player',table:t});
+    {const [rx,rz]=P(-1.5,0);const rug=new THREE.Mesh(new THREE.PlaneGeometry(R?10:9,R?9:10),mat(t.vip?0x3a1030:0x1b2650));rug.rotation.x=-Math.PI/2;rug.position.set(rx,.012,rz);rug.receiveShadow=true;scene.add(rug);
+    const rugB=new THREE.Mesh(new THREE.PlaneGeometry(R?10.3:9.3,R?9.3:10.3),mat(0xc8963c));rugB.rotation.x=-Math.PI/2;rugB.position.set(rx,.011,rz);scene.add(rugB);}
+    // table along its length, host behind it, player in front
+    SB(1.8,1,6,mat(0x5a3518),0,0);BX(2,.12,6.2,mat(0xffc83d),0,1.04,0,false);BX(1.6,.06,5.8,mat(t.vip?0x7a1530:0x1f8a4c),0,1.12,0,false);
+    SB(2,.3,4,mat(0x3a2050),2.2,0);
+    {const [sx,sz]=P(-.4,1.2);t.stack=new THREE.Group();t.stack.position.set(sx,1.15,sz);scene.add(t.stack);}
+    if(mid){BX(.25,3,7.6,mat(0x2a1a10),3.75,5.9,0,false);BX(.3,4.4,.3,mat(0xd8a648),3.75,2.2,-3.4,false);BX(.3,4.4,.3,mat(0xd8a648),3.75,2.2,3.4,false);}
+    const nx=R?P(0,0)[0]:mid?P(3.6,0)[0]:ROOM-.06,nz=R?ROOM-.06:z,nr=R?Math.PI:-Math.PI/2;
+    neon(t.name.toUpperCase(),nx,6.6,nz,nr,t.col,t.glow,7,1.5);
+    neon(t.multi?'REME · QEME · LEME · MIN '+fmt(t.min):`${t.KIND} 0-36 · MIN ${fmt(t.min)}`,nx,5.2,nz,nr,'#fff1c8','#ffb21c',7,.7);
+    if(t.vip){const r=(a,b,c,d)=>{const p=P(a,b),q=P(c,d);rope(p[0],p[1],q[0],q[1]);};r(-4.8,-4.6,-4.8,-1.2);r(-4.8,4.6,-4.8,3.9);}
+    const wr=R?Math.PI:-Math.PI/2,hp=P(1.6,-3.9),pp=P(-1.6,3.4);
+    t.hw=makeWheel({id:'h'+i,x:hp[0],z:hp[1],ry:wr,y:0,label:t.KIND,role:'host',table:t});
+    t.pw=makeWheel({id:'p'+i,x:pp[0],z:pp[1],ry:wr,y:0,label:t.KIND,role:'player',table:t});
     t.hw.role='host';t.hw.table=t;t.pw.role='player';t.pw.table=t;
     wheels.push(t.hw,t.pw);
   });
@@ -1413,7 +1417,7 @@ async function remeRound(t){
   if(S.bet<t.min){speak(H,`Meja ini minimal ${fmK(t.min)}, bos.`);SFX.error();return;}
   busy=true;render();cineOn();SFX.whoosh();
   const bet=S.bet,K=t.KIND,V=t.val;
-  {const X=t.x!=null?t.x:ROOM-6;shotTo(X-8,4.6,t.z,X,1.6,t.z);}banner(`<div class="vs-l"><b>KAMU</b><small>${zKF(S.bet)}</small></div><div class="vs-m">${t.KIND}<small>${t.name}</small></div><div class="vs-r"><b>${t.host}</b><small>Host</small></div>`,'duelb',1900);
+  {const a=tP(t,-8,0),b=tP(t,0,0);shotTo(a[0],4.6,a[1],b[0],1.6,b[1]);}banner(`<div class="vs-l"><b>KAMU</b><small>${zKF(S.bet)}</small></div><div class="vs-m">${t.KIND}<small>${t.name}</small></div><div class="vs-r"><b>${t.host}</b><small>Host</small></div>`,'duelb',1900);
   speak(you,`Bet ${fmK(bet)}!`);
   await wait(700);
   speak(H,`Bet ${fmt(bet)} diterima. Kamu putar duluan.`);
@@ -1435,7 +1439,7 @@ async function remeRound(t){
     await wait(1000);
     H.yaw=Math.atan2(hw.x-H.pos.x,hw.z-H.pos.z);H.arm=1.4;shotWheel(hw);SFX.drum(3.2);
     let hn=rnd();{const L=buffs().luck;if(L>0&&sc(hn)>=sc(pn)&&Math.random()<L/200){const h2=rnd();if(sc(h2)<sc(hn)){hn=h2;luckFx(L);}}}await spinWheel(hw,hn,3200);
-    H.yaw=-Math.PI/2;
+    H.yaw=tYaw(t,true);
     SFX.stop();showFloat(hw,hn,5000);hr=V(hn);flashFx();
     showResult(`HOST: ${numSpan(hn)} → ${K} ${hr}`);
     logLine('sys',null,`${t.host} memutar roda dan dapat ${hn}. ${K} ${hr}.`);
@@ -1986,12 +1990,12 @@ function phoneRender(){
   }else if(phView==='guide'){
     body=`<div class="guide"><h5>Meja host (sebelah kanan)</h5><p>Empat meja berjajar di kanan: Meja Reme (Bang Rio), Reme VIP (Koh Hendra), Meja Qeme (Mas Dodi), Qeme VIP (Tante Mira). Meja VIP minimal 500 koin dan bayaran besar 4x.</p>
       <h5>Reme</h5><p>Roda 0-36. Reme = jumlah digit, ambil digit terakhir (28 → 0). Kamu putar duluan. Reme 0 menang 3x. Host reme 0, host menang. Lebih tinggi menang 2x.</p>
-      <h5>Leme (Bu Wulan) & Leme VIP (Om Benny)</h5><p>Dua meja hijau di dekat air mancur. Leme VIP minimal 500: 0 bayar 6x, 9 bayar 5x. Nilai dihitung seperti Reme (27 → 2+7 = 9). Kamu memutar sendiri tanpa lawan host: Leme 0 bayar 5x, Leme 9 bayar 4x, angka 1, 2, 3 langsung kalah, angka lainnya menang 2x.</p><h5>Meja Bersama VIP (Mbak Kirana)</h5><p>Meja pink di deretan meja host sebelah kanan, antara Qeme VIP dan Meja Duel. Pilih Reme, Qeme, atau Leme, lalu main bareng konglomerat yang ikut bertaruh di meja yang sama.</p><h5>Qeme</h5><p>Nilai = digit terakhir angka (27 → 7). Qeme 9 menang 3x. Host dapat 9, host menang. Lebih tinggi menang 2x. Seri bisa diatur di panel meja.</p>
+      <h5>Leme (Bu Wulan) & Leme VIP (Om Benny)</h5><p>Dua meja hijau menempel di tembok belakang, dekat pintu masuk. Leme VIP minimal 500: 0 bayar 6x, 9 bayar 5x. Nilai dihitung seperti Reme (27 → 2+7 = 9). Kamu memutar sendiri tanpa lawan host: Leme 0 bayar 5x, Leme 9 bayar 4x, angka 1, 2, 3 langsung kalah, angka lainnya menang 2x.</p><h5>Meja Bersama VIP (Mbak Kirana)</h5><p>Meja pink di deretan meja host sebelah kanan, antara Qeme VIP dan Meja Duel. Pilih Reme, Qeme, atau Leme, lalu main bareng konglomerat yang ikut bertaruh di meja yang sama.</p><h5>Qeme</h5><p>Nilai = digit terakhir angka (27 → 7). Qeme 9 menang 3x. Host dapat 9, host menang. Lebih tinggi menang 2x. Seri bisa diatur di panel meja.</p>
       <h5>Slot</h5><p>777 bayar 100x, berlian 50x, bintang 20x, lonceng 12x, lemon 8x, ceri 5x. Dua ceri 2x.</p>
       <h5>Blackjack (Lina)</h5><p>Dekati 21 tanpa lewat. Blackjack bayar 3:2. Dealer berhenti di 17. Double sekali di dua kartu pertama.</p>
       <h5>Roulette (Ari)</h5><p>Angka tepat 35:1, lusin 2:1, merah/hitam/ganjil/genap/1-18/19-36 1:1.</p>
       <h5>Besar Kecil (Joko)</h5><p>Tiga dadu. Kecil 4-10, Besar 11-17, ganjil/genap 1:1. Triple membuat taruhan biasa kalah, tapi Triple apa saja bayar 30:1.</p>
-      <h5>Roda bebas</h5><p>Roda di dekat pintu masuk dan pojok ruangan gratis diputar, cuma buat seru-seruan.</p>
+      
       <h5>Bank & Toko</h5><p>Pinjam koin di app Bank (admin 2%, bunga jalan terus). Bayar hutang untuk menaikkan skor kredit. Tabungan dapat bunga kecil. Toko menjual aksesori yang langsung terlihat di karaktermu.</p>
       <h5>Aksesoris & buff</h5><p>Buka Toko (🏪 kanan atas): promo harian, gacha, aksesoris per kategori, set aksesoris (bonus kalau lengkap dipakai), properti, pass permanen, dan tas. Satu barang per slot. Hoki X% = peluang hasil buruk diulang sekali (maks 50%). Cuan +X% = tambahan gaji kerja dan bonus main (hadiah taruhan tidak dilipatgandakan).</p>
       <h5>Ranking & duel</h5><p>Ranking dihitung dari kekayaan bersih. Masuk top 10, 5, 3, dan juara 1 dapat hadiah sekali. Tantang NPC duel reme dari app Ranking.</p>
@@ -3574,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v60.9.1';
+const GAME_VER='v60.9.2';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
