@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v81';
+const GAME_VER='v82';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10892,6 +10892,38 @@ xView('maskapai81',{t:'Maskapai',s:'Armada & rute',ic:'✈️',bg:'linear-gradie
 ZB.bandara=(f=>function(G,zc,k){f.apply(this,arguments);try{const x=-26,z=zc+46;cBox(G,4,1.1,1.2,0x1e5bd8,x,.55,z-.6);cBox(G,4.2,.1,1.4,0xf2e6c8,x,1.15,z-.6);
     const n=neon('✈️ MASKAPAIMU',0,0,0,0,'#ffffff','#7df3ff',4,.6);n.position.set(x,2.6,z-1.2);G.add(n);miniPerson&&miniPerson(G,x,z-1.6,0,0x1e5bd8);
     stationAdd('al81',x,z+.8,0,'Kantor Maskapai',{useDist:3,verb:'Kelola',btn:'MASKAPAI',act:()=>openAl81Win(),ctx:()=>{const s=al81();return `<div class="ctx-head"><h3>✈️ ${esc(s.name)}</h3><small>${s.fl.length} pesawat · ${zKC(al81Total())}/menit</small></div><div class="ctx-row">${bzB('xAl81Win',1,'Kelola maskapai')}</div>`;}});}catch(e){console.error('al81 office',e);}})(ZB.bandara);
+
+/* ================= v82: Poles & Performa 3 — resolusi dinamis, jendela "Yang Baru", info ringkas ================= */
+/* dynamic resolution: drop pixel ratio when FPS is low, restore when smooth */
+const DR82={f:1,n:0,t0:0,low:0,hi:0,base:1};
+function dr82On(){try{const s=set75();if(s.dyn===undefined)s.dyn=1;return s.dyn&&SET.gfx!=='hemat';}catch(e){return false;}}
+gfxApply=(f=>function(){const r=f.apply(this,arguments);try{DR82.base=renderer.getPixelRatio();DR82.f=1;}catch(e){}return r;})(gfxApply);
+(function dr82Loop(now){requestAnimationFrame(dr82Loop);if(!started||document.hidden){DR82.t0=0;return;}if(!DR82.t0){DR82.t0=now;DR82.n=0;return;}DR82.n++;const el=now-DR82.t0;if(el<2000)return;
+  const fps=DR82.n*1000/el;DR82.fps=Math.round(fps);DR82.t0=now;DR82.n=0;if(!dr82On()){if(DR82.f!==1){DR82.f=1;renderer.setPixelRatio(DR82.base);resize();}return;}
+  if(fps<32){DR82.low++;DR82.hi=0;}else if(fps>52){DR82.hi++;DR82.low=0;}else{DR82.low=0;DR82.hi=0;}
+  let nf=DR82.f;if(DR82.low>=2&&DR82.f>.6){nf=Math.max(.6,DR82.f-.15);DR82.low=0;}else if(DR82.hi>=4&&DR82.f<1){nf=Math.min(1,DR82.f+.1);DR82.hi=0;}
+  if(nf!==DR82.f){DR82.f=nf;try{renderer.setPixelRatio(DR82.base*nf);resize();}catch(e){}}})(0);
+XA.xDyn82=()=>{const s=set75();s.dyn=s.dyn===0?1:0;saveSet&&saveSet();showResult(`Resolusi dinamis ${s.dyn?'AKTIF':'MATI'}`);if(modal&&modal.refresh)modal.refresh();};
+/* "Yang Baru" — tour of Plan 8 features with quick jumps */
+const NEW82=[['🏎️','Sirkuit Permata','Balapan 3 putaran melawan 4 pembalap. Hadiah sampai 3x.','balap76'],['🎭','Teater & Happy Hour','Pertunjukan tiap 10 menit, menang +10% saat Happy Hour.','teater77'],
+  ['🎡','Pasar Malam','Lempar gelang, pancing bebek, tembak balon, bianglala.','pasar78'],['📒','Album Koleksi','6 set × 8 stiker. Set lengkap memberi buff permanen.','album79'],
+  ['🧭','Ekspedisi Kerajaan','Kirim tim dipimpin pejabatmu mencari harta & artefak.','ekspedisi80'],['✈️','Maskapai Milikmu','Beli pesawat, buka rute, panen koin tiap menit.','maskapai81']];
+function openNew82(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=set75();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Yang Baru"><div class="mohead"><b>🆕 Yang Baru · v76–v82</b><span class="mobal">${GAME_VER}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <p class="muted">Ringkasan fitur terbaru. Tekan "Buka" untuk langsung mencoba.</p>
+    ${NEW82.map(n=>`<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${n[0]} ${n[1]}</b><br><small>${n[2]}</small></span><button class="pbtn" data-go="${n[3]}">Buka</button></div>`).join('')}
+    <p class="sec-t">Performa</p><div class="wallet"><div class="row"><span>FPS sekarang</span><span>${DR82.fps||'…'}</span></div><div class="row"><span>Skala resolusi</span><span>${Math.round(DR82.f*100)}%</span></div></div>
+    <div class="ctx-row" style="margin-top:6px"><button class="pbtn ${s.dyn===0?'alt':''}" data-a="dyn">📐 Resolusi dinamis: ${s.dyn===0?'MATI':'AKTIF'}</button></div>
+    <p class="muted">Resolusi dinamis menurunkan ketajaman sedikit saat game terasa berat, lalu menaikkannya lagi saat lancar.</p></div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelector('[data-a="dyn"]').onclick=()=>XA.xDyn82();
+    el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const v=b.dataset.go;el.remove();modal=null;if(XV[v])xOpen(v);});};
+  modal={el,st:{label:'Yang Baru'},busy:false,refresh(){draw();}};draw();}
+XA.xNew82=()=>openNew82();
+xView('baru82',{t:'Yang Baru',s:'Fitur terbaru',ic:'🆕',bg:'linear-gradient(135deg,#ff5fa2,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='baru82'){phView='home';closePhone();openNew82();}},20);return '<p class="muted">Membuka...</p>';}});
+/* one-time chat note after updating */
+setTimeout(function n82(){if(!started){setTimeout(n82,3000);return;}if(PF.seen82)return;PF.seen82=1;savePF();logLine('sys',null,'🆕 Update v82: cek aplikasi "Yang Baru" di HP untuk fitur terbaru (balap, teater, pasar malam, album, ekspedisi, maskapai).');},6000);
+/* airline + expedition income visible in the money breakdown, if a net-worth helper lists sources */
+try{if(typeof netWorth==='function')netWorth=(f=>function(){let v=f.apply(this,arguments);try{v+=al81().fl.reduce((a,p)=>a+p.c*.6,0);}catch(e){}return v;})(netWorth);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
