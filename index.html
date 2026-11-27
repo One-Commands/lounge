@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v75';
+const GAME_VER='v76';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10586,6 +10586,58 @@ setTimeout(function v75A(){if(!started){setTimeout(v75A,2000);return;}v75Apply()
 /* small fixes */
 /* driving: never keep the car visible inside a modal-driven teleport to an indoor zone */
 tpTo=(f=>function(){const r=f.apply(this,arguments);try{setTimeout(()=>{if(typeof DRV66!=='undefined'&&DRV66.on&&!drvCan())drvStop(1);},50);}catch(e){}return r;})(tpTo);
+
+/* ================= v76: Balap Mobil — Sirkuit Permata, 3 lap melawan NPC, uang pendaftaran & hadiah ================= */
+ZN.push({id:'race76',n:'🏁 Sirkuit Permata',sp:[0,78,Math.PI]});
+const RC76={k:ZN.length-1,A:72,B:44,W:9,laps:3,on:null,npc:[],hud:null};
+function rc76(){return PF.rc76=PF.rc76||{best:0,wins:0,races:0,earn:0};}
+function rcPt(t,zc,off){const x=Math.cos(t)*RC76.A,z=Math.sin(t)*RC76.B;const nx=Math.cos(t)*RC76.B,nz=Math.sin(t)*RC76.A,l=Math.hypot(nx,nz);return [x+nx/l*(off||0),zc+z+nz/l*(off||0)];}
+ZB.race76=(G,zc,k)=>{zGround(G,zc,0x3a8a3a);const N=120,W=RC76.W,P=[],I=[];for(let i=0;i<=N;i++){const t=i/N*Math.PI*2;const a=rcPt(t,zc,-W),b=rcPt(t,zc,W);P.push(a[0],.03,a[1],b[0],.03,b[1]);if(i<N){const j=i*2;I.push(j,j+1,j+2,j+1,j+3,j+2);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();const tr=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:0x34363e,side:THREE.DoubleSide}));G.add(tr);
+  for(let i=0;i<N;i+=2){const t=i/N*Math.PI*2;[-W-.4,W+.4].forEach(o=>{const p=rcPt(t,zc,o);cBox(G,1.2,.25,1.2,(i/2)%2?0xd8435b:0xffffff,p[0],.12,p[1]);});}
+  for(let i=0;i<8;i++){const p=rcPt(Math.PI*2*(0.0)+0,zc,-W+1+i*2.2);for(let r=0;r<2;r++)cBox(G,1.1,.06,1.1,(i+r)%2?0x111111:0xffffff,p[0]+r*1.1-.55,.06,p[1]);}
+  G.add(neon('🏁 START · FINISH',RC76.A,6,zc-.2,Math.PI/2,'#ffffff','#ffd25f',10,1.2));cBox(G,.6,5,.6,0x8a8f9e,RC76.A,2.5,zc-W-1.5);cBox(G,.6,5,.6,0x8a8f9e,RC76.A,2.5,zc+W+1.5);cBox(G,.4,.8,2*W+3,0xd8435b,RC76.A,5.2,zc);
+  /* grandstand in the infield */
+  for(let r=0;r<4;r++)cBox(G,40,1,3,[0x2f6fe0,0x3a7af0,0x2f6fe0,0x3a7af0][r],0,.5+r,zc+18+r*3,true);for(let i=0;i<14;i++){try{miniPerson(G,-18+i*2.8,zc+18+(i%4)*3,Math.PI,[0xd8435b,0xffd25f,0x2f9e5a,0xffffff][i%4]);}catch(e){}}
+  G.add(neon('SIRKUIT PERMATA',0,7,zc+29,Math.PI,'#ffffff','#7df3ff',16,1.6));
+  cBox(G,8,3,5,0xe8e0d0,0,1.5,zc+70,true);G.add(neon('PIT · DAFTAR BALAP',0,4,zc+67.4,Math.PI,'#ffffff','#ffd25f',8,.9));
+  stationAdd('race76',0,zc+66,Math.PI,'Daftar balapan',{useDist:3.5,verb:'Daftar',btn:'BALAP',act:()=>openRcWin(),ctx:()=>`<div class="ctx-head"><h3>🏁 Sirkuit Permata</h3><small>3 lap melawan 4 pembalap NPC · rekor ${rc76().best?(rc76().best/1000).toFixed(2)+' dtk':'-'}</small></div><div class="ctx-row">${bzB('xRc76',1,'Daftar balapan')}</div>`});
+  stationAdd('race76',6,zc+74,Math.PI,'Kembali ke kota',{useDist:3,verb:'Pulang',btn:'KOTA',act:()=>XA.xFly('home'),ctx:()=>`<div class="ctx-head"><h3>🚌 Bus kota</h3><small>Kembali ke Stasiun Sentral</small></div><div class="ctx-row">${bzB('xFly','home','Pulang')}</div>`});
+  const kinds=['toro','rosso','supercar','aero'];RC76.npc=kinds.map((kd,i)=>{let m;try{m=carModel(kd);}catch(e){m=new THREE.Group();cBox(m,2,1,4,0xd8435b,0,.5,0);}G.add(m);return {m,kd,n:['Rangga','Citra','Bayu','Nadia'][i],t:0,v:0,lane:(i-1.5)*3.4,done:0,ft:0};});
+  zAnim.push({k,f:dt=>rcNpcTick(dt||.016)});rcPark();};
+function rcPark(){const zc=zoneZ(RC76.k);RC76.npc.forEach((c,i)=>{const p=rcPt(-.06-i*.05,zc,c.lane);c.m.position.set(p[0],0,p[1]);c.m.rotation.y=Math.atan2(-Math.sin(-.06-i*.05)*RC76.A,Math.cos(-.06-i*.05)*RC76.B);});}
+function rcNpcTick(dt){const R=RC76.on;if(!R||R.ph!=='go')return;const zc=zoneZ(RC76.k);RC76.npc.forEach(c=>{if(c.done)return;const rad=Math.hypot(Math.sin(c.t)*RC76.A,Math.cos(c.t)*RC76.B);c.t+=c.v*(.92+Math.random()*.16)*dt/rad;
+  if(c.t>=RC76.laps*Math.PI*2){c.done=1;c.ft=performance.now()-R.t0;}const p=rcPt(c.t,zc,c.lane);c.m.position.set(p[0],0,p[1]);c.m.rotation.y=Math.atan2(-Math.sin(c.t)*RC76.A,Math.cos(c.t)*RC76.B);});}
+function rcFee(i){return [Math.max(5e4,Math.round(S.bal*.01)),Math.max(2e5,Math.round(S.bal*.05)),Math.max(1e6,Math.round(S.bal*.1))][i];}
+function openRcWin(){if(modal||RC76.on)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);const s=rc76(),own=myCars();
+  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Balap"><div class="mohead"><b>🏁 Sirkuit Permata</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  <p class="muted">Balapan 3 lap melawan 4 pembalap NPC. Juara 1 dapat 3x uang pendaftaran, juara 2 dapat 1,5x, juara 3 uang kembali. Tahan Shift atau dorong joystick penuh supaya ngebut. Keluar lintasan tidak dihitung.</p>
+  <div class="wallet"><small>Statistik</small><b>${s.wins} kali juara dari ${s.races} balapan</b><div class="row"><span>Rekor waktu</span><span>${s.best?(s.best/1000).toFixed(2)+' detik':'-'}</span></div><div class="row"><span>Mobil</span><span>${own.length?esc(CAR66[drvS().pick&&CAR66[drvS().pick]?drvS().pick:own[0]][0]):'🏎 Mobil sewaan (×2,6)'}</span></div></div>
+  <p class="sec-t">Kelas balapan</p><div class="ctx-row" style="flex-wrap:wrap">${['Pemula','Pro','Juara'].map((n,i)=>`<button class="pbtn ${i?'alt':''}" data-f="${i}">${['🟢','🟡','🔴'][i]} ${n} · ${zKC(rcFee(i))}</button>`).join('')}</div></div></div>`;
+  modal={el,st:{label:'Balap'},busy:false,refresh(){}};const close=()=>{el.remove();modal=null;};el.querySelector('.moclose').onclick=close;el.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{close();rcStart(+b.dataset.f);});}
+XA.xRc76=()=>openRcWin();
+function rcStart(cls){const fee=rcFee(cls);if(!xPay(fee))return;const zc=zoneZ(RC76.k),own=myCars(),kind=own.length?(drvS().pick&&CAR66[drvS().pick]?drvS().pick:own[0]):'car';
+  if(DRV66.on)drvStop(1);const sp=rcPt(-.02,zc,0);tpTo(sp[0],sp[1],0);setTimeout(()=>{try{drvS().fuel=Math.max(drvS().fuel,60);drvStart(kind);}catch(e){}},120);
+  const k=(CAR66[kind]||[0,2.6])[1],top=10*k;RC76.npc.forEach((c,i)=>{c.t=-.06-i*.05;c.done=0;c.ft=0;c.v=top*([.78,.84,.9,.95][i]+cls*.03);});rcPark();
+  RC76.on={ph:'cd',cls,fee,t0:0,prog:0,last:null,cd:performance.now()+3200};rcHud();banner('🏁 SIAP-SIAP<small>3 · 2 · 1 ...</small>','',2600);}
+function rcAng(x,z){const zc=zoneZ(RC76.k);return Math.atan2((z-zc)/RC76.B,x/RC76.A);}
+function rcOn(x,z){const zc=zoneZ(RC76.k),r=Math.hypot(x/RC76.A,(z-zc)/RC76.B);return Math.abs(r-1)*55<RC76.W+3;}
+(function rcLoop(){requestAnimationFrame(rcLoop);const R=RC76.on;if(!R)return;try{const now=performance.now();
+  if(zoneAt(you.pos.z)!==RC76.k){RC76.on=null;rcHud();try{drvStop(1);}catch(e){}showResult('🏁 Balapan dibatalkan');return;}
+  if(R.ph==='cd'){you.pos.x=rcPt(-.02,zoneZ(RC76.k),0)[0];if(now>=R.cd){R.ph='go';R.t0=now;R.last=rcAng(you.pos.x,you.pos.z);banner('🏁 GO!','',900);try{SFX.big();}catch(e){}}rcHud();return;}
+  const a=rcAng(you.pos.x,you.pos.z);let d=a-R.last;d=Math.atan2(Math.sin(d),Math.cos(d));R.last=a;if(rcOn(you.pos.x,you.pos.z)&&Math.abs(d)<.5)R.prog+=d;
+  if(R.prog>=RC76.laps*Math.PI*2)rcFinish(now-R.t0);else if(now-R.t0>240000){RC76.on=null;rcHud();showResult('🏁 Waktu habis, balapan selesai.');}else if(Math.floor(now/250)!==R.hb){R.hb=Math.floor(now/250);rcHud();}}catch(e){console.error('rc76',e);}})();
+function rcPos(){const R=RC76.on;if(!R)return 1;return 1+RC76.npc.filter(c=>c.done||c.t>R.prog).length;}
+function rcFinish(ms){const R=RC76.on,s=rc76();setTimeout(()=>{try{drvStop(1);}catch(e){}},1500);const rank=1+RC76.npc.filter(c=>c.done).length;RC76.on=null;s.races++;if(!s.best||ms<s.best)s.best=Math.round(ms);
+  const mult=[3,1.5,1,0,0][rank-1],win=Math.round(R.fee*mult);if(win){S.bal+=win;s.earn+=win-R.fee;}if(rank===1)s.wins++;
+  try{xpAdd(rank===1?120:rank<=3?50:15,'Balap mobil');}catch(e){}const m=`🏁 Balapan selesai: posisi ${rank} dari 5 · ${(ms/1000).toFixed(2)} detik${win?' · hadiah '+zKC(win):''}.`;logLine('sys',null,m,rank<=3?'win':'lose');
+  banner(`🏁 POSISI ${rank}<small>${(ms/1000).toFixed(2)} detik${win?' · +'+zKF(win):''}</small>`,rank===1?'resb':'',3000);try{rank===1?SFX.big():SFX.coin();}catch(e){}savePF();rcHud();}
+function rcHud(){let el=$('rc76');const R=RC76.on;if(!R){if(el)el.remove();return;}if(!el){el=document.createElement('div');el.id='rc76';el.style.cssText='position:absolute;left:50%;top:58px;transform:translateX(-50%);z-index:7;background:rgba(18,12,34,.88);border:1px solid #ffd25f;color:#fff;border-radius:14px;padding:6px 14px;font-weight:800;font-size:14px;pointer-events:none';stage.appendChild(el);}
+  if(R.ph==='cd'){el.textContent=`🏁 Mulai dalam ${Math.max(1,Math.ceil((R.cd-performance.now())/1000))}...`;return;}const lap=Math.min(RC76.laps,1+Math.floor(Math.max(0,R.prog)/(Math.PI*2)));el.textContent=`🏁 Lap ${lap}/${RC76.laps} · Posisi ${rcPos()}/5 · ${((performance.now()-R.t0)/1000).toFixed(1)} dtk${rcOn(you.pos.x,you.pos.z)?'':' · ⚠️ keluar lintasan'}`;}
+xView('balap76',{t:'Balap',s:'Sirkuit Permata',ic:'🏁',bg:'linear-gradient(135deg,#d8435b,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='balap76'){phView='home';closePhone();const zc=zoneZ(RC76.k);tpTo(0,zc+62,Math.PI);}},20);return '<p class="muted">Menuju sirkuit...</p>';}});
+PLACES.sirkuit=['🏁 Sirkuit Permata',null];
+XA.xTaxi=(f=>function(id){if(id!=='sirkuit')return f.apply(this,arguments);const p=XS().vip?0:25000;if(p&&!xPay(p))return;closePhone();tpTo(0,zoneZ(RC76.k)+62,Math.PI);banner('🏁 SIRKUIT PERMATA<small>Daftar balapan di pit</small>','',2000);xSave();})(XA.xTaxi);
+goPlace=(f=>function(id){if(id==='sirkuit'){tpTo(0,zoneZ(RC76.k)+62,Math.PI);return;}return f.apply(this,arguments);})(goPlace);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
