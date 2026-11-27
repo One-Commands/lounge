@@ -1370,9 +1370,9 @@ const TABLES=[
   {id:'t2',kind:'reme',name:'Reme VIP',host:'Koh Hendra',z:-17,min:500,big:4,vip:true,col:'#ffd25f',glow:'#ffb21c',pal:{skin:'#f0c8a0',hair:0x111111,shirt:0x4a0f1c,glasses:true}},
   {id:'t3',kind:'qeme',name:'Meja Qeme',host:'Mas Dodi',z:-2,min:10,big:3,col:'#7df3ff',glow:'#22c8ff',pal:{skin:'#b97a4a',hair:0x1a1008,shirt:0x14304a,cap:0x111118}},
   {id:'t4',kind:'qeme',name:'Qeme VIP',host:'Tante Mira',z:13,min:500,big:4,vip:true,col:'#d6a8ff',glow:'#b46bff',pal:{skin:'#f3cfae',hair:0x5a1a3a,shirt:0x2a1840,bun:true}},
-  {id:'t5',kind:'leme',name:'Meja Leme',host:'Bu Wulan',x:8,z:9,min:10,big:5,col:'#9dff8a',glow:'#3ddc5a',pal:{skin:'#d9a070',hair:0x2a1408,shirt:0x123a22,glasses:true}},
-  {id:'t6',kind:'leme',name:'Leme VIP',host:'Om Benny',x:8,z:21.5,min:500,big:6,vip:true,col:'#7dffd2',glow:'#1fd6a0',pal:{skin:'#f0c8a0',hair:0x111111,shirt:0x0a3a2a,hat:true}},
-  {id:'t7',kind:'reme',multi:true,name:'Meja Bersama VIP',host:'Mbak Kirana',x:-8,z:15,min:500,big:4,vip:true,col:'#ffb0e0',glow:'#ff5fb8',pal:{skin:'#f3cfae',hair:0x3a1a10,shirt:0x5a0f3a,bun:true}}
+  {id:'t5',kind:'leme',name:'Meja Leme',host:'Bu Wulan',x:10,z:34.5,min:10,big:5,col:'#9dff8a',glow:'#3ddc5a',pal:{skin:'#d9a070',hair:0x2a1408,shirt:0x123a22,glasses:true}},
+  {id:'t6',kind:'leme',name:'Leme VIP',host:'Om Benny',x:27,z:34.5,min:500,big:6,vip:true,col:'#7dffd2',glow:'#1fd6a0',pal:{skin:'#f0c8a0',hair:0x111111,shirt:0x0a3a2a,hat:true}},
+  {id:'t7',kind:'reme',multi:true,name:'Meja Bersama VIP',host:'Mbak Kirana',z:27,min:500,big:4,vip:true,col:'#ffb0e0',glow:'#ff5fb8',pal:{skin:'#f3cfae',hair:0x3a1a10,shirt:0x5a0f3a,bun:true}}
 ];
 TABLES.forEach(t=>{t.val=t.kind==='qeme'?qeme:reme;t.sp=t.kind==='qeme'?9:0;t.KIND=t.kind.toUpperCase();});
 let betTable=null;
@@ -1986,7 +1986,7 @@ function phoneRender(){
   }else if(phView==='guide'){
     body=`<div class="guide"><h5>Meja host (sebelah kanan)</h5><p>Empat meja berjajar di kanan: Meja Reme (Bang Rio), Reme VIP (Koh Hendra), Meja Qeme (Mas Dodi), Qeme VIP (Tante Mira). Meja VIP minimal 500 koin dan bayaran besar 4x.</p>
       <h5>Reme</h5><p>Roda 0-36. Reme = jumlah digit, ambil digit terakhir (28 → 0). Kamu putar duluan. Reme 0 menang 3x. Host reme 0, host menang. Lebih tinggi menang 2x.</p>
-      <h5>Leme (Bu Wulan) & Leme VIP (Om Benny)</h5><p>Dua meja hijau di tengah kasino. Leme VIP minimal 500: 0 bayar 6x, 9 bayar 5x. Nilai dihitung seperti Reme (27 → 2+7 = 9). Kamu memutar sendiri tanpa lawan host: Leme 0 bayar 5x, Leme 9 bayar 4x, angka 1, 2, 3 langsung kalah, angka lainnya menang 2x.</p><h5>Meja Bersama VIP (Mbak Kirana)</h5><p>Meja pink di tengah. Pilih Reme, Qeme, atau Leme, lalu main bareng konglomerat yang ikut bertaruh di meja yang sama.</p><h5>Qeme</h5><p>Nilai = digit terakhir angka (27 → 7). Qeme 9 menang 3x. Host dapat 9, host menang. Lebih tinggi menang 2x. Seri bisa diatur di panel meja.</p>
+      <h5>Leme (Bu Wulan) & Leme VIP (Om Benny)</h5><p>Dua meja hijau di dekat air mancur. Leme VIP minimal 500: 0 bayar 6x, 9 bayar 5x. Nilai dihitung seperti Reme (27 → 2+7 = 9). Kamu memutar sendiri tanpa lawan host: Leme 0 bayar 5x, Leme 9 bayar 4x, angka 1, 2, 3 langsung kalah, angka lainnya menang 2x.</p><h5>Meja Bersama VIP (Mbak Kirana)</h5><p>Meja pink di deretan meja host sebelah kanan, antara Qeme VIP dan Meja Duel. Pilih Reme, Qeme, atau Leme, lalu main bareng konglomerat yang ikut bertaruh di meja yang sama.</p><h5>Qeme</h5><p>Nilai = digit terakhir angka (27 → 7). Qeme 9 menang 3x. Host dapat 9, host menang. Lebih tinggi menang 2x. Seri bisa diatur di panel meja.</p>
       <h5>Slot</h5><p>777 bayar 100x, berlian 50x, bintang 20x, lonceng 12x, lemon 8x, ceri 5x. Dua ceri 2x.</p>
       <h5>Blackjack (Lina)</h5><p>Dekati 21 tanpa lewat. Blackjack bayar 3:2. Dealer berhenti di 17. Double sekali di dua kartu pertama.</p>
       <h5>Roulette (Ari)</h5><p>Angka tepat 35:1, lusin 2:1, merah/hitam/ganjil/genap/1-18/19-36 1:1.</p>
@@ -2521,7 +2521,7 @@ function modalFx(kind){if(!modal)return;const p=modal.el.querySelector('.panel')
   else if(kind==='lose'){p.classList.add('fxlose');setTimeout(()=>p.classList.remove('fxlose'),500);}}
 
 /* ---------- duel table with a midman host ---------- */
-const DUEL={name:'Meja Duel',z:30,host:'Sinta'};
+const DUEL={name:'Meja Duel',z:40.5,host:'Sinta'};
 function buildDuelTable(){const TX=ROOM-6,z=DUEL.z;
   const rug=new THREE.Mesh(new THREE.PlaneGeometry(9,11),mat(0x3a0f18));rug.rotation.x=-Math.PI/2;rug.position.set(TX-1.5,.012,z);scene.add(rug);
   const rugB=new THREE.Mesh(new THREE.PlaneGeometry(9.3,11.3),mat(0xffc83d));rugB.rotation.x=-Math.PI/2;rugB.position.set(TX-1.5,.011,z);scene.add(rugB);
@@ -3574,7 +3574,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v60.9';
+const GAME_VER='v60.9.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
