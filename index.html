@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v68';
+const GAME_VER='v69';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10244,6 +10244,60 @@ setInterval(()=>{try{cull68();}catch(e){console.error('v68',e);}},250);
 if(typeof makeAvatar==='function'){makeAvatar=(f=>function(){const a=f.apply(this,arguments);try{if(a&&a.root)a.root.userData.lod68=null;}catch(e){}return a;})(makeAvatar);}
 /* tag labels of culled avatars should not float through walls */
 setInterval(()=>{try{for(const e of ents){if(e&&e.tagEl&&e.av&&e.av.root){const h=!!e.av.root.userData.ac68;if(h!==!!e._tg68){e._tg68=h;e.tagEl.style.visibility=h?'hidden':'';if(e.bubEl)e.bubEl.style.visibility=h?'hidden':'';}}}}catch(e){}},300);
+
+/* ================= v69: Rumah Impian — tema interior, 8 perabot baru, pesta & tamu NPC, nilai rumah ================= */
+FURN.push(['bar','🍸','Mini bar',3,8],['arcade','🕹️','Mesin arcade',2,6],['jukebox','🎵','Jukebox klasik',2,6],['trofi','🏆','Lemari trofi',4,9],['patung','🗿','Patung emas keluarga',8,14],['perapian','🔥','Perapian batu',5,10],['gym','🏋️','Pojok gym',3,7],['pijat','💺','Kursi pijat',2,6]);
+const TH69=[['klasik','🪵 Klasik',0xc89a64,0x8a5a32,0,1],['modern','⬜ Modern',0xe8e8ec,0x30343c,6,2],['tropis','🌴 Tropis',0xd8c49a,0x2f9e5a,10,3],['royal','👑 Royal',0x7a1a24,0xd8a648,20,8],['marmer','💎 Marmer',0xf2f0ea,0x9aa0aa,35,12]];
+function home69(){const H=homeS();H.th=H.th||'klasik';H.own=H.own||{klasik:1};H.party=H.party||0;H.guests=H.guests||0;return H;}
+function thOf(){const H=home69();return TH69.find(t=>t[0]===H.th)||TH69[0];}
+function homeStars(){const c=homeComfort()+thOf()[4];return c>=180?5:c>=130?4:c>=80?3:c>=35?2:1;}
+function homeValue(){const H=homeS();return FURN.reduce((s,f)=>s+(H.f[f[0]]?homeCost(f[3]):0),0)+TH69.reduce((s,t)=>s+(home69().own[t[0]]?homeCost(t[5]):0),0);}
+homeComfort=(f=>function(){return f.apply(this,arguments)+(typeof thOf==='function'?thOf()[4]:0);})(homeComfort);
+const H69={th:null,guests:null};
+function v69Theme(){const g=INT.built&&INT.built.rumah;if(!g||!g.isObject3D)return;if(H69.th){g.remove(H69.th);}const X=INT.X.rumah,Z=INT.Z,W=26,D=20,t=thOf(),T=new THREE.Group();g.add(T);H69.th=T;
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(W-.6,D-.6),new THREE.MeshLambertMaterial({color:t[2]}));fl.rotation.x=-Math.PI/2;fl.position.set(X,.065,Z);T.add(fl);
+  if(t[0]==='marmer'||t[0]==='royal'){const tx=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#'+new THREE.Color(t[2]).getHexString();q.fillRect(0,0,w,h);q.strokeStyle=t[0]==='royal'?'rgba(216,166,72,.7)':'rgba(120,120,130,.35)';q.lineWidth=3;q.strokeRect(2,2,w-4,h-4);});tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(8,6);fl.material.map=tx;fl.material.color.setHex(0xffffff);}
+  const wm=new THREE.MeshLambertMaterial({color:t[3]});const P=(w,h,d,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wm);m.position.set(X+x,y,Z+z);T.add(m);};
+  P(W-.6,1.2,.08,0,.6,-D/2+.26);P(.08,1.2,D-.6,-W/2+.26,.6,0);P(.08,1.2,D-.6,W/2-.26,.6,0);P(W/2-2.4,1.2,.08,-W/4-1.1,.6,D/2-.26);P(W/2-2.4,1.2,.08,W/4+1.1,.6,D/2-.26);
+  const tm=new THREE.MeshBasicMaterial({color:t[0]==='royal'?0xffd25f:0xffffff});[[W-.6,.08,.1,0,1.24,-D/2+.28],[.1,.08,D-.6,-W/2+.28,1.24,0],[.1,.08,D-.6,W/2-.28,1.24,0]].forEach(([w,h,d,x,y,z])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),tm);m.position.set(X+x,y,Z+z);T.add(m);});}
+v44Furnish=(f=>function(){f.apply(this,arguments);const G=INT.fur;if(!G)return;const H=homeS().f,X=INT.X.rumah,Z=INT.Z;const B=(w,h,d,c,x,y,z,b)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),b?new THREE.MeshBasicMaterial({color:c}):mat(c));m.position.set(X+x,y,Z+z);G.add(m);return m;};
+  if(H.bar){B(1,1.2,4,0x3a1a1a,11.6,.6,1);B(1.2,.1,4.2,0xd8a648,11.6,1.25,1);B(.3,2.4,4,0x241010,12.6,1.9,1);for(let i=0;i<6;i++)B(.18,.5,.18,[0x7a1a24,0x2f9e5a,0xffd25f][i%3],12.45,2.4+(i%2)*.7,-.6+i*.6,true);for(let i=0;i<3;i++)B(.5,.9,.5,0x8a6a44,10.5,.45,-.2+i*1.2);}
+  if(H.arcade){B(1.2,2.2,1,0x2a1a5a,-12,1.1,1.2);B(1,.8,.05,0x7df3ff,-11.45,1.6,1.2,true).rotation.y=Math.PI/2;B(.6,.1,.5,0xff5f6d,-11.4,1.05,1.2,true);}
+  if(H.jukebox){B(1.4,2,.8,0xd8435b,4.6,1,-9.3);B(1.1,.9,.05,0xffd25f,4.6,1.4,-8.88,true);B(1.2,.25,.05,0x7df3ff,4.6,.6,-8.88,true);}
+  if(H.trofi){B(2.6,2.6,.7,0x5a3a20,-4.4,1.3,-9.4);const n=Math.min(9,2+((PF.records&&Object.keys(PF.records).length)||0));for(let i=0;i<n;i++)B(.25,.45,.25,0xffd25f,-5.4+(i%3)*1,.7+Math.floor(i/3)*.8,-9.1,true);}
+  if(H.patung){B(1.4,.6,1.4,0xe8e0d0,2.8,.3,.6);B(.7,1.6,.6,0xffd25f,2.8,1.4,.6,true);const hd=new THREE.Mesh(new THREE.SphereGeometry(.35,10,8),new THREE.MeshBasicMaterial({color:0xffd25f}));hd.position.set(X+2.8,2.5,Z+.6);G.add(hd);}
+  if(H.perapian){B(.8,2.4,3,0x8a8f9e,12.4,1.2,-4.2);B(.3,1,1.6,0x1b1b1b,12,.7,-4.2,true);B(.3,.6,1.2,0xff7a2a,11.95,.55,-4.2,true);B(.9,.2,3.4,0x5a4a3a,12.3,2.5,-4.2);}
+  if(H.gym){B(1,.3,2.4,0x30343c,-4.6,.15,-5.4);B(.8,1.2,.1,0x30343c,-4.6,1,-6.5);B(1.8,.08,.08,0x9aa0aa,-2.6,.9,-5);[-3.4,-1.8].forEach(x=>B(.1,.5,.5,0x111111,x,.9,-5));}
+  if(H.pijat){B(1.2,.7,1.6,0x2a2a30,-1.6,.45,7);B(1.2,1.4,.3,0x2a2a30,-1.6,1.2,7.7);B(1.3,.1,.4,0xd8435b,-1.6,.85,6.3,true);}
+  v69Theme();})(v44Furnish);
+/* guests and parties */
+function v69Guests(n){const g=INT.built&&INT.built.rumah;if(!g||!g.isObject3D)return;if(H69.guests){g.remove(H69.guests);H69.guests=null;}if(!n)return;const G=new THREE.Group();g.add(G);H69.guests=G;const X=INT.X.rumah,Z=INT.Z;
+  const spots=[[-7.5,3.4,0],[-5,3.4,0],[6,2.3,Math.PI],[8,2.3,Math.PI],[6,5.7,0],[10.5,1,-Math.PI/2],[1.5,-2,Math.PI/4],[-2,-3,0],[4,4,Math.PI],[-9,6,Math.PI/2]];
+  for(let i=0;i<Math.min(n,spots.length);i++){const [x,z,r]=spots[i];try{miniPerson(G,X+x,Z+z,r,[0xd8435b,0x2f6fe0,0x2f9e5a,0xffd25f,0x9b59b6,0xff9f43][i%6]);}catch(e){}}}
+function partyOn(){const H=home69();return Date.now()<H.party;}
+XA.xParty69=()=>{const H=home69();if(partyOn()){showResult('🎉 Pesta masih berlangsung');return;}const c=homeCost(2);if(!xPay(c))return;const st=homeStars(),n=3+st;H.party=Date.now()+5*60000;H.guests+=n;
+  let tyN=[];try{const s=plS();const all=Object.keys(s.t||{});for(let i=0;i<Math.min(st,3)&&all.length;i++){const k=all[Math.floor(Math.random()*all.length)];s.t[k].rel=Math.min(100,(s.t[k].rel||0)+2+st);tyN.push(k);}}catch(e){}
+  try{xpAdd(40*st,'Pesta di rumah');}catch(e){}try{const D=dyS();if(D.sp)D.sp.har=Math.min(100,(D.sp.har||0)+5*st);}catch(e){}
+  v69Guests(n);SFX.coin();banner(`🎉 PESTA DI RUMAH<small>${n} tamu datang · rumah ⭐${st}</small>`,'',2200);logLine('sys',null,`🎉 Pesta di rumah ${dyS().fam}: ${n} tamu datang (${zKC(c)}).${tyN.length?' Hubungan dengan '+tyN.join(', ')+' membaik.':''}`,'win');savePF();if(modal&&modal.refresh)modal.refresh();};
+setInterval(()=>{try{const H=home69();if(H69.guests&&!partyOn())v69Guests(0);}catch(e){}},15000);
+/* daily visitor tip: nicer houses attract guests who leave a gift */
+setInterval(()=>{try{if(!started)return;const H=home69(),d=xToday();if(H.tipD===d)return;if(Math.abs(you.pos.x-INT.X.rumah)>40)return;H.tipD=d;const st=homeStars(),gift=Math.round(homeCost(.2)*st);S.bal+=gift;logLine('sys',null,`🏠 Tetangga mampir dan memuji rumahmu (⭐${st}). Mereka membawa hadiah ${zKC(gift)}.`,'win');savePF();}catch(e){}},20000);
+XA.xTheme69=id=>{const t=TH69.find(x=>x[0]===id),H=home69();if(!t)return;if(!H.own[id]){const c=homeCost(t[5]);if(!xPay(c))return;H.own[id]=1;logLine('sys',null,`🎨 Tema rumah ${t[1]} dibeli (${zKC(c)}).`,'win');}H.th=id;SFX.coin();v69Theme();savePF();if(modal&&modal.refresh)modal.refresh();};
+function openHomeWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const H=home69(),st=homeStars();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Rumah Impian"><div class="mohead"><b>🏠 Rumah Impian</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <div class="wallet"><small>${esc(dyS().fam)}</small><b>${'⭐'.repeat(st)}${'☆'.repeat(5-st)}</b><div class="row"><span>Kenyamanan</span><span>${homeComfort()}</span></div><div class="row"><span>Nilai isi rumah</span><span>${zKC(homeValue())}</span></div><div class="row"><span>Total tamu</span><span>${H.guests}</span></div></div>
+    <p class="sec-t">Tema interior</p><div class="ctx-row" style="flex-wrap:wrap">${TH69.map(t=>`<button class="pbtn ${H.th===t[0]?'':'alt'}" data-th="${t[0]}">${t[1]}${H.own[t[0]]?(H.th===t[0]?' ✓':''):' · '+zKC(homeCost(t[5]))}<br><small>+${t[4]} nyaman</small></button>`).join('')}</div>
+    <p class="sec-t">Pesta</p><p class="muted">${partyOn()?`🎉 Pesta sedang berlangsung (${Math.ceil((H.party-Date.now())/60000)} menit lagi).`:`Undang ${3+st} tamu. Rumah makin bagus, makin banyak tamu, XP dan hubungan dengan konglomerat.`}</p>
+    <div class="ctx-row"><button class="pbtn" data-a="party">🎉 Adakan pesta · ${zKC(homeCost(2))}</button><button class="pbtn alt" data-a="cat">🛋️ Katalog perabot</button></div>
+    <p class="sec-t">Perabot (${FURN.filter(f=>homeS().f[f[0]]).length}/${FURN.length})</p><div class="ctx-row" style="flex-wrap:wrap">${FURN.map(f=>homeS().f[f[0]]?`<span class="pbtn" style="opacity:.75">${f[1]} ✓</span>`:`<button class="pbtn alt" data-fu="${f[0]}">${f[1]} ${esc(f[2])} · ${zKC(homeCost(f[3]))}</button>`).join('')}</div></div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>XA.xTheme69(b.dataset.th));
+    el.querySelectorAll('[data-fu]').forEach(b=>b.onclick=()=>{XA.xFurBuy(b.dataset.fu);draw();});
+    el.querySelector('[data-a="party"]').onclick=()=>XA.xParty69();el.querySelector('[data-a="cat"]').onclick=()=>{el.remove();modal=null;xOpen('rumah');};};
+  modal={el,st:{label:'Rumah Impian'},busy:false,refresh(){draw();}};draw();}
+XA.xHome69=()=>openHomeWin();
+v44BuildHouse=(f=>function(){const g=f.apply(this,arguments);try{const X=INT.X.rumah,Z=INT.Z;iB(g,1.4,1.1,.8,0xd8a648,X+5,.55,Z+8.4);
+  stationAdd('v44home',X+5,Z+7.4,Math.PI,'Rumah Impian',{useDist:2.6,verb:'Atur',btn:'RUMAH',act:()=>openHomeWin(),ctx:()=>`<div class="ctx-head"><h3>🏠 Rumah Impian ${'⭐'.repeat(homeStars())}</h3><small>Tema, pesta dan perabot · kenyamanan ${homeComfort()}</small></div><div class="ctx-row">${bzB('xHome69',1,'Buka')}</div>`});
+  setTimeout(()=>{v69Theme();if(partyOn())v69Guests(3+homeStars());},50);}catch(e){console.error('v69',e);}return g;})(v44BuildHouse);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
