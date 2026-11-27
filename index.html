@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v80';
+const GAME_VER='v81';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10843,6 +10843,55 @@ xView('ekspedisi80',{t:'Ekspedisi',s:'Cari harta di kerajaan',ic:'🧭',bg:'line
 setTimeout(function ex80Boot(){if(typeof cityGrp==='undefined'||!cityGrp||!started){setTimeout(ex80Boot,2000);return;}try{const [x,z]=typeof mbFind==='function'?mbFind(-8,-96):[ -8,-90];const g=new THREE.Group();g.position.set(x,0,z);cityGrp.add(g);
   cBox(g,3.2,2.2,.2,0x8a5a32,0,2,0);cBox(g,3,2,.05,0xf2e6c8,0,2,.12,false,true);[-1.5,1.5].forEach(a=>cBox(g,.18,3,.18,0x5a4030,a,1.5,0));const n=neon('🧭 EKSPEDISI',0,0,0,0,'#ffffff','#ffd25f',4,.6);n.position.set(x,3.5,z+.2);cityGrp.add(n);
   stationAdd('ex80',x,z+1.6,0,'Papan Ekspedisi',{useDist:2.8,verb:'Lihat',btn:'EKSPEDISI',act:()=>openExWin(),ctx:()=>`<div class="ctx-head"><h3>🧭 Ekspedisi Kerajaan</h3><small>${ex80().run.length} berjalan · ${ex80().ok} berhasil</small></div><div class="ctx-row">${bzB('xExWin',1,'Buka')}</div>`});}catch(e){console.error('ex80 board',e);}},3500);
+
+/* ================= v81: Maskapai Milikmu — beli pesawat, buka rute ke negara & kerajaan, pendapatan per menit ================= */
+const AL81={max:12,models:[['🛩️','Baling Nusa 50',50,.02,.0045],['✈️','Jet Permata 180',180,.05,.0048],['🛫','Garuda Lebar 400',400,.12,.0052]]};
+function al81(){const s=PF.al81=PF.al81||{name:'Permata Jaya Air',fl:[],rep:20,earn:0,last:Date.now(),acc:0,n:0};return s;}
+function al81Routes(){const R=[];try{flDest().forEach(o=>R.push({id:'z:'+o.Z.id,n:o.Z.n.replace(/^\S+\s/,''),ic:'🌏',dem:1.0,kd:null}));}catch(e){}
+  KDS.forEach(k=>{if(!R.some(r=>r.id==='z:'+k[0]))R.push({id:'k:'+k[0],n:k[2],ic:k[1],dem:.85,kd:k[0]});});return R;}
+function al81Price(m){return Math.max(2e8*(m+1)*(m+1),Math.round(netWorth()*AL81.models[m][3]));}
+function al81Load(p){const s=al81(),R=al81Routes().find(r=>r.id===p.rt);if(!R)return 0;const same=s.fl.filter(f=>f.rt===p.rt).reduce((a,f)=>a+AL81.models[f.m][2],0);
+  let L=R.dem*(.55+s.rep/250)*Math.min(1,320/Math.max(same,1)+.35);try{if(R.kd&&atWar(R.kd))L*=.4;}catch(e){}try{if(R.id.startsWith('z:')&&atWar(R.id.slice(2)))L*=.4;}catch(e){}
+  const h=(typeof gameClock==='function'?gameClock().h:12);if(h>=6&&h<10||h>=17&&h<21)L*=1.12;return Math.max(.05,Math.min(.98,L));}
+function al81Rate(p){return p.rt?Math.round(p.c*AL81.models[p.m][4]*al81Load(p)):0;}
+function al81Total(){return al81().fl.reduce((a,p)=>a+al81Rate(p),0);}
+XA.xAl81Buy=m=>{m=+m;const s=al81();if(s.fl.length>=AL81.max){showResult('Hanggar penuh (maks 12 pesawat)');return;}const c=al81Price(m);if(!xPay(c))return;
+  const M=AL81.models[m];s.fl.push({id:Date.now().toString(36),m,c,rt:null,reg:'PK-'+String.fromCharCode(65+Math.floor(Math.random()*26))+String.fromCharCode(65+Math.floor(Math.random()*26))+String.fromCharCode(65+Math.floor(Math.random()*26))});
+  logLine('sys',null,`${M[0]} ${s.name} membeli ${M[1]} seharga ${zKC(c)}. Tentukan rutenya di menu Maskapai.`,'win');SFX.coin();savePF();if(modal&&modal.refresh)modal.refresh();};
+XA.xAl81Route=arg=>{const [id,...rest]=String(arg).split('|');const rt=rest.join('|')||null;const p=al81().fl.find(f=>f.id===id);if(!p)return;p.rt=rt;savePF();if(modal&&modal.refresh)modal.refresh();};
+XA.xAl81Sell=id=>{const s=al81(),i=s.fl.findIndex(f=>f.id===id);if(i<0)return;const v=Math.round(s.fl[i].c*.6);s.fl.splice(i,1);S.bal+=v;showResult(`Pesawat dijual: +${zKC(v)}`);SFX.coin();savePF();if(modal&&modal.refresh)modal.refresh();};
+XA.xAl81Ad=()=>{const s=al81();const c=Math.max(5e7,Math.round(netWorth()*.004));if(s.rep>=100){showResult('Reputasi sudah maksimal');return;}if(!xPay(c))return;s.rep=Math.min(100,s.rep+8);showResult(`📣 Iklan tayang di seluruh kota. Reputasi ${s.rep}/100`);savePF();if(modal&&modal.refresh)modal.refresh();};
+XA.xAl81Name=()=>{const s=al81();const n=(prompt?null:null);const opts=['Permata Jaya Air','Nusa Raya Airlines','Cakrawala Wings','Garuda Emas Air','Lintas Bintang','Reme Airways'];s.name=opts[(opts.indexOf(s.name)+1)%opts.length];savePF();if(modal&&modal.refresh)modal.refresh();};
+function al81Tick(){if(!started)return;const s=al81(),now=Date.now();let dt=(now-(s.last||now))/60000;s.last=now;if(dt<=0)return;let off=false;if(dt>2){off=true;dt=Math.min(dt,480)*.5;}
+  const g=Math.round(al81Total()*dt);if(g<=0)return;S.bal+=g;s.earn+=g;s.acc+=g;s.n+=Math.max(1,Math.round(dt*s.fl.filter(f=>f.rt).length/3));
+  if(Math.random()<.02*dt&&s.fl.some(f=>f.rt)){const bad=Math.random()<.5;const v=Math.round(al81Total()*(bad?8:10));if(bad){S.bal-=Math.min(v,Math.max(0,S.bal));logLine('sys',null,`🛠️ Salah satu pesawat ${s.name} perlu perawatan mendadak: −${zKC(v)}.`,'lose');}else{S.bal+=v;s.earn+=v;logLine('sys',null,`🎉 Penerbangan ${s.name} penuh oleh rombongan wisata! Bonus +${zKC(v)}.`,'win');}}
+  if(s.rep<100&&Math.random()<.05)s.rep=Math.min(100,s.rep+1);
+  if(off)logLine('sys',null,`✈️ Selama kamu pergi, ${s.name} menghasilkan ${zKC(g)}.`,'win');
+  else if(s.acc>=al81Total()*5&&s.acc>0){logLine('sys',null,`✈️ ${s.name}: +${zKC(s.acc)} dari ${s.fl.filter(f=>f.rt).length} rute dalam 5 menit terakhir.`);s.acc=0;}
+  if(modal&&modal.refresh&&modal.st&&modal.st.label==='Maskapai')modal.refresh();}
+setInterval(()=>{try{al81Tick();}catch(e){console.error('al81',e);}},60000);
+setTimeout(()=>{try{al81Tick();}catch(e){}},8000);
+let al81Sel=null;
+function openAl81Win(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=al81(),R=al81Routes();const P=al81Sel?s.fl.find(f=>f.id===al81Sel):null;
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Maskapai"><div class="mohead"><b>✈️ Maskapai Milikmu</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <div class="wallet"><small>Maskapai</small><b>${esc(s.name)}</b><div class="row"><span>Armada</span><span>${s.fl.length}/${AL81.max}</span></div><div class="row"><span>Pendapatan</span><span>${zKC(al81Total())}/menit</span></div><div class="row"><span>Reputasi</span><span>${s.rep}/100</span></div><div class="row"><span>Total dihasilkan</span><span>${zKC(s.earn)}</span></div></div>
+    <div class="ctx-row" style="flex-wrap:wrap;margin-top:6px"><button class="pbtn alt" data-a="ad">📣 Iklan (+8 reputasi) · ${zKC(Math.max(5e7,Math.round(netWorth()*.004)))}</button><button class="pbtn alt" data-a="nm">✏️ Ganti nama</button></div>
+    <p class="muted">Penumpang lebih ramai di jam sibuk (06–10 dan 17–21). Rute ke negara yang sedang perang sepi. Terlalu banyak kursi di satu rute membuat pesawat setengah kosong. Saat kamu offline maskapai tetap jalan (50%, maks 8 jam).</p>
+    <p class="sec-t">Beli pesawat</p><div class="ctx-row" style="flex-wrap:wrap">${AL81.models.map((M,i)=>`<button class="pbtn" data-buy="${i}">${M[0]} ${M[1]} · ${M[2]} kursi · ${zKC(al81Price(i))}</button>`).join('')}</div>
+    <p class="sec-t">Armada</p>${s.fl.length?s.fl.map(p=>{const M=AL81.models[p.m],r=R.find(x=>x.id===p.rt);return `<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${M[0]} ${p.reg}</b> <small>${M[1]}</small><br><small>${r?r.ic+' '+esc(r.n)+' · terisi '+Math.round(al81Load(p)*100)+'% · '+zKC(al81Rate(p))+'/mnt':'⚠️ Belum ada rute (parkir)'}</small></span><span style="display:flex;gap:4px"><button class="pbtn ${al81Sel===p.id?'':'alt'}" data-sel="${p.id}">Rute</button><button class="pbtn alt" data-sell="${p.id}">Jual 60%</button></span></div>`;}).join(''):'<p class="muted">Belum punya pesawat. Mulai dari Baling Nusa 50.</p>'}
+    ${P?`<p class="sec-t">Pilih rute untuk ${P.reg}</p><div class="ctx-row" style="flex-wrap:wrap"><button class="pbtn alt" data-rt="">🅿️ Parkir</button>${R.map(r=>`<button class="pbtn ${P.rt===r.id?'':'alt'}" data-rt="${r.id}">${r.ic} ${esc(r.n)}${(()=>{try{return atWar(r.kd||r.id.slice(2))?' ⚔️':'';}catch(e){return '';}})()}</button>`).join('')}</div>`:''}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>XA.xAl81Buy(b.dataset.buy));
+    el.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>{al81Sel=al81Sel===b.dataset.sel?null:b.dataset.sel;draw();});el.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>XA.xAl81Sell(b.dataset.sell));
+    el.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{XA.xAl81Route(al81Sel+'|'+b.dataset.rt);al81Sel=null;draw();});
+    el.querySelector('[data-a="ad"]').onclick=()=>XA.xAl81Ad();el.querySelector('[data-a="nm"]').onclick=()=>XA.xAl81Name();};
+  modal={el,st:{label:'Maskapai'},busy:false,refresh(){draw();}};draw();}
+XA.xAl81Win=()=>openAl81Win();
+xView('maskapai81',{t:'Maskapai',s:'Armada & rute',ic:'✈️',bg:'linear-gradient(135deg,#1e5bd8,#7df3ff)',r:()=>{setTimeout(()=>{if(phView==='maskapai81'){phView='home';closePhone();openAl81Win();}},20);return '<p class="muted">Membuka...</p>';}});
+/* airline office counter + parked planes at the airport */
+ZB.bandara=(f=>function(G,zc,k){f.apply(this,arguments);try{const x=-26,z=zc+46;cBox(G,4,1.1,1.2,0x1e5bd8,x,.55,z-.6);cBox(G,4.2,.1,1.4,0xf2e6c8,x,1.15,z-.6);
+    const n=neon('✈️ MASKAPAIMU',0,0,0,0,'#ffffff','#7df3ff',4,.6);n.position.set(x,2.6,z-1.2);G.add(n);miniPerson&&miniPerson(G,x,z-1.6,0,0x1e5bd8);
+    stationAdd('al81',x,z+.8,0,'Kantor Maskapai',{useDist:3,verb:'Kelola',btn:'MASKAPAI',act:()=>openAl81Win(),ctx:()=>{const s=al81();return `<div class="ctx-head"><h3>✈️ ${esc(s.name)}</h3><small>${s.fl.length} pesawat · ${zKC(al81Total())}/menit</small></div><div class="ctx-row">${bzB('xAl81Win',1,'Kelola maskapai')}</div>`;}});}catch(e){console.error('al81 office',e);}})(ZB.bandara);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
