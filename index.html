@@ -1220,7 +1220,7 @@ function blocked(x,z,y){
   if(!inWorld(x,z))return true;
   for(const c of colliders){if(x>c.x0-RAD&&x<c.x1+RAD&&z>c.z0-RAD&&z<c.z1+RAD&&c.top>y+STEP&&(c.bottom||0)<y+2.6)return true;}return false;}
 function moveEnt(e,mx,mz,run,dt,jump){
-  const sp=(run?10:6.5)*dt;
+  const sp=(run?10:6.5)*dt*(e===you&&typeof DRV66!=='undefined'&&DRV66.on?DRV66.k:1);
   const len=Math.hypot(mx,mz);
   if(len>.01){mx/=Math.max(1,len);mz/=Math.max(1,len);
     const nx=e.pos.x+mx*sp,nz=e.pos.z+mz*sp;
@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v65';
+const GAME_VER='v66';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10075,6 +10075,111 @@ XA.xHrIn=hrIn;XA.xHrOut=hrOut;
   neon('💎 HIGH ROLLER · LT 2',-11,5,ROOM-.45,Math.PI,'#e8f4ff','#7fb8ff',6,.7);
   stationAdd('xrail',-11,ROOM-1.8,Math.PI,'Lift High Roller',{useDist:3,verb:'Naik',act:hrIn,ctx:()=>`<div class="ctx-head"><h3>🛗 Lift High Roller</h3><small>Lantai 2: Reme & Qeme Platinum (min 1 Zus, bayar 5x), Baccarat VIP</small></div><div class="ctx-row">${bzB('xHrIn','','⬆️ Naik ke lantai 2')}</div>`,btn:'LIFT'});}catch(e){console.error('hr65l',e);}return r;};}
 function bcVipOpts(){const b=Math.max(1e12,S.bal);return [1e12,1e13,1e14,Math.floor(b*.01),Math.floor(b*.1),Math.floor(b*.25)].filter((v,i,A)=>v>=1e12&&v<=Math.max(1e12,S.bal)&&A.indexOf(v)===i).sort((x,y)=>x-y);}
+
+/* ================= v66: Kota & Transportasi — MRT Jalur Biru, papan keberangkatan + Miles, mobil bisa disetir ================= */
+/* ---- MRT Jalur Biru: underground platform zone + blue street booths ---- */
+ZN.push({id:'mrt66',n:'🚇 MRT Jalur Biru',sp:[0,4,Math.PI],under:1,ceil:8});
+const MB66={k:ZN.length-1,cur:0,fare:5000,st:[['Balai Kota',0,-100],['Rumah Sakit',-76,-104],['Markas TNI',-142,-90],['Apartemen',127,-126],['Perumahan Elite',99,40]],spots:[],signT:null};
+function mbSpot(i){return MB66.spots[i]||[MB66.st[i][1],MB66.st[i][2]+6];}
+function mbFree(x,z){for(let a=-2;a<=2;a+=1)for(let b=-3;b<=3;b+=1.5)if(blocked(x+a,z+b,0))return false;return true;}
+function mbFind(x,z){for(let r=6;r<40;r+=2)for(let k=0;k<16;k++){const a=k/16*Math.PI*2,px=Math.round(x+Math.cos(a)*r),pz=Math.round(z+Math.sin(a)*r);if(mbFree(px,pz))return [px,pz];}return [x,z+6];}
+function mbSign(){if(!MB66.signT)return;const i=MB66.cur,L=MB66.st;redrawTex(MB66.signT,(q,w,h)=>{q.fillStyle='#101a2e';q.fillRect(0,0,w,h);q.fillStyle='#2f6fe0';q.fillRect(0,0,w,14);q.fillRect(0,h-14,w,14);
+  q.fillStyle='#fff';q.font='800 60px sans-serif';q.textAlign='center';q.textBaseline='middle';q.fillText(L[i][0].toUpperCase(),w/2,h/2-6);q.font='600 24px sans-serif';q.fillStyle='#bcd2ff';q.fillText('MRT · JALUR BIRU',w/2,36);
+  q.textAlign='left';q.fillText(L[i-1]?'◀ '+L[i-1][0]:'',24,h-34);q.textAlign='right';q.fillText(L[i+1]?L[i+1][0]+' ▶':'',w-24,h-34);});}
+ZB.mrt66=(G,zc,k)=>{const tile=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#e6ebf2';q.fillRect(0,0,w,h);q.strokeStyle='#c2cad6';q.lineWidth=2;q.strokeRect(1,1,w-2,h-2);q.fillStyle='rgba(47,111,224,.18)';q.fillRect(0,56,w,16);});tile.wrapS=tile.wrapT=THREE.RepeatWrapping;tile.repeat.set(16,6);
+  gplane(G,60,22,new THREE.MeshLambertMaterial({map:tile}),0,zc+2,.004);gplane(G,60,10,new THREE.MeshLambertMaterial({color:0x23262e}),0,zc-14,.004);gplane(G,60,.6,new THREE.MeshBasicMaterial({color:0xffd25f}),0,zc-8.9,.01);
+  [-1.1,1.1].forEach(o=>cBox(G,60,.18,.18,0x9aa0aa,0,.12,zc-14+o));for(let x=-29;x<29;x+=1.6)cBox(G,.3,.08,3.2,0x4a4038,x,.04,zc-14);
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(60,32),mat(0xd4dae2));ceil.rotation.x=Math.PI/2;ceil.position.set(0,8,zc-3);G.add(ceil);
+  cBox(G,60,8,.6,0x2f4a7a,0,4,zc-19.2,true);cBox(G,60,8,.6,0xdfe5ee,0,4,zc+13,true);cBox(G,.6,8,32,0xdfe5ee,-30,4,zc-3,true);cBox(G,.6,8,32,0xdfe5ee,30,4,zc-3,true);
+  colliders.push({x0:-30,x1:30,z0:zc-19,z1:zc-9.2,top:1.2});/* keep riders off the track */
+  cBox(G,60,.3,.3,0x2f6fe0,0,6.8,zc-18.8,false,true);for(let x=-24;x<=24;x+=12){cBox(G,.8,8,.8,0xbfc8d6,x,4,zc-6,true);cBox(G,3.4,.18,.5,0xfff8e0,x,7.7,zc-2,false,true);}
+  for(let i=0;i<4;i++){cBox(G,3,.5,.9,0x2f6fe0,-18+i*12,.45,zc+6,true);cBox(G,3,.9,.2,0x2f6fe0,-18+i*12,1,zc+6.5,false);}
+  MB66.signT=canvasTex(512,160,()=>{});const sg=new THREE.Mesh(new THREE.PlaneGeometry(8,2.5),new THREE.MeshBasicMaterial({map:MB66.signT}));sg.position.set(0,5.2,zc-18.85);G.add(sg);mbSign();
+  G.add(neon('MRT JALUR BIRU',0,6.2,zc+12.65,Math.PI,'#ffffff','#6fa8ff',8,1));
+  /* train: arrives, waits, departs */
+  const tg=new THREE.Group();G.add(tg);const bodyM=new THREE.MeshLambertMaterial({color:0xf2f4f8}),stM=new THREE.MeshBasicMaterial({color:0x2f6fe0}),wM=new THREE.MeshBasicMaterial({color:0x1c2a44});
+  for(let c=0;c<3;c++){const o=(c-1)*11.6;cBox(tg,11,3.1,3,0xf2f4f8,o,2,0);const w=new THREE.Mesh(new THREE.BoxGeometry(10,.9,3.05),wM);w.position.set(o,2.5,0);tg.add(w);const s=new THREE.Mesh(new THREE.BoxGeometry(11,.3,3.06),stM);s.position.set(o,1.25,0);tg.add(s);}
+  tg.position.set(-80,0,zc-14);
+  zAnim.push({k,f:()=>{const t=(performance.now()/1000)%24;let x;if(t<6)x=-80+80*(1-Math.pow(1-t/6,2));else if(t<14)x=0;else if(t<20)x=80*Math.pow((t-14)/6,2);else x=-80;tg.position.x=x;tg.visible=t<20;}});
+  stationAdd('xrail',0,zc+1,Math.PI,'Peron MRT Jalur Biru',{useDist:4,verb:'Naik',btn:'MRT',act:()=>mbTrip(),ctx:()=>mbCtx(true)});
+  stationAdd('xrail',20,zc+10,0,'Tangga keluar MRT Biru',{useDist:3,verb:'Keluar',btn:'KELUAR',act:()=>mbExit(MB66.cur),ctx:()=>`<div class="ctx-head"><h3>⬆️ Keluar stasiun</h3><small>Naik ke jalan di ${esc(MB66.st[MB66.cur][0])}</small></div><div class="ctx-row">${bzB('xMb66Out',MB66.cur,'⬆️ Naik ke jalan')}</div>`});
+  cBox(G,4,.2,6,0x8a8f9e,20,.1,zc+10,false);G.add(neon('⬆ KELUAR',20,4.2,zc+12.65,Math.PI,'#ffffff','#ffd25f',4,.8));};
+function mbCtx(onPlat){const vip=XS().vip,f=vip?'gratis (Black Card)':'🪙 '+fmtBig(MB66.fare);return `<div class="ctx-head"><h3>🚇 MRT Jalur Biru · ${esc(MB66.st[MB66.cur][0])}</h3><small>${onPlat?'Pilih tujuan':'Stasiun bawah tanah'} · ${f}</small></div><div class="ctx-row">${onPlat?MB66.st.map((s,i)=>i===MB66.cur?'':bzB('xMb66Ride',i,s[0])).join(''):bzB('xMb66Go',MB66.cur,'⬇️ Turun ke peron')}</div>`;}
+function mbTrip(){showResult('🚇 Pilih tujuan di papan Jalur Biru');}
+function mbGo(i){MB66.cur=i;mbSign();const zc=zoneZ(MB66.k);tpTo(0,zc+4,Math.PI);banner(`🚇 JALUR BIRU · ${MB66.st[i][0].toUpperCase()}<small>Selamat datang di peron bawah tanah</small>`,'',2000);}
+function mbExit(i){const p=mbSpot(i);tpTo(p[0],p[1]+3.8,0);banner(`🏙️ ${MB66.st[i][0].toUpperCase()}<small>Keluar dari MRT Jalur Biru</small>`,'',1600);}
+XA.xMb66Go=i=>mbGo(+i);XA.xMb66Out=i=>mbExit(+i);
+XA.xMb66Ride=i=>{i=+i;if(!MB66.st[i])return;if(!XS().vip&&!xPay(MB66.fare))return;const from=MB66.st[MB66.cur][0];MB66.cur=i;mbSign();
+  travelFxSafe('🚇',`${from} → ${MB66.st[i][0]}`,'MRT Jalur Biru · kereta tiba',()=>{const zc=zoneZ(MB66.k);tpTo(0,zc+4,Math.PI);banner(`🚇 ${MB66.st[i][0].toUpperCase()}<small>Kereta tiba. Keluar lewat tangga ⬆ di kanan</small>`,'',2200);});
+  if(typeof qx==='function')qx('ride');xSave();};
+function mbBooths(){if(MB66.built||!cityGrp)return;MB66.built=1;const G=cityGrp;
+  MB66.st.forEach(([nm,x0,z0],i)=>{const [x,z]=mbFind(x0,z0);MB66.spots[i]=[x,z];const g=new THREE.Group();g.position.set(x,0,z);G.add(g);
+    cBox(g,3.4,.2,5,0x2a3a5a,0,.1,0);cBox(g,.2,3.2,5,0xdfe5ee,-1.7,1.6,0);cBox(g,.2,3.2,5,0xdfe5ee,1.7,1.6,0);cBox(g,3.6,.2,.2,0xdfe5ee,0,3.2,-2.5);
+    const rf=new THREE.Mesh(new THREE.BoxGeometry(4,.18,5.6),new THREE.MeshBasicMaterial({color:0x6fa8ff,transparent:true,opacity:.45}));rf.position.set(0,3.3,0);g.add(rf);cBox(g,4.1,.25,.25,0x2f6fe0,0,3.2,2.8,false,true);
+    const lg=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#2f6fe0';q.beginPath();q.arc(64,64,60,0,7);q.fill();q.fillStyle='#fff';q.font='900 70px sans-serif';q.textAlign='center';q.textBaseline='middle';q.fillText('M',64,68);});
+    cBox(g,.2,4.2,.2,0x30343c,2.2,2.1,2.6);const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({map:lg,side:THREE.DoubleSide}));sg.position.set(2.2,4.6,2.6);g.add(sg);
+    G.add(neon(`MRT BIRU ${nm.toUpperCase()}`,x,3.9,z+2.95,0,'#ffffff','#6fa8ff',5,.7));
+    colliders.push({x0:x-1.8,x1:x-1.6,z0:z-2.5,z1:z+2.5,top:3.2},{x0:x+1.6,x1:x+1.8,z0:z-2.5,z1:z+2.5,top:3.2},{x0:x-1.8,x1:x+1.8,z0:z-2.7,z1:z-2.4,top:3.2});
+    stationAdd('xrail',x,z+1,0,`MRT Biru ${nm}`,{useDist:2.8,verb:'Turun ke',btn:'MRT',act:()=>{MB66.cur=i;mbGo(i);},ctx:()=>{MB66.cur=i;return mbCtx(false);}});});}
+setTimeout(function mb66Boot(){if(typeof cityGrp==='undefined'||!cityGrp||!started){setTimeout(mb66Boot,2000);return;}try{mbBooths();}catch(e){console.error('mb66',e);}},3000);
+
+/* ---- Airport: departures board + Permata Miles (every 10th international flight free) ---- */
+function fl66(){return PF.fl66=PF.fl66||{n:0,m:0,free:0};}
+function flDest(){return ZN.map((Z,k)=>({Z,k})).filter(o=>o.Z.tix);}
+function flStatus(Z,j){if(typeof atWar==='function'&&atWar(Z.id))return ['TERTUNDA','#ff6a6a'];const s=(Math.floor(Date.now()/60000)+j)%5;return s===0?['BOARDING','#7dff9a']:s===1?['GATE DIBUKA','#ffd25f']:['TEPAT WAKTU','#bcd2ff'];}
+let FL66T=null;
+function flBoard(){if(!FL66T)return;const D=flDest().slice(0,9);redrawTex(FL66T,(q,w,h)=>{q.fillStyle='#0b1020';q.fillRect(0,0,w,h);q.fillStyle='#ffd25f';q.font='800 34px sans-serif';q.textBaseline='middle';q.fillText('✈ KEBERANGKATAN · NUSA PERMATA AIR',20,32);
+  q.font='600 20px monospace';q.fillStyle='#8aa0c8';q.fillText('JAM   TUJUAN                       GATE  STATUS',20,72);
+  const now=new Date();D.forEach((o,j)=>{const y=106+j*38,m=(now.getMinutes()+5+j*7)%60,hh=(now.getHours()+Math.floor((now.getMinutes()+5+j*7)/60))%24;const [st,c]=flStatus(o.Z,j);
+    q.fillStyle=j%2?'#121a30':'#0f1628';q.fillRect(10,y-18,w-20,36);q.fillStyle='#ffffff';q.font='700 22px monospace';q.fillText(`${String(hh).padStart(2,'0')}:${String(m).padStart(2,'0')}`,20,y);
+    q.font='700 22px sans-serif';q.fillText(o.Z.n.replace(/^\S+\s/,'').slice(0,26),104,y);q.font='700 22px monospace';q.fillText('A'+(j+1),470,y);q.fillStyle=c;q.fillText(st,546,y);});});}
+ZB.bandara=(f=>function(G,zc,k){f.apply(this,arguments);FL66T=canvasTex(768,460,()=>{});const b=new THREE.Mesh(new THREE.PlaneGeometry(9,5.4),new THREE.MeshBasicMaterial({map:FL66T}));b.position.set(-38,4.4,zc+43.6);G.add(b);
+  cBox(G,9.4,5.8,.3,0x1b1d26,-38,4.4,zc+43.4);cBox(G,.4,1.6,.4,0x30343c,-38,.8,zc+43.4,true);flBoard();
+  stationAdd('xfly',-38,zc+46,0,'Papan Keberangkatan',{useDist:4,verb:'Lihat',btn:'MILES',act:()=>openMilesWin(),ctx:()=>milesCtx()});})(ZB.bandara);
+setInterval(()=>{try{if(zoneAt(you.pos.z)===0)flBoard();}catch(e){}},20000);
+function milesCtx(){const F=fl66();return `<div class="ctx-head"><h3>✈️ Permata Miles</h3><small>${F.m.toLocaleString('id-ID')} miles · ${F.n} penerbangan · tiket gratis ${F.free}</small></div><div class="ctx-row">${bzB('xMiles',1,'Lihat jadwal & Miles')}</div>`;}
+XA.xMiles=()=>openMilesWin();
+function openMilesWin(){if(modal)return;closePhone();const F=fl66(),D=flDest();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const lvl=F.m>=500?['💎 Platinum','#bcd2ff']:F.m>=200?['🥇 Gold','#ffd25f']:F.m>=50?['🥈 Silver','#d0d4da']:['🎫 Blue','#7fb8ff'];
+  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Permata Miles"><div class="mohead"><b>✈️ Permata Miles</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  <div class="wallet"><small>Status member</small><b style="color:${lvl[1]}">${lvl[0]}</b><div class="row"><span>Miles</span><span>${F.m.toLocaleString('id-ID')}</span></div><div class="row"><span>Penerbangan luar negeri</span><span>${F.n}</span></div><div class="row"><span>Tiket gratis tersedia</span><span>${F.free}</span></div></div>
+  <p class="muted">Setiap 10 penerbangan ke luar negeri dapat 1 tiket gratis. Miles = harga tiket / 100 rb. Gold dapat diskon 10%, Platinum 20%.</p>
+  <p class="sec-t">Jadwal keberangkatan</p>${D.map((o,j)=>{const [st,c]=flStatus(o.Z,j);const p=XS().jet?0:tixP(o.Z);return `<div class="row" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${esc(o.Z.n)}</b><br><small style="color:${c==='#bcd2ff'?'#5a6a8a':c}">${st} · Gate A${j+1}</small></span><button class="pbtn" data-fl="${o.Z.id}">${p?zKC(Math.round(p*milesDisc())):'Gratis'}</button></div>`;}).join('')}</div></div>`;
+  modal={el,st:{label:'Permata Miles'},busy:false,refresh(){}};const close=()=>{el.remove();modal=null;};el.querySelector('.moclose').onclick=close;
+  el.querySelectorAll('[data-fl]').forEach(b=>b.onclick=()=>{close();XA.xFly(b.dataset.fl);});}
+function milesDisc(){const m=fl66().m;return m>=500?.8:m>=200?.9:1;}
+XA.xFly=(f=>function(id){const Z=ZN.find(z=>z.id===id);if(!Z||!Z.tix||XS().jet||zoneAt(you.pos.z)===ZN.indexOf(Z))return f.apply(this,arguments);const F=fl66(),p=tixP(Z);
+  if(F.free>0){F.free--;S.bal+=p;logLine('sys',null,`🎫 Tiket gratis Permata Miles dipakai ke ${Z.n}.`,'win');}
+  else{const disc=Math.round(p*(1-milesDisc()));if(disc>0){S.bal+=disc;logLine('sys',null,`✈️ Diskon member Permata Miles ${zKC(disc)}.`,'win');}}
+  if(S.bal>=p){F.n++;F.m+=Math.max(1,Math.round(p/1e5));if(F.n%10===0){F.free++;logLine('sys',null,'✈️ Permata Miles: 10 penerbangan! Dapat 1 tiket gratis.','win');}savePF();}
+  return f.apply(this,arguments);})(XA.xFly);
+
+/* ---- Drivable cars ---- */
+const DRV66={on:0,car:null,kind:null,k:1,acc:0,last:null};
+const CAR66={moto:['🏍 Moge',2.2],car:['🏎 Mobil sport',2.6],suv:['🚙 SUV',2.3],limo:['🚘 Limosin',2.1],supercar:['🏁 Supercar emas',3],toro:['🏎 Toro',3.1],rosso:['🏎 Rosso GT',3],royale:['🚘 Sedan Royale',2.5],aero:['🏁 Hypercar Aero',3.5]};
+function drvS(){return PF.drv66=PF.drv66||{fuel:100,pick:null,km:0};}
+function myCars(){return Object.keys(CAR66).filter(id=>PF.items&&PF.items[id]);}
+function drvCan(){const zk=zoneAt(you.pos.z);return started&&((cityGrp&&cityGrp.visible&&zk<0)||(zk>=0&&!ZN[zk].under));}
+function drvStart(kind){if(DRV66.on)return;const s=drvS();kind=kind||s.pick||myCars()[0];if(!kind){showResult('🚗 Kamu belum punya mobil. Beli di Toko → Properti & kendaraan.');return;}
+  if(!drvCan()){showResult('🚗 Mobil hanya bisa disetir di luar ruangan.');return;}if(s.fuel<=0){showResult('⛽ Bensin habis. Isi BBM dulu.');return;}
+  s.pick=kind;let c;try{c=carModel(kind);}catch(e){showResult('Mobil ini belum bisa disetir');return;}scene.add(c);DRV66.car=c;DRV66.kind=kind;DRV66.k=CAR66[kind][1];DRV66.on=1;DRV66.last=you.pos.clone();
+  const a=you.av;['lLeg','rLeg'].forEach(n=>a[n]&&(a[n].visible=false));SFX.spinStart&&SFX.spinStart(.6);banner(`${CAR66[kind][0].split(' ')[0]} NYETIR<small>${CAR66[kind][0].replace(/^\S+\s/,'')} · kecepatan ×${DRV66.k}</small>`,'',1400);drvHud();}
+function drvStop(silent){if(!DRV66.on)return;DRV66.on=0;if(DRV66.car){scene.remove(DRV66.car);DRV66.car=null;}const a=you.av;['lLeg','rLeg'].forEach(n=>a[n]&&(a[n].visible=true));if(!silent)SFX.pop();savePF();drvHud();}
+XA.xDrv=k=>{if(DRV66.on)drvStop();else drvStart(k&&CAR66[k]?k:null);};
+XA.xDrvPick=k=>{if(!CAR66[k])return;drvS().pick=k;if(DRV66.on){drvStop(1);drvStart(k);}savePF();drvHud();};
+function nearSpbu(){try{return XP.some(b=>b.k==='spbu'&&Math.hypot(b.x-you.pos.x,b.z-you.pos.z)<25);}catch(e){return false;}}
+XA.xFuel=()=>{const s=drvS(),need=100-s.fuel;if(need<1){showResult('⛽ Tangki sudah penuh');return;}const near=nearSpbu(),p=Math.round(need*(near?500:2500));if(!XS().vip&&!xPay(p))return;s.fuel=100;SFX.coin();
+  showResult(`⛽ Tangki penuh${XS().vip?' (gratis, Black Card)':' · '+zKC(p)}${near?'':' · dekat SPBU lebih murah 5x'}`);savePF();drvHud();};
+function drvHud(){let el=$('drv66');const cars=myCars();if(!started||!cars.length||!drvCan()&&!DRV66.on){if(el)el.remove();return;}
+  if(!el){el=document.createElement('div');el.id='drv66';stage.appendChild(el);['pointerdown','touchstart'].forEach(ev=>el.addEventListener(ev,e=>e.stopPropagation(),{passive:true}));
+    el.addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;if(a==='go')XA.xDrv();else if(a==='fuel')XA.xFuel();else if(a==='horn')drvHorn();else if(a==='next'){const i=cars.indexOf(drvS().pick);XA.xDrvPick(myCars()[(i+1)%myCars().length]);}});}
+  const s=drvS(),k=s.pick&&CAR66[s.pick]?s.pick:cars[0];const fc=s.fuel>40?'#7dff9a':s.fuel>15?'#ffd25f':'#ff6a6a';
+  el.innerHTML=`<button data-a="go" class="dgo ${DRV66.on?'on':''}">${DRV66.on?'🚶 Turun':'🚗 Nyetir'}</button>${cars.length>1?`<button data-a="next" title="Ganti mobil">${CAR66[k][0].split(' ')[0]} ⟳</button>`:''}${DRV66.on?'<button data-a="horn">📯</button>':''}<button data-a="fuel"><span style="color:${fc}">⛽ ${Math.round(s.fuel)}%</span></button>`;}
+function drvHorn(){try{SFX.stop(.8);setTimeout(()=>SFX.stop(.8),180);}catch(e){}if(typeof npcs!=='undefined')npcs.slice(0,40).forEach(n=>{if(Math.hypot(n.pos.x-you.pos.x,n.pos.z-you.pos.z)<10&&Math.random()<.5){n.bubbleUntil=performance.now()+1500;if(n.bubEl){n.bubEl.textContent=['Wah mobil keren!','Pelan-pelan bos!','Minggir minggir 😅','Itu mobil sultan!'][Math.floor(Math.random()*4)];n.bubEl.classList.remove('off');}}});}
+(function drvLoop(){requestAnimationFrame(drvLoop);if(!DRV66.on||!DRV66.car)return;const c=DRV66.car;c.position.set(you.pos.x,you.pos.y,you.pos.z);c.rotation.y=you.yaw;
+  const d=DRV66.last?Math.hypot(you.pos.x-DRV66.last.x,you.pos.z-DRV66.last.z):0;if(d>0&&d<30){const s=drvS();s.fuel=Math.max(0,s.fuel-d/60);s.km+=d/1000;DRV66.acc+=d;if(DRV66.acc>40){DRV66.acc=0;drvHud();}if(s.fuel<=0){drvStop();showResult('⛽ Bensin habis! Isi BBM lewat tombol ⛽.');}}DRV66.last=you.pos.clone();})();
+setInterval(()=>{try{if(DRV66.on&&!drvCan())drvStop(1);drvHud();}catch(e){}},700);
+{const st=document.createElement('style');st.textContent=`#drv66{position:absolute;right:12px;top:156px;z-index:6;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:52vw}#drv66 button{background:rgba(18,12,34,.88);border:1px solid rgba(246,196,90,.6);color:#ffe7a8;border-radius:999px;padding:7px 12px;font:inherit;font-weight:800;font-size:13px;cursor:pointer}#drv66 .dgo{background:linear-gradient(#3c8cff,#2559c8);color:#fff;border-color:#9cc4ff}#drv66 .dgo.on{background:linear-gradient(#ff7a5a,#d8435b)}`;document.head.appendChild(st);}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
