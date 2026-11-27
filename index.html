@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v63';
+const GAME_VER='v64';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10002,6 +10002,40 @@ function openIxWin(){xModal('📊 Bursa Kota Permata',b=>{const s=ixS(),v=ixVal(
    <div class="wallet"><small>📰 Aksi korporasi</small>${s.ev.length?s.ev.slice(0,8).map(e=>`<div class="row"><span>${e.ic} ${esc(e.t)}</span><span class="muted">${ago(e.at)}</span></div>`).join(''):'<div class="row"><span class="muted">Belum ada rights issue atau akuisisi.</span></div>'}</div>`;});}
 xView('bursa63',{t:'Bursa',s:'Indeks & sektor',ic:'📊',bg:'linear-gradient(135deg,#1f9d55,#9be8b8)',r:()=>{setTimeout(()=>{if(phView==='bursa63'){phView='home';closePhone();openIxWin();}},20);return '<p class="muted">Membuka Bursa...</p>';}});
 setInterval(()=>{try{if(modal&&modal.st&&modal.st.label==='📊 Bursa Kota Permata')modal.refresh();}catch(e){}},5000);
+
+/* ================= v64: Ekonomi Zus — Bank Sentral (suku bunga), proyek raksasa (penghasilan + bonus permanen) ================= */
+function cbS(){const s=PF.cb64=PF.cb64||{r:5.75,h:[5.75],last:Date.now(),infl:3.1};return s;}
+function cbTick(){const s=cbS();if(Date.now()-s.last<600000)return;s.last=Date.now();const pull=(5.5-s.r)*.25,x=Math.random()+pull*.6;let d=x>.72?.25:x<.28?-.25:0;if(Math.random()<.08)d*=2;s.r=Math.max(2,Math.min(10,+(s.r+d).toFixed(2)));s.h.push(s.r);s.h=s.h.slice(-24);
+  s.infl=Math.max(.5,Math.min(9,+(s.infl+(Math.random()-.5)*.6-d*.8).toFixed(1)));
+  if(d){const up=d>0,k=Math.abs(d)/.25;MK.forEach(a=>{if(a.t!=='saham')return;let e=0;if(a.sec==='bank')e=.012*k;else if(['property','auto','retail','consumer'].includes(a.sec))e=-.018*k;else e=-.006*k;if(!up)e=-e;a.p*=1+e;a.f=(a.f||a.p)*(1+e*.6);if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;});
+    MK.forEach(a=>{if(a.t==='crypto'){const e=(up?-.02:.025)*k;a.p*=1+e;if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;}});}
+  const m=d?`🏛️ Bank Sentral ${d>0?'menaikkan':'menurunkan'} suku bunga ${Math.abs(d).toFixed(2).replace('.',',')} poin jadi ${s.r.toFixed(2).replace('.',',')}%. ${d>0?'Saham bank naik, properti dan crypto tertekan.':'Properti, konsumer dan crypto menguat.'}`:`🏛️ Bank Sentral menahan suku bunga di ${s.r.toFixed(2).replace('.',',')}%.`;
+  try{news.unshift(m);news=news.slice(0,6);}catch(e){}logLine('sys',null,m,d?'':'');savePF();}
+setInterval(()=>{try{if(started)cbTick();}catch(e){console.error('cb64',e);}},30000);
+/* mega projects: cost is set from your net worth when you start, then fixed */
+const MG64=[['menara','🏙️','Menara Zus','Pencakar langit 300 lantai di pusat Kota Permata.',.02,6,{inc:.0002},'Penghasilan sewa kantor'],
+  ['stadion','🏟️','Stadion Zus Arena','Stadion 80.000 kursi, konser dan liga.',.03,8,{inc:.00025},'Tiket konser & liga'],
+  ['bandara','🛫','Bandara Pribadi','Landasan jet pribadi dan terminal VIP.',.04,9,{inc:.0002,job:10},'Biaya parkir jet & kerja +10%'],
+  ['pulau','🏝️','Pulau Buatan Nusa Zus','Pulau reklamasi dengan resor dan marina.',.05,12,{inc:.0003,save:20},'Resor & marina · bunga tabungan +20%'],
+  ['roket','🚀','Roket ke Bulan','Misi berawak pertama Kota Permata ke bulan.',.1,15,{luck:3,bonus:5},'Hoki +3% & bonus menang +5% selamanya']];
+function mgS(){return PF.mg64=PF.mg64||{};}
+function mgDone(id){const p=mgS()[id];return p&&p.done;}
+{const _bf64=buffs;buffs=function(){const r=_bf64();try{MG64.forEach(m=>{if(mgDone(m[0]))for(const k in m[6])if(k!=='inc')r[k]=(r[k]||0)+m[6][k];});}catch(e){}return r;};}
+function mgTick(){const P=mgS(),now=Date.now();let inc=0;MG64.forEach(m=>{const p=P[m[0]];if(!p)return;if(!p.done&&now>=p.end){p.done=1;try{SFX.big();banner(`${m[1]} ${m[2].toUpperCase()}<small>selesai dibangun!</small>`,'',2800);}catch(e){}
+      const t=`${m[1]} ${m[2]} selesai dibangun! ${m[7]}.`;logLine('sys',null,t,'win');try{news.unshift(t);news=news.slice(0,6);}catch(e){}}
+    if(p.done&&m[6].inc)inc+=p.cost*m[6].inc;});if(inc>0){S.bal+=Math.round(inc);const P2=mgS();P2.earned=(P2.earned||0)+inc;}savePF();}
+setInterval(()=>{try{if(started)mgTick();}catch(e){console.error('mg64',e);}},60000);
+XA.xMgBuild=id=>{const m=MG64.find(x=>x[0]===id),P=mgS();if(!m||P[id])return;const nw=Math.max(1e9,netWorth()),cost=Math.round(nw*m[4]),tax=Math.round(cost*.05);if(!xPay(cost+tax))return;P[id]={cost,tax,start:Date.now(),end:Date.now()+m[5]*60000};
+  SFX.big();logLine('sys',null,`${m[1]} Pembangunan ${m[2]} dimulai: ${fmK(cost)} + pajak barang mewah 5% (${fmK(tax)}). Selesai dalam ${m[5]} menit.`,'win');savePF();save();render();try{modal&&modal.refresh();}catch(e){}};
+function openEcoWin(){xModal('🏛️ Ekonomi Zus',b=>{const s=cbS(),P=mgS(),nw=Math.max(1e9,netWorth());
+  b.innerHTML=`<div class="wallet"><small>🏛️ Bank Sentral Kota Permata</small><div class="row"><span>Suku bunga acuan</span><span style="font-weight:800">${s.r.toFixed(2).replace('.',',')}%</span></div><div class="row"><span>Inflasi</span><span>${s.infl.toFixed(1).replace('.',',')}%</span></div>
+    <div class="row"><span class="muted">Riwayat bunga</span><span>${s.h.slice(-8).map(x=>x.toFixed(2).replace('.',',')).join(' → ')}</span></div><div class="row"><span class="muted">Rapat berikutnya</span><span>${Math.max(0,Math.ceil((s.last+600000-Date.now())/60000))} menit lagi</span></div>
+    <div class="row"><span class="muted">Bunga naik: saham bank naik, properti/konsumer/crypto turun. Bunga turun: sebaliknya.</span></div></div>
+   <div class="wallet"><small>🏗️ Proyek raksasa</small><div class="row"><span class="muted">Harga dihitung dari kekayaanmu saat mulai membangun, ditambah pajak barang mewah 5%.${P.earned?` Total penghasilan proyek: ${zKC(Math.round(P.earned))}.`:''}</span></div>
+    ${MG64.map(m=>{const p=P[m[0]],c=Math.round(nw*m[4]);let st;if(!p)st=`<button class="small" onclick="XA.xMgBuild('${m[0]}')">Bangun · ${zKC(Math.round(c*1.05))}</button>`;else if(!p.done){const k=Math.min(1,(Date.now()-p.start)/(p.end-p.start));st=`<span class="muted">🔨 ${Math.round(k*100)}% · ${Math.max(0,Math.ceil((p.end-Date.now())/60000))} mnt</span>`;}else st=`<span class="up">✅ Selesai${m[6].inc?` · +${zKC(Math.round(p.cost*m[6].inc))}/mnt`:''}</span>`;
+      return `<div class="row"><span style="flex:1"><span style="font-weight:800">${m[1]} ${m[2]}</span><span class="muted" style="display:block;font-size:12px;font-weight:600">${m[3]} ${m[7]}.</span></span>${st}</div>`;}).join('')}</div>`;});}
+xView('zus64',{t:'Ekonomi',s:'Bank sentral & proyek',ic:'🏛️',bg:'linear-gradient(135deg,#b8860b,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='zus64'){phView='home';closePhone();openEcoWin();}},20);return '<p class="muted">Membuka Ekonomi...</p>';}});
+setInterval(()=>{try{if(modal&&modal.st&&modal.st.label==='🏛️ Ekonomi Zus')modal.refresh();}catch(e){}},5000);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
