@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v71';
+const GAME_VER='v72';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10400,6 +10400,71 @@ function seaBoatMesh(){const own=PF.items&&PF.items.yacht;const g=new THREE.Grou
   if(inSea&&SEA71.villa){const d=mgDone('pulau');if(SEA71.villa.visible!==!!d){SEA71.villa.visible=!!d;if(SEA71.sign)SEA71.sign.visible=!d;}}}catch(e){}})();
 /* harbour pier: set sail */
 ZB.pelabuhan=(f=>function(G,zc,k){f.apply(this,arguments);try{G.add(neon('⛵ LAUT LEPAS',30,3.4,zc-23.6,0,'#ffffff','#7df3ff',6,.9));stationAdd('sea71',30,zc-20,Math.PI,'Berlayar ke laut lepas',{useDist:3,verb:'Berlayar',btn:'LAYAR',act:()=>XA.xSeaGo(),ctx:()=>`<div class="ctx-head"><h3>⛵ Laut Lepas</h3><small>${PF.items&&PF.items.yacht?'Pakai kapal pesiar pribadimu (gratis)':'Sewa perahu 🪙 25.000 · punya Kapal pesiar? gratis'}</small></div><div class="ctx-row">${bzB('xSeaGo',1,'🛥️ Berlayar')}</div>`});}catch(e){console.error('sea71 pier',e);}})(ZB.pelabuhan);
+
+/* ================= v72: Pabrik & Rantai Pasok — kawasan industri, 5 pabrik, stok memasok bisnismu, ekspor ================= */
+ZN.push({id:'ind72',n:'🏭 Kawasan Industri Permata',sp:[0,80,Math.PI]});
+const FC72={k:ZN.length-1,list:[
+  {id:'makan',ic:'🍞',n:'Pabrik Makanan',g:'paket makanan',ar:'kios',arn:'Pasar Kios',c:0xd8a648,base:2e8,px:9e5},
+  {id:'tekstil',ic:'👕',n:'Pabrik Tekstil',g:'bal kain',ar:'mall',arn:'Mall',c:0x9b59b6,base:6e8,px:2.4e6},
+  {id:'semen',ic:'🧱',n:'Pabrik Semen',g:'ton semen',ar:'rumah',arn:'Perumahan',c:0x9aa0aa,base:1.2e9,px:5e6},
+  {id:'elek',ic:'💻',n:'Pabrik Elektronik',g:'unit gawai',ar:'apart',arn:'Apartemen',c:0x2f6fe0,base:3e9,px:1.3e7},
+  {id:'kilang',ic:'⛽',n:'Kilang BBM',g:'barel BBM',ar:'mega',arn:'Mega properti & SPBU',c:0x2a2a30,base:8e9,px:3.4e7}],trucks:[]};
+function fc72(){const s=PF.fc72=PF.fc72||{f:{},t:Date.now(),exp:0,auto:1,mk:{}};FC72.list.forEach(F=>{s.mk[F.id]=s.mk[F.id]||1;});return s;}
+function fcScale(){return Math.max(1,netWorth()/5e10);}
+function fcCost(F,lv){return Math.round(F.base*Math.pow(1.85,lv)*Math.sqrt(fcScale()));}
+function fcRate(F,lv){return lv*6;}/* units per minute */
+function fcNeed(F){const x=fc72().f[F.id];return Math.max(1,Math.ceil(((x&&x.lv)||1)*1.8));}/* units per minute the supplied area absorbs */
+function fcPx(F){return F.px*Math.sqrt(fcScale());}
+function fcCap(lv){return 400+lv*400;}
+function fcBonus(F){const s=fc72(),x=s.f[F.id];if(!x||!x.lv)return 0;return x.ok?Math.min(.6,.06*x.lv):0;}
+let bizArea0=bizArea;
+bizArea=(f=>{bizArea0=f;return function(ar){let v=f.apply(this,arguments);try{const F=FC72.list.find(q=>q.ar===ar);if(F)v*=1+fcBonus(F);}catch(e){}return v;};})(bizArea);
+function fcTick(){if(!started)return;const s=fc72(),now=Date.now(),mins=Math.min(10,(now-(s.t||now))/60000);if(mins<.98)return;s.t=now;let exp=0,up=0;
+  FC72.list.forEach(F=>{const x=s.f[F.id];if(!x||!x.lv)return;up+=fcRate(F,x.lv)*fcPx(F)*.25*mins;x.st=Math.min(fcCap(x.lv),(x.st||0)+fcRate(F,x.lv)*mins);
+    const need=fcNeed(F)*mins;x.ok=x.st>=need;if(x.ok)x.st-=need;
+    const rsv=Math.min(fcCap(x.lv)*.5,fcNeed(F)*15);if(s.auto&&x.st>rsv+1){const n=Math.floor(x.st-rsv);x.st-=n;const v=Math.round(n*fcPx(F)*s.mk[F.id]);exp+=v;x.sold=(x.sold||0)+n;}
+    s.mk[F.id]=Math.max(.6,Math.min(1.6,s.mk[F.id]*(1+(Math.random()-.5)*.08)+(1-s.mk[F.id])*.05));});
+  try{const w=WS().wars.length;if(w){s.mk.kilang=Math.min(1.8,s.mk.kilang*1.03);s.mk.elek=Math.min(1.6,s.mk.elek*1.01);}}catch(e){}
+  up=Math.round(up);S.bal+=exp-up;s.exp+=exp;s.up=(s.up||0)+up;if(exp>0&&Math.random()<.3)logLine('sys',null,`🏭 Ekspor pabrik +${zKC(exp)} (biaya operasional ${zKC(up)}).`,'win');savePF();}
+setInterval(()=>{try{fcTick();}catch(e){console.error('fc72',e);}},20000);
+XA.xFcBuild=id=>{const F=FC72.list.find(q=>q.id===id),s=fc72();if(!F)return;const x=s.f[id]=s.f[id]||{lv:0,st:0};if(x.lv>=10){showResult('Pabrik sudah level maksimal');return;}const c=fcCost(F,x.lv);if(!xPay(c))return;x.lv++;SFX.coin();
+  const m=x.lv===1?`🏭 ${F.n} berdiri! Memasok ${F.arn} (+${Math.round(fcBonus(F)*100)||6}% penghasilan saat stok cukup).`:`🏭 ${F.n} naik ke level ${x.lv}.`;logLine('sys',null,m,'win');banner(`${F.ic} ${F.n.toUpperCase()}<small>Level ${x.lv}</small>`,'',1800);fcVis();savePF();if(modal&&modal.refresh)modal.refresh();};
+XA.xFcSell=id=>{const F=FC72.list.find(q=>q.id===id),s=fc72(),x=s.f[id];if(!F||!x||x.st<1)return;const n=Math.floor(x.st),v=Math.round(n*fcPx(F)*s.mk[id]);x.st-=n;S.bal+=v;s.exp+=v;x.sold=(x.sold||0)+n;SFX.coin();showResult(`🚚 ${n} ${F.g} diekspor: +${zKC(v)}`);savePF();if(modal&&modal.refresh)modal.refresh();};
+XA.xFcAuto=()=>{const s=fc72();s.auto=s.auto?0:1;savePF();if(modal&&modal.refresh)modal.refresh();};
+function openFcWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=fc72();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Pabrik"><div class="mohead"><b>🏭 Pabrik & Rantai Pasok</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <p class="muted">Pabrik membuat barang tiap menit. Kalau stok cukup, bisnis yang dipasok dapat bonus penghasilan (+6% per level, maks +60%). Kelebihan stok bisa diekspor dengan harga pasar. Saat ada perang, harga BBM dan elektronik naik.</p>
+    <div class="wallet"><small>Total</small><b>${zKC(Math.round(s.exp))} ekspor</b><div class="row"><span>Biaya operasional</span><span>${zKC(Math.round(s.up||0))}</span></div><div class="row"><span>Ekspor otomatis (sisakan cadangan 15 menit)</span><span><button class="pbtn ${s.auto?'':'alt'}" data-a="auto">${s.auto?'AKTIF':'MATI'}</button></span></div></div>
+    ${FC72.list.map(F=>{const x=s.f[F.id]||{lv:0,st:0},lv=x.lv,mk=s.mk[F.id];return `<div class="wallet" style="margin-top:8px"><small>${F.ic} ${F.n} · memasok ${F.arn}</small><b>${lv?'Level '+lv:'Belum dibangun'}</b>
+      ${lv?`<div class="row"><span>Produksi / kebutuhan</span><span>${fcRate(F,lv)} / ${fcNeed(F)} ${F.g} per menit</span></div><div class="row"><span>Stok</span><span>${Math.floor(x.st)} / ${fcCap(lv)} ${x.ok?'· ✅ memasok':'· ⚠️ kurang'}</span></div><div class="row"><span>Bonus ${F.arn}</span><span>+${Math.round(fcBonus(F)*100)}%</span></div>`:''}
+      <div class="row"><span>Harga ekspor</span><span>${zKC(Math.round(fcPx(F)*mk))} / ${F.g} <small class="${mk>=1?'up':'dn'}">${mk>=1?'▲':'▼'}${Math.abs((mk-1)*100).toFixed(0)}%</small></span></div>
+      <div class="ctx-row" style="margin-top:6px"><button class="pbtn" data-b="${F.id}">${lv?(lv>=10?'MAKS':'⬆️ Level '+(lv+1)):'🏗️ Bangun'}${lv>=10?'':' · '+zKC(fcCost(F,lv))}</button>${lv&&x.st>=1?`<button class="pbtn alt" data-s="${F.id}">🚚 Ekspor ${Math.floor(x.st)}</button>`:''}</div></div>`;}).join('')}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelector('[data-a="auto"]').onclick=()=>XA.xFcAuto();
+    el.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>XA.xFcBuild(b.dataset.b));el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>XA.xFcSell(b.dataset.s));};
+  modal={el,st:{label:'Pabrik'},busy:false,refresh(){draw();}};draw();}
+XA.xFc72=()=>openFcWin();
+xView('pabrik72',{t:'Pabrik',s:'Rantai pasok',ic:'🏭',bg:'linear-gradient(135deg,#5a4a3a,#d8b48a)',r:()=>{setTimeout(()=>{if(phView==='pabrik72'){phView='home';closePhone();openFcWin();}},20);return '<p class="muted">Membuka Pabrik...</p>';}});
+/* the industrial zone: 5 factory plots that show their level, smoke and trucks */
+const FCV={plots:[],smoke:[]};
+ZB.ind72=(G,zc,k)=>{zGround(G,zc,0x6a6a66);gplane(G,12,ZD.hd*2-10,new THREE.MeshLambertMaterial({color:0x2e3038}),0,zc,.01);gplane(G,ZD.hw*2-10,10,new THREE.MeshLambertMaterial({color:0x2e3038}),0,zc+20,.01);
+  G.add(neon('KAWASAN INDUSTRI PERMATA',0,6,zc+96,Math.PI,'#ffffff','#ffd25f',18,1.6));cBox(G,20,.6,1,0xd8a648,0,5,zc+96.5);[-10,10].forEach(x=>cBox(G,1,5,1,0x8a8f9e,x,2.5,zc+96.5,true));
+  stationAdd('ind72',0,zc+84,Math.PI,'Kantor Kawasan Industri',{useDist:3.5,verb:'Kelola',btn:'PABRIK',act:()=>openFcWin(),ctx:()=>`<div class="ctx-head"><h3>🏭 Kawasan Industri</h3><small>Bangun dan tingkatkan pabrik, atur ekspor</small></div><div class="ctx-row">${bzB('xFc72',1,'Kelola pabrik')}</div>`});
+  cBox(G,8,4,5,0xe8e0d0,0,2,zc+78,true);G.add(neon('KANTOR',0,4.6,zc+80.6,0,'#ffffff','#7df3ff',4,.7));
+  stationAdd('ind72',4,zc+90,Math.PI,'Kembali ke kota',{useDist:3,verb:'Pulang',btn:'KOTA',act:()=>XA.xFly('home'),ctx:()=>`<div class="ctx-head"><h3>🚌 Bus kota</h3><small>Kembali ke Stasiun Sentral</small></div><div class="ctx-row">${bzB('xFly','home','Pulang')}</div>`});
+  FC72.list.forEach((F,i)=>{const x=(i%2?1:-1)*38,z=zc+50-Math.floor(i/2)*45+(i===4?0:0);const px=i===4?0:x,pz=i===4?zc-60:z;const g=new THREE.Group();g.position.set(px,0,pz);G.add(g);
+    gplane(G,30,24,new THREE.MeshLambertMaterial({color:0x8a8a80}),px,pz,.008);G.add(neon(`${F.ic} ${F.n.toUpperCase()}`,px,9.5,pz+5.4,0,'#ffffff','#ffd25f',10,1.1));
+    const site=new THREE.Group();g.add(site);cBox(site,1,.4,1,0xffd25f,-6,.2,0);cBox(site,1,.4,1,0xffd25f,6,.2,0);const sign=neon('LAHAN KOSONG',0,1.6,10,0,'#ffffff','#ff7a8a',6,.7);sign.position.set(0,1.6,10);site.add(sign);
+    const bld=new THREE.Group();g.add(bld);cBox(bld,22,7,14,F.c,0,3.5,-2,true);cBox(bld,22.4,.6,14.4,0x30343c,0,7.2,-2);for(let w=-8;w<=8;w+=4)cBox(bld,2,1.4,.1,0x9fd8ff,w,4.5,5.05,false,true);cBox(bld,5,4,.2,0x30343c,0,2,5.1);
+    const stacks=[];for(let j=0;j<3;j++){const st=new THREE.Mesh(new THREE.CylinderGeometry(.8,1,9,10),mat(0xb0b4bc));st.position.set(-7+j*4,7.5,-6);bld.add(st);const sm=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,6),new THREE.MeshBasicMaterial({color:0xdcdcdc,transparent:true,opacity:.5,depthWrite:false}));sm.position.set(-7+j*4,12.5,-6);bld.add(sm);stacks.push(st);FCV.smoke.push({m:sm,x:-7+j*4,i,j});}
+    FCV.plots[i]={site,bld,stacks};stationAdd('ind72',px,pz+12,Math.PI,F.n,{useDist:4,verb:'Kelola',btn:'PABRIK',act:()=>openFcWin(),ctx:()=>{const x=fc72().f[F.id];return `<div class="ctx-head"><h3>${F.ic} ${F.n}</h3><small>${x&&x.lv?'Level '+x.lv+' · stok '+Math.floor(x.st)+' '+F.g:'Belum dibangun · '+zKC(fcCost(F,0))}</small></div><div class="ctx-row">${bzB('xFcBuild',F.id,x&&x.lv?'⬆️ Naik level':'🏗️ Bangun')}${bzB('xFc72',1,'Semua pabrik')}</div>`;}});});
+  for(let i=0;i<3;i++){const tr=new THREE.Group();cBox(tr,2.2,2.2,2,0xd8435b,0,1.3,2.4);cBox(tr,2.4,2.6,5,0xf2f2f2,0,1.5,-1.4);G.add(tr);FC72.trucks.push(tr);}
+  zAnim.push({k,f:()=>{const t=performance.now()/1000;FC72.trucks.forEach((tr,i)=>{const u=((t*.06+i/3)%1);const L=[[0,zc+90],[0,zc+20],[i%2?45:-45,zc+20],[0,zc+20]];const seg=Math.floor(u*4),fr=u*4-seg,a=L[seg],b=L[(seg+1)%4];tr.position.set(a[0]+(b[0]-a[0])*fr,0,a[1]+(b[1]-a[1])*fr);tr.rotation.y=Math.atan2(b[0]-a[0],b[1]-a[1]);});
+    FCV.smoke.forEach(S0=>{if(!S0.m.parent||!S0.m.parent.visible)return;const p=((t*.4+S0.j*.33)%1);S0.m.position.y=12+p*6;S0.m.scale.setScalar(.6+p*1.6);S0.m.material.opacity=.55*(1-p);});}});
+  setTimeout(fcVis,50);};
+function fcVis(){const s=fc72();FC72.list.forEach((F,i)=>{const P=FCV.plots[i];if(!P)return;const lv=(s.f[F.id]||{}).lv||0;P.site.visible=!lv;P.bld.visible=!!lv;P.stacks.forEach((st,j)=>st.visible=lv>=1+j*4);});}
+PLACES.industri=['🏭 Kawasan Industri',null];
+XA.xTaxi=(f=>function(id){if(id!=='industri')return f.apply(this,arguments);const p=XS().vip?0:25000;if(p&&!xPay(p))return;closePhone();const zc=zoneZ(FC72.k);tpTo(0,zc+80,Math.PI);banner('🏭 KAWASAN INDUSTRI<small>Bangun pabrik untuk memasok bisnismu</small>','',2000);xSave();})(XA.xTaxi);
+goPlace=(f=>function(id){if(id==='industri'){tpTo(0,zoneZ(FC72.k)+80,Math.PI);return;}return f.apply(this,arguments);})(goPlace);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
