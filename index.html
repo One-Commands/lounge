@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v73';
+const GAME_VER='v74';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10514,6 +10514,46 @@ setInterval(()=>{const el=$('ks73');if(el)el.style.display=(typeof modal!=='unde
 {const st=document.createElement('style');st.textContent=`#ks73{position:absolute;left:12px;top:calc(var(--advTop,118px) + 86px);z-index:6;max-width:min(300px,46vw)}#ks73 button{background:rgba(18,12,34,.85);border:1px solid rgba(127,184,255,.6);color:#dbe9ff;border-radius:999px;padding:6px 11px;font:inherit;font-weight:700;font-size:12px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;cursor:pointer}#ks73 i{font-style:normal;background:#2f6fe0;color:#fff;border-radius:999px;padding:0 6px;margin-right:4px}`;document.head.appendChild(st);}
 setInterval(()=>{try{ksHud();}catch(e){}},5000);
 setTimeout(function ks73Boot(){if(!started){setTimeout(ks73Boot,2000);return;}ksHud();},4000);
+
+/* ================= v74: Musim & Bencana — musim hujan/kemarau, banjir, gempa, badai, asuransi properti ================= */
+const MS74={len:45*60e3,dis:[['banjir','🌊','Banjir','Hujan deras membuat banjir di Kota Permata. Kios dan perumahan sepi.',{property:-.04,consumer:-.02,retail:-.03,food:.03},{kios:.5,rumah:.6,mall:.8},.006],
+  ['gempa','🌋','Gempa bumi','Gempa mengguncang Kota Permata. Beberapa properti rusak.',{property:-.06,bank:-.03,health:.03,mining:.02},{rumah:.7,apart:.7,mega:.85},.02],
+  ['badai','🌀','Badai tropis','Badai tropis melanda pesisir. Penerbangan dan pelayaran terganggu.',{airline:-.05,shipping:-.05,energy:.02},{mall:.85,mega:.9},.004]],cool:0};
+function ms74(){const s=PF.ms74=PF.ms74||{t0:Date.now(),ev:null,hist:[],ins:0,paid:0,claim:0};return s;}
+function season(){const s=ms74(),i=Math.floor((Date.now()-s.t0)/MS74.len)%2;return i===0?{id:'hujan',ic:'🌧️',n:'Musim Hujan'}:{id:'kemarau',ic:'☀️',n:'Musim Kemarau'};}
+function seasonLeft(){const s=ms74();return MS74.len-((Date.now()-s.t0)%MS74.len);}
+function disOn(){const s=ms74();return s.ev&&Date.now()<s.ev.end?MS74.dis.find(d=>d[0]===s.ev.id):null;}
+function insPrem(){return Math.round(Math.max(1e5,bizVal()*.0015));}/* per 10 minutes */
+bizArea=(f=>function(ar){let v=f.apply(this,arguments);try{const D=disOn();if(D&&D[5][ar])v*=D[5][ar];const se=season();if(se.id==='kemarau'&&ar==='kios')v*=1.08;if(se.id==='hujan'&&ar==='mall')v*=1.06;}catch(e){}return v;})(bizArea);
+function disStart(id){const s=ms74(),D=MS74.dis.find(d=>d[0]===id);if(!D)return;const dur=(id==='gempa'?4:8)*60e3;s.ev={id,end:Date.now()+dur,t:Date.now()};
+  let loss=0;try{const b=bizS();for(const h in b.h){const x=b.h[h];const l=x.v*D[6]*(1+Math.random());x.v-=l;loss+=l;}if(id==='gempa'&&typeof MEGA!=='undefined')MEGA.forEach(M=>{const m=megaS(M);if(m.me){const l=m.v*.01;m.v-=l;loss+=l;}});}catch(e){}
+  MK.forEach(a=>{if(a.t!=='saham')return;const e=D[4][a.sec];if(!e)return;const j=e*(.7+Math.random()*.6);a.p=Math.max(1,a.p*(1+j));if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;});
+  let msg=`${D[1]} ${D[2].toUpperCase()}! ${D[3]}`;if(loss>0){if(s.ins){const pay=Math.round(loss*.9);S.bal+=pay;s.claim+=pay;msg+=` Kerugian properti ${zKC(Math.round(loss))}, asuransi membayar ${zKC(pay)}.`;}else msg+=` Kerugian properti ${zKC(Math.round(loss))}. Kamu belum punya asuransi!`;}
+  s.hist.unshift({id,t:Date.now(),loss:Math.round(loss)});s.hist=s.hist.slice(0,10);logLine('sys',null,msg,loss>0&&!s.ins?'lose':'');try{news.unshift(msg);news=news.slice(0,6);}catch(e){}
+  try{banner(`${D[1]} ${D[2].toUpperCase()}<small>${D[3]}</small>`,'',3200);if(id==='gempa'){shakeFx();setTimeout(shakeFx,600);setTimeout(shakeFx,1300);}SFX.riser&&SFX.riser();}catch(e){}
+  if(id!=='gempa'){try{wx=WX[id==='badai'?3:2];wxUntil=s.ev.end;}catch(e){}}flood74();savePF();}
+function msTick(){if(!started)return;const s=ms74(),se=season();if(s.se!==se.id){if(s.se){const m=`${se.ic} ${se.n} dimulai. ${se.id==='hujan'?'Mall ramai (+6%), waspada banjir.':'Kios laris (+8%), harga pangan naik.'}`;logLine('sys',null,m);try{news.unshift(m);news=news.slice(0,6);}catch(e){}}s.se=se.id;
+    try{const f=fc72();f.mk.makan=Math.min(1.6,f.mk.makan*(se.id==='kemarau'?1.15:.95));}catch(e){}}
+  if(s.ins){s.insT=s.insT||Date.now();if(Date.now()-s.insT>=600000){s.insT=Date.now();const p=insPrem();if(S.bal>=p){S.bal-=p;s.paid+=p;}else{s.ins=0;logLine('sys',null,'🛡️ Asuransi properti berhenti karena saldo tidak cukup.','lose');}}}
+  if(disOn()){flood74();return;}if(s.ev&&Date.now()>=s.ev.end){const D=MS74.dis.find(d=>d[0]===s.ev.id);s.ev=null;flood74();if(D)logLine('sys',null,`${D[1]} ${D[2]} sudah berlalu. Kota pulih.`,'win');savePF();}
+  if(Date.now()<MS74.cool)return;const r=Math.random();const p=se.id==='hujan'?{banjir:.05,badai:.03,gempa:.012}:{gempa:.012,badai:.008};let pick=null,acc=0;for(const k in p){acc+=p[k];if(r<acc){pick=k;break;}}
+  if(pick){MS74.cool=Date.now()+20*60e3;disStart(pick);}}
+setInterval(()=>{try{msTick();}catch(e){console.error('ms74',e);}},60000);
+/* flood visual: a translucent water sheet over the city streets while a flood is on */
+let FL74=null;function flood74(){try{const on=disOn()&&disOn()[0]==='banjir';if(!cityGrp)return;if(on&&!FL74){FL74=new THREE.Mesh(new THREE.PlaneGeometry(360,360),new THREE.MeshBasicMaterial({color:0x2f7ac8,transparent:true,opacity:.62,depthWrite:false}));FL74.rotation.x=-Math.PI/2;FL74.position.set(0,.3,-60);FL74.renderOrder=2;cityGrp.add(FL74);}if(FL74)FL74.visible=!!on;}catch(e){}}
+XA.xIns74=()=>{const s=ms74();if(s.ins){s.ins=0;showResult('🛡️ Asuransi properti dihentikan');}else{const p=insPrem();if(!xPay(p))return;s.ins=1;s.insT=Date.now();s.paid+=p;showResult(`🛡️ Asuransi aktif. Premi ${zKC(p)} per 10 menit, menanggung 90% kerugian bencana.`);}SFX.coin();savePF();if(modal&&modal.refresh)modal.refresh();};
+function openMsWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=ms74(),se=season(),D=disOn(),left=seasonLeft();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Musim dan Bencana"><div class="mohead"><b>${se.ic} Musim & Bencana</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <div class="wallet"><small>Sekarang</small><b>${se.ic} ${se.n}</b><div class="row"><span>Berganti dalam</span><span>${Math.ceil(left/60000)} menit</span></div><div class="row"><span>Efek</span><span>${se.id==='hujan'?'Mall +6% · risiko banjir & badai':'Kios +8% · harga pangan naik'}</span></div>${D?`<div class="row"><span>Bencana aktif</span><span class="dn">${D[1]} ${D[2]} · ${Math.ceil((s.ev.end-Date.now())/60000)} menit</span></div>`:''}</div>
+    <p class="sec-t">🛡️ Asuransi properti</p><p class="muted">Menanggung 90% kerugian rumah, apartemen dan mega properti akibat bencana. Premi ${zKC(insPrem())} tiap 10 menit (0,15% nilai bisnis).</p>
+    <div class="wallet"><div class="row"><span>Status</span><span class="${s.ins?'up':'dn'}">${s.ins?'AKTIF':'Tidak aktif'}</span></div><div class="row"><span>Total premi dibayar</span><span>${zKC(s.paid)}</span></div><div class="row"><span>Total klaim diterima</span><span>${zKC(s.claim)}</span></div></div>
+    <div class="ctx-row"><button class="pbtn ${s.ins?'alt':''}" data-a="ins">${s.ins?'Hentikan asuransi':'🛡️ Aktifkan asuransi'}</button></div>
+    <p class="sec-t">Dampak bencana ke saham</p>${MS74.dis.map(d=>`<div class="row" style="padding:3px 0"><b>${d[1]} ${d[2]}</b><br><small>${Object.entries(d[4]).map(([k,v])=>`${(SECN63[k]||k)} ${v>0?'+':''}${Math.round(v*100)}%`).join(' · ')}</small></div>`).join('')}
+    <p class="sec-t">Riwayat</p>${s.hist.length?s.hist.map(h=>{const d=MS74.dis.find(x=>x[0]===h.id);return `<div class="row" style="padding:2px 0"><small>${new Date(h.t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})} · ${d[1]} ${d[2]}${h.loss?' · rugi '+zKC(h.loss):''}</small></div>`;}).join(''):'<p class="muted">Belum ada bencana.</p>'}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelector('[data-a="ins"]').onclick=()=>XA.xIns74();};
+  modal={el,st:{label:'Musim & Bencana'},busy:false,refresh(){draw();}};draw();}
+XA.xMs74=()=>openMsWin();
+xView('musim74',{t:'Musim',s:'Cuaca, bencana, asuransi',ic:'🌦️',bg:'linear-gradient(135deg,#2f6fe0,#a8e0ff)',r:()=>{setTimeout(()=>{if(phView==='musim74'){phView='home';closePhone();openMsWin();}},20);return '<p class="muted">Membuka...</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
