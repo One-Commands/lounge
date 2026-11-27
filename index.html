@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v69';
+const GAME_VER='v70';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10298,6 +10298,51 @@ XA.xHome69=()=>openHomeWin();
 v44BuildHouse=(f=>function(){const g=f.apply(this,arguments);try{const X=INT.X.rumah,Z=INT.Z;iB(g,1.4,1.1,.8,0xd8a648,X+5,.55,Z+8.4);
   stationAdd('v44home',X+5,Z+7.4,Math.PI,'Rumah Impian',{useDist:2.6,verb:'Atur',btn:'RUMAH',act:()=>openHomeWin(),ctx:()=>`<div class="ctx-head"><h3>🏠 Rumah Impian ${'⭐'.repeat(homeStars())}</h3><small>Tema, pesta dan perabot · kenyamanan ${homeComfort()}</small></div><div class="ctx-row">${bzB('xHome69',1,'Buka')}</div>`});
   setTimeout(()=>{v69Theme();if(partyOn())v69Guests(3+homeStars());},50);}catch(e){console.error('v69',e);}return g;})(v44BuildHouse);
+
+/* ================= v70: Liga Reme — musim 60 menit, 6 divisi, promosi/degradasi, trofi ================= */
+const LG70={len:3600e3,divs:[['Divisi 5','🥉',1e4],['Divisi 4','🥈',1e6],['Divisi 3','🥇',1e8],['Divisi 2','💠',1e10],['Divisi 1','💎',1e12],['Liga Elit','👑',1e14]],
+  names:['Budi','Sari','Agus','Melati','Yoga','Putri','Hendro','Rina','Koh Hendra','Bu Wulan','Om Benny','Dewi','Rangga','Lestari','Bayu','Citra','Fajar','Nadia','Tuan Arkan','Nona Selena']};
+function lgS(){const s=PF.lg70=PF.lg70||{div:0,end:0,me:0,w:0,n:0,npc:[],tro:[],hist:[],best:0};if(!s.end||!s.npc.length)lgNew(s,true);return s;}
+function lgNew(s,first){s.end=Date.now()+LG70.len;s.me=0;s.w=0;s.n=0;const pool=LG70.names.slice().sort(()=>Math.random()-.5);s.npc=pool.slice(0,9).map(n=>({n,p:0,sk:.6+Math.random()*.8}));if(!first)logLine('sys',null,`🏆 Musim baru Liga Reme dimulai di ${LG70.divs[s.div][1]} ${LG70.divs[s.div][0]}.`,'win');}
+function lgMin(s){return LG70.divs[s.div][2];}
+function lgTable(s){return [{n:'Kamu',p:s.me,me:1}].concat(s.npc).sort((a,b)=>b.p-a.p);}
+function lgRank(s){return lgTable(s).findIndex(x=>x.me)+1;}
+function lgPrize(div,rank){const base=LG70.divs[div][2]*40;return rank===1?base*5:rank===2?base*3:rank===3?base*2:rank<=5?base:0;}
+function lgEnd(){const s=lgS();const rank=lgRank(s),d0=s.div,prize=lgPrize(d0,rank);let mv='';
+  if(prize){S.bal+=prize;}if(rank<=3){s.tro.unshift({d:d0,r:rank,t:Date.now()});s.tro=s.tro.slice(0,30);}
+  if(rank<=2&&s.div<LG70.divs.length-1){s.div++;mv='naik';}else if(rank>=9&&s.div>0){s.div--;mv='turun';}s.best=Math.max(s.best,s.div);
+  s.hist.unshift({d:d0,r:rank,p:s.me,t:Date.now()});s.hist=s.hist.slice(0,10);
+  const D=LG70.divs[d0];const m=`🏆 Liga Reme selesai: kamu peringkat ${rank} di ${D[1]} ${D[0]}${prize?' · hadiah '+zKC(prize):''}${mv==='naik'?' · PROMOSI ke '+LG70.divs[s.div][0]+'!':mv==='turun'?' · turun ke '+LG70.divs[s.div][0]:''}.`;
+  logLine('sys',null,m,rank<=3?'win':'');try{news.unshift(m);news=news.slice(0,6);}catch(e){}if(rank<=3)try{banner(`🏆 LIGA REME · PERINGKAT ${rank}<small>${D[0]}${mv==='naik'?' · promosi!':''}</small>`,'resb',3000);SFX.big();}catch(e){}
+  try{xpAdd(rank<=3?(4-rank)*80:20,'Liga Reme');}catch(e){}lgNew(s);savePF();}
+function lgTick(){if(!started)return;const s=lgS();if(Date.now()>=s.end){lgEnd();return;}
+  const left=(s.end-Date.now())/LG70.len;s.npc.forEach(n=>{const g=Math.random()<.55?Math.round((1+Math.random()*3)*n.sk*(1+s.div*.08)):0;n.p+=g;});
+  if(Math.random()<.08&&left<.5){const t=lgTable(s),r=lgRank(s);if(r>1){const a=t[r-2];logLine('sys',null,`🏆 Liga: kamu tertinggal ${a.p-s.me} poin dari ${a.n} (peringkat ${r-1}).`);}}}
+setInterval(()=>{try{lgTick();}catch(e){console.error('lg70',e);}},60000);
+remeRound=(f=>async function(t){const bet=S.bet,h0=S.hist[S.hist.length-1];const r=await f.apply(this,arguments);
+  try{const last=S.hist[S.hist.length-1];if(!last||last===h0||!(bet>0))return r;const s=lgS();if(bet<lgMin(s))return r;if(Date.now()>=s.end)lgEnd();
+    const pts=last.w?3:1,bonus=(t&&t.vip?1:0)+(bet>=lgMin(s)*100?1:0);s.me+=pts+bonus;s.n++;if(last.w)s.w++;savePF();}catch(e){}return r;})(remeRound);
+function openLgWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);let iv=null;
+  const draw=()=>{const s=lgS(),D=LG70.divs[s.div],T=lgTable(s),rk=lgRank(s),left=Math.max(0,s.end-Date.now()),mm=Math.floor(left/60000),ss=Math.floor(left/1000)%60;
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Liga Reme"><div class="mohead"><b>🏆 Liga Reme</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <div class="wallet"><small>Musim berjalan · sisa ${mm}:${String(ss).padStart(2,'0')}</small><b>${D[1]} ${D[0]}</b><div class="row"><span>Peringkatmu</span><span>#${rk} · ${s.me} poin</span></div><div class="row"><span>Main / menang</span><span>${s.n} / ${s.w}</span></div><div class="row"><span>Taruhan minimal dihitung</span><span>${zKC(lgMin(s))}</span></div></div>
+    <p class="muted">Main Reme, Qeme atau Leme di meja mana saja dengan taruhan minimal di atas. Menang +3, kalah +1, meja VIP +1, taruhan 100x minimal +1. Peringkat 1–2 naik divisi, 9–10 turun.</p>
+    <p class="sec-t">Klasemen</p>${T.map((x,i)=>`<div class="row" style="display:flex;justify-content:space-between;padding:5px 8px;border-radius:8px;${x.me?'background:rgba(47,111,224,.14);font-weight:800':''}${i===1&&s.div<5?';border-bottom:2px dashed #2f9e5a':''}${i===7&&s.div>0?';border-bottom:2px dashed #d8435b':''}"><span>${i+1}. ${i<3?['🥇','🥈','🥉'][i]+' ':''}${esc(x.n)}</span><span>${x.p} poin${lgPrize(s.div,i+1)?' · '+zKC(lgPrize(s.div,i+1)):''}</span></div>`).join('')}
+    <p class="sec-t">Lemari trofi (${s.tro.length})</p><div style="font-size:22px;line-height:1.4">${s.tro.length?s.tro.slice(0,20).map(x=>`<span title="${LG70.divs[x.d][0]} #${x.r}">${['🏆','🥈','🥉'][x.r-1]}</span>`).join(''):'<span class="muted" style="font-size:13px">Belum ada. Masuk 3 besar untuk dapat trofi.</span>'}</div>
+    <p class="sec-t">Riwayat musim</p>${s.hist.length?s.hist.map(h=>`<div class="row" style="padding:2px 0"><small>${LG70.divs[h.d][1]} ${LG70.divs[h.d][0]} · #${h.r} · ${h.p} poin</small></div>`).join(''):'<p class="muted">Musim pertama.</p>'}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{clearInterval(iv);el.remove();modal=null;};};
+  modal={el,st:{label:'Liga Reme'},busy:false,refresh(){draw();}};draw();iv=setInterval(()=>{if(!document.body.contains(el)){clearInterval(iv);return;}const t=el.querySelector('.wallet small');const s=lgS(),left=Math.max(0,s.end-Date.now());if(t)t.textContent=`Musim berjalan · sisa ${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,'0')}`;},1000);}
+XA.xLiga70=()=>openLgWin();
+xView('liga70',{t:'Liga Reme',s:'Klasemen & trofi',ic:'🏆',bg:'linear-gradient(135deg,#d8a648,#fff1c8)',r:()=>{setTimeout(()=>{if(phView==='liga70'){phView='home';closePhone();openLgWin();}},20);return '<p class="muted">Membuka Liga...</p>';}});
+/* league info inside every reme/qeme/leme table context */
+if(typeof ctx61==='function'){ctx61=(f=>function(t){let h=f.apply(this,arguments);try{const s=lgS();h+=`<div class="ctx-row"><span>🏆 Liga</span><b>#${lgRank(s)} · ${s.me} poin</b><span class="muted" style="font-size:11px">${LG70.divs[s.div][0]} · min ${zKC(lgMin(s))}</span>${bzB('xLiga70',1,'Klasemen')}</div>`;}catch(e){}return h;})(ctx61);}
+/* league board in the casino near the tournament wall */
+buildHostTables=(f=>function(){const r=f.apply(this,arguments);try{const T=canvasTex(512,512,()=>{});LG70.tex=T;const m=new THREE.Mesh(new THREE.PlaneGeometry(4.2,4.2),new THREE.MeshBasicMaterial({map:T}));m.position.set(ROOM-.35,3.6,-9.5);m.rotation.y=-Math.PI/2;scene.add(m);lgBoard();
+  stationAdd('liga70',ROOM-1.6,-9.5,-Math.PI/2,'Papan Liga Reme',{useDist:3,verb:'Lihat',btn:'LIGA',act:()=>openLgWin(),ctx:()=>{const s=lgS();return `<div class="ctx-head"><h3>🏆 Liga Reme</h3><small>${LG70.divs[s.div][0]} · peringkat #${lgRank(s)} · ${s.me} poin</small></div><div class="ctx-row">${bzB('xLiga70',1,'Klasemen')}</div>`;}});}catch(e){console.error('lg board',e);}return r;})(buildHostTables);
+function lgBoard(){const T=LG70.tex;if(!T)return;const s=lgS(),L=lgTable(s).slice(0,10),D=LG70.divs[s.div];redrawTex(T,(q,w,h)=>{q.fillStyle='#120c22';q.fillRect(0,0,w,h);q.strokeStyle='#d8a648';q.lineWidth=8;q.strokeRect(4,4,w-8,h-8);
+  q.fillStyle='#ffd25f';q.font='900 40px sans-serif';q.textAlign='center';q.fillText('🏆 LIGA REME',w/2,56);q.font='700 24px sans-serif';q.fillStyle='#c8ccd4';q.fillText(`${D[0]} · sisa ${Math.ceil(Math.max(0,s.end-Date.now())/60000)} menit`,w/2,90);
+  q.textAlign='left';L.forEach((x,i)=>{const y=134+i*36;q.fillStyle=x.me?'#7fb8ff':i<3?'#ffd25f':'#ffffff';q.font=(x.me?'800 ':'600 ')+'26px sans-serif';q.fillText(`${i+1}. ${x.n}`,36,y);q.textAlign='right';q.fillText(String(x.p),w-36,y);q.textAlign='left';});});}
+setInterval(()=>{try{if(started&&Math.abs(you.pos.x)<ROOM&&Math.abs(you.pos.z)<ROOM)lgBoard();}catch(e){}},20000);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
