@@ -639,6 +639,13 @@ body.phOpen #ctx{display:none!important}
 .game.xphoto .hud-tl,.game.xphoto .hud-tr,.game.xphoto .chatbar,.game.xphoto .ctx,.game.xphoto .touch,.game.xphoto .help,.game.xphoto #xMini,.game.xphoto #xPill,.game.xphoto .chatpanel,.game.xphoto .result{display:none!important}
 .xbody{max-height:70vh;overflow:auto}
 #phone:not(.hidden) ~ #xMini,#phone:not(.hidden) ~ #xPill{display:none}
+
+/* v82.1: buttons stand out from the cream window background */
+.modal .panel button.small:not(:disabled):not([aria-pressed="true"]):not(.p):not(.ghost),.phone.shopPh button.small:not(:disabled):not([aria-pressed="true"]):not(.p):not(.ghost){background:#fff!important;color:#1e4fb8!important;border:2px solid #2f6fd6!important;box-shadow:0 3px 0 #b9c9ee!important}
+.modal .panel.moff .pbtn:not(.alt):not(:disabled):not(.ghost):not(.danger){background:linear-gradient(180deg,#ffd25f,#e8a62a)!important;color:#3a2400!important;box-shadow:0 3px 0 #b47a12!important;border:0!important}
+.modal .panel.moff .pbtn.alt:not(:disabled),.modal .panel.moff .pbtn.ghost:not(:disabled){background:#fff!important;color:#1e4fb8!important;border:2px solid #2f6fd6!important;box-shadow:0 3px 0 #b9c9ee!important}
+.modal .panel.moff .wallet{background:#fff!important;border:2px solid #e2d3b0!important;border-radius:12px}
+.modal .panel button:not(:disabled):active{transform:translateY(2px)}
 </style>
 
 <div class="game" id="stage">
@@ -3578,7 +3585,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v82';
+const GAME_VER='v82.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -4219,7 +4226,7 @@ function buildCivic(G){
 /* ---------- v18b core: phone apps registry, actions, zones (airport, port, 4 neighbour countries, sports district), MRT/LRT ---------- */
 const NEGARA={n:'Republik Nusantara Raya',kota:'Kota Permata'};
 function XS(){return PF.x||(PF.x={});}
-const XV={},XA={};
+const XV={},XA={};window.XA=XA;
 function xView(id,o){XV[id]=o;}
 const xB=(a,id,txt,cls,dis)=>`<button class="${cls||'small'}" data-xa="${a}" data-id="${id==null?'':id}"${dis?' disabled':''}>${txt}</button>`;
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-xa]');if(!t||t.disabled)return;e.preventDefault();e.stopPropagation();const f=XA[t.dataset.xa];if(f){SFX.pop();f(t.dataset.id,t);}});
@@ -10454,7 +10461,7 @@ ZB.ind72=(G,zc,k)=>{zGround(G,zc,0x6a6a66);gplane(G,12,ZD.hd*2-10,new THREE.Mesh
   FC72.list.forEach((F,i)=>{const x=(i%2?1:-1)*38,z=zc+50-Math.floor(i/2)*45+(i===4?0:0);const px=i===4?0:x,pz=i===4?zc-60:z;const g=new THREE.Group();g.position.set(px,0,pz);G.add(g);
     gplane(G,30,24,new THREE.MeshLambertMaterial({color:0x8a8a80}),px,pz,.008);G.add(neon(`${F.ic} ${F.n.toUpperCase()}`,px,9.5,pz+5.4,0,'#ffffff','#ffd25f',10,1.1));
     const site=new THREE.Group();g.add(site);cBox(site,1,.4,1,0xffd25f,-6,.2,0);cBox(site,1,.4,1,0xffd25f,6,.2,0);const sign=neon('LAHAN KOSONG',0,1.6,10,0,'#ffffff','#ff7a8a',6,.7);sign.position.set(0,1.6,10);site.add(sign);
-    const bld=new THREE.Group();g.add(bld);cBox(bld,22,7,14,F.c,0,3.5,-2,true);cBox(bld,22.4,.6,14.4,0x30343c,0,7.2,-2);for(let w=-8;w<=8;w+=4)cBox(bld,2,1.4,.1,0x9fd8ff,w,4.5,5.05,false,true);cBox(bld,5,4,.2,0x30343c,0,2,5.1);
+    const bld=new THREE.Group();g.add(bld);cBox(bld,22,7,14,F.c,0,3.5,-2);colliders.push({x0:px-11,x1:px+11,z0:pz-9,z1:pz+5,top:7});cBox(bld,22.4,.6,14.4,0x30343c,0,7.2,-2);for(let w=-8;w<=8;w+=4)cBox(bld,2,1.4,.1,0x9fd8ff,w,4.5,5.05,false,true);cBox(bld,5,4,.2,0x30343c,0,2,5.1);
     const stacks=[];for(let j=0;j<3;j++){const st=new THREE.Mesh(new THREE.CylinderGeometry(.8,1,9,10),mat(0xb0b4bc));st.position.set(-7+j*4,7.5,-6);bld.add(st);const sm=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,6),new THREE.MeshBasicMaterial({color:0xdcdcdc,transparent:true,opacity:.5,depthWrite:false}));sm.position.set(-7+j*4,12.5,-6);bld.add(sm);stacks.push(st);FCV.smoke.push({m:sm,x:-7+j*4,i,j});}
     FCV.plots[i]={site,bld,stacks};stationAdd('ind72',px,pz+12,Math.PI,F.n,{useDist:4,verb:'Kelola',btn:'PABRIK',act:()=>openFcWin(),ctx:()=>{const x=fc72().f[F.id];return `<div class="ctx-head"><h3>${F.ic} ${F.n}</h3><small>${x&&x.lv?'Level '+x.lv+' · stok '+Math.floor(x.st)+' '+F.g:'Belum dibangun · '+zKC(fcCost(F,0))}</small></div><div class="ctx-row">${bzB('xFcBuild',F.id,x&&x.lv?'⬆️ Naik level':'🏗️ Bangun')}${bzB('xFc72',1,'Semua pabrik')}</div>`;}});});
   for(let i=0;i<3;i++){const tr=new THREE.Group();cBox(tr,2.2,2.2,2,0xd8435b,0,1.3,2.4);cBox(tr,2.4,2.6,5,0xf2f2f2,0,1.5,-1.4);G.add(tr);FC72.trucks.push(tr);}
@@ -10924,6 +10931,15 @@ xView('baru82',{t:'Yang Baru',s:'Fitur terbaru',ic:'🆕',bg:'linear-gradient(13
 setTimeout(function n82(){if(!started){setTimeout(n82,3000);return;}if(PF.seen82)return;PF.seen82=1;savePF();logLine('sys',null,'🆕 Update v82: cek aplikasi "Yang Baru" di HP untuk fitur terbaru (balap, teater, pasar malam, album, ekspedisi, maskapai).');},6000);
 /* airline + expedition income visible in the money breakdown, if a net-worth helper lists sources */
 try{if(typeof netWorth==='function')netWorth=(f=>function(){let v=f.apply(this,arguments);try{v+=al81().fl.reduce((a,p)=>a+p.c*.6,0);}catch(e){}return v;})(netWorth);}catch(e){}
+
+/* ================= v82.1: perbaikan — tombol inline (XA global), scroll HP & jendela tidak lompat ================= */
+/* phone side menu: the search box was prepended after restoring scroll, so scroll anchoring pushed the list 41px per redraw */
+phoneRender=(f=>function(){const r=f.apply(this,arguments);try{const ph=$('phone');const side=ph&&ph.querySelector('.phside');if(side){side.style.overflowAnchor='none';if(Math.abs(side.scrollTop-phSideTop)>2)side.scrollTop=phSideTop;}const b=ph&&ph.querySelector('.ph-body');if(b)b.style.overflowAnchor='none';}catch(e){}return r;})(phoneRender);
+/* windows that redraw their whole panel keep the reader's scroll position, unless a tab was just tapped */
+document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('momain')){const m=t.closest('.modal');if(m)m._msc=t.scrollTop;}},true);
+document.addEventListener('pointerdown',e=>{const t=e.target;if(!t||!t.closest)return;const m=t.closest('.modal');if(m&&t.closest('[data-tab],.moside button,.tabs button,[data-sec],[data-cat]'))m._tabT=performance.now();},true);
+new MutationObserver(ms=>{for(const mu of ms)for(const n of mu.addedNodes){if(n.nodeType!==1)continue;const mm=n.classList.contains('momain')?n:(n.querySelector?n.querySelector('.momain'):null);if(!mm)continue;const m=mm.closest('.modal');if(!m||!m._msc)continue;
+  if(m._tabT&&performance.now()-m._tabT<1500){m._msc=0;continue;}mm.style.overflowAnchor='none';mm.scrollTop=m._msc;}}).observe(stage,{childList:true,subtree:true});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
