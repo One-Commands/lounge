@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v78';
+const GAME_VER='v79';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10749,6 +10749,58 @@ PLACES.pasarmalam=['🎪 Pasar Malam',null];
 XA.xTaxi=(f=>function(id){if(id!=='pasarmalam')return f.apply(this,arguments);const p=XS().vip?0:25000;if(p&&!xPay(p))return;closePhone();tpTo(0,zoneZ(PM78.k)+80,Math.PI);banner('🎪 PASAR MALAM<small>Permainan, jajanan dan bianglala</small>','',2000);xSave();})(XA.xTaxi);
 goPlace=(f=>function(id){if(id==='pasarmalam'){tpTo(0,zoneZ(PM78.k)+80,Math.PI);return;}return f.apply(this,arguments);})(goPlace);
 xView('pasar78',{t:'Pasar Malam',s:'Permainan & jajanan',ic:'🎪',bg:'linear-gradient(135deg,#ff7ad0,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='pasar78'){phView='home';closePhone();tpTo(0,zoneZ(PM78.k)+80,Math.PI);}},20);return '<p class="muted">Menuju Pasar Malam...</p>';}});
+
+/* ================= v79: Album Koleksi — 6 set stiker, drop dari aktivitas, paket harian, bintang duplikat ================= */
+const AL79={sets:[
+  ['kasino','🎰 Kasino',[['🃏','Kartu Reme'],['🎴','Kartu Qeme'],['🀄','Kartu Leme'],['💰','Jackpot'],['🪙','Chip Emas'],['🎲','Dadu Kembar'],['🎡','Roda Host'],['💎','Meja Platinum']],{luck:2}],
+  ['kota','🏙️ Kota Permata',[['🏛️','Balai Kota'],['🚇','MRT Biru'],['🚌','Bus Kota'],['🚕','Taksi Permata'],['🏁','Sirkuit'],['🎭','Teater'],['🎪','Pasar Malam'],['🏬','Megamall']],{job:5}],
+  ['laut','🌊 Lautan',[['🐟','Tongkol'],['🐠','Kakap'],['🦑','Cumi Pijar'],['🐙','Gurita'],['🦞','Lobster'],['🦈','Hiu Martil'],['🐋','Paus Bintang'],['🐉','Naga Samudra']],{fish:8}],
+  ['kerajaan','👑 Kerajaan',[['🏰','Aurelia'],['🕌','Zahran'],['🌃','Hanseo'],['🏝️','Selatara'],['👑','Nirwana'],['🐉','Tianlong'],['🏜️','Nubara'],['❄️','Nordheim']],{bonus:3}],
+  ['bisnis','💼 Taipan',[['🏭','Pabrik'],['📈','Saham'],['🏦','Bank'],['🔔','IPO'],['🏗️','Mega Proyek'],['🛡️','Kontrak Senjata'],['🚚','Ekspor'],['🏆','Liga']],{save:20}],
+  ['bintang','✨ Bintang Permata',[['🌟','Bintang Emas'],['🌙','Bulan Perak'],['☄️','Komet'],['🌈','Pelangi'],['🔥','Api Abadi'],['💠','Kristal Biru'],['🦚','Merak'],['🐲','Naga Emas']],{luck:3,bonus:3}]],
+  kdMap:{aurelia:0,zahran:1,hanseo:2,selatara:3,nirwana:4,tianlong:5,nubara:6,nordheim:7}};
+function al79(){const s=PF.al79=PF.al79||{h:{},star:0,done:{},daily:0,tot:0};return s;}
+function alKey(si,i){return AL79.sets[si][0]+':'+i;}
+function alHas(si,i){return !!al79().h[alKey(si,i)];}
+function alCount(si){let n=0;for(let i=0;i<8;i++)if(alHas(si,i))n++;return n;}
+function alTotal(){let n=0;AL79.sets.forEach((S0,si)=>n+=alCount(si));return n;}
+function alGive(si,i,src,quiet){const s=al79(),k=alKey(si,i),S0=AL79.sets[si],st=S0[2][i];s.tot++;
+  if(s.h[k]){s.h[k]++;s.star++;if(!quiet)showResult(`📒 Stiker ${st[0]} ${st[1]} (duplikat) → +1 ⭐`);savePF();return 0;}
+  s.h[k]=1;logLine('sys',null,`📒 Stiker baru: ${st[0]} ${st[1]} (${S0[1]})${src?' dari '+src:''}. Koleksi ${alTotal()}/48.`,'win');if(!quiet)try{banner(`📒 STIKER BARU<small>${st[0]} ${st[1]} · ${S0[1]}</small>`,'',1800);SFX.coin();}catch(e){}
+  if(alCount(si)===8&&!s.done[S0[0]]){s.done[S0[0]]=Date.now();const rw=Math.round(Math.max(5e6,netWorth()*.02));S.bal+=rw;PF.dia=(PF.dia||0)+50;const m=`📒 SET ${S0[1].toUpperCase()} LENGKAP! Hadiah ${zKC(rw)}, 50 💎 dan buff permanen ${Object.entries(S0[3]).map(([a,b])=>a+' +'+b).join(', ')}.`;logLine('sys',null,m,'win');try{news.unshift(m);news=news.slice(0,6);banner(`📒 SET LENGKAP<small>${S0[1]}</small>`,'resb',3000);SFX.big();}catch(e){}}
+  savePF();return 1;}
+function alRand(si,rareBias){const r=Math.random();let i=Math.floor(Math.random()*8);if(!rareBias&&i>=6&&r<.6)i=Math.floor(Math.random()*6);return i;}
+function alDrop(si,ch,src){if(Math.random()<ch)alGive(si,alRand(si),src);}
+buffs=(f=>function(){const r=f.apply(this,arguments);try{const s=al79();AL79.sets.forEach(S0=>{if(s.done[S0[0]])for(const k in S0[3])r[k]=(r[k]||0)+S0[3][k];});}catch(e){}return r;})(buffs);
+/* drop hooks */
+remeRound=(f=>async function(t){const h0=S.hist[S.hist.length-1];const r=await f.apply(this,arguments);try{const last=S.hist[S.hist.length-1];if(last&&last!==h0&&last.w){const i=t&&t.hr65?7:t&&t.kind==='leme'?2:t&&t.kind==='qeme'?1:Math.random()<.5?0:alRand(0);if(Math.random()<.05)alGive(0,i,'meja kasino');}}catch(e){}return r;})(remeRound);
+if(typeof fCatch==='function'){fCatch=(f=>function(){const P=FS.fish;const r=f.apply(this,arguments);try{if(P&&Math.random()<.12){const i=Math.min(7,Math.max(0,P.r));alGive(2,i,'memancing');}}catch(e){}return r;})(fCatch);}
+XA.xFly=(f=>function(id){const r=f.apply(this,arguments);try{const i=AL79.kdMap[id];if(i!==undefined)setTimeout(()=>{if(!alHas(3,i)||Math.random()<.3)alGive(3,i,'perjalanan');},6000);}catch(e){}return r;})(XA.xFly);
+if(typeof rcFinish==='function'){rcFinish=(f=>function(){const r=f.apply(this,arguments);try{alGive(1,4,'balapan',true);alDrop(1,.3,'balapan');}catch(e){}return r;})(rcFinish);}
+mgShell=(f=>function(title,rules,run,extra){if(run&&run.play&&!run._al){const p0=run.play;run.play=function(g,cv,done,...a){return p0.call(this,g,cv,(m,msg)=>{done(m,msg);try{if(m>1)alDrop(1,.15,'permainan');}catch(e){}},...a);};run._al=1;}return f.call(this,title,rules,run,extra);})(mgShell);
+setInterval(()=>{try{if(!started)return;const s=al79();if(zoneAt(you.pos.z)===(typeof TH77!=='undefined'?TH77.k:-9)&&Math.random()<.02)alGive(1,5,'teater',true);if(zoneAt(you.pos.z)===(typeof PM78!=='undefined'?PM78.k:-9)&&Math.random()<.02)alGive(1,6,'pasar malam',true);
+  const f=PF.fc72&&PF.fc72.f;if(f&&Object.values(f).some(x=>x.lv)&&!alHas(4,0))alGive(4,0,'pabrik');if(PF.w67&&PF.w67.tot>0&&!alHas(4,5))alGive(4,5,'kontrak senjata');if(PF.fc72&&PF.fc72.exp>0&&!alHas(4,6))alGive(4,6,'ekspor');
+  if(PF.lg70&&PF.lg70.tro&&PF.lg70.tro.length&&!alHas(4,7))alGive(4,7,'Liga Reme');if(PF.bk41&&PF.bk41.on&&!alHas(4,2))alGive(4,2,'bank milikmu');if(typeof mgS==='function'&&Object.values(mgS()).some(p=>p&&p.done)&&!alHas(4,4))alGive(4,4,'mega proyek');
+  if(PF.hold&&Object.keys(PF.hold).some(k=>PF.hold[k]>0)&&!alHas(4,1))alGive(4,1,'bursa saham');if(typeof sea71==='function'&&sea71().trips&&!alHas(1,1)&&Math.random()<.3)alGive(1,1,'jalan-jalan');}catch(e){}},30000);
+/* packs */
+function alPack(n,src){const got=[];for(let j=0;j<n;j++){const si=Math.random()<.12?5:Math.floor(Math.random()*5);const i=alRand(si,si===5);const nw=alGive(si,i,src,true);got.push([si,i,nw]);}return got;}
+XA.xAlDaily=()=>{const s=al79(),d=xToday();if(s.daily===d){showResult('📒 Paket harian sudah diambil. Kembali besok!');return;}s.daily=d;const g=alPack(3,'paket harian');alShow(g,'🎁 Paket harian');};
+XA.xAlBuy=()=>{if((PF.dia||0)<30){showResult('Butuh 30 💎 untuk 1 paket');return;}PF.dia-=30;const g=alPack(3,'paket berlian');alShow(g,'💎 Paket berlian');};
+XA.xAlStar=arg=>{const [si,i]=String(arg).split(':').map(Number);const s=al79();if(si===5){showResult('Set Bintang Permata hanya dari paket');return;}if(alHas(si,i))return;if(s.star<5){showResult('Butuh 5 ⭐');return;}s.star-=5;alGive(si,i,'tukar bintang');if(modal&&modal.refresh)modal.refresh();};
+function alShow(got,title){SFX.coin();const t=got.map(([si,i,nw])=>`${AL79.sets[si][2][i][0]} ${AL79.sets[si][2][i][1]}${nw?' 🆕':' (⭐)'}`).join(' · ');banner(`${title.toUpperCase()}<small>${t}</small>`,'resb',3200);logLine('sys',null,`${title}: ${t}`,'win');if(modal&&modal.refresh)modal.refresh();}
+let alTab=0;
+function openAlWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=al79(),S0=AL79.sets[alTab],si=alTab;el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Album"><div class="mohead"><b>📒 Album Koleksi · ${alTotal()}/48</b><span class="mobal">⭐ ${s.star} · 💎 ${PF.dia||0}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <div class="ctx-row" style="flex-wrap:wrap">${AL79.sets.map((q,j)=>`<button class="pbtn ${j===alTab?'':'alt'}" data-t="${j}">${q[1]} ${alCount(j)}/8${s.done[q[0]]?' ✅':''}</button>`).join('')}</div>
+    <p class="muted">Hadiah set lengkap: buff permanen ${Object.entries(S0[3]).map(([a,b])=>a+' +'+b).join(', ')} + 50 💎 + koin. ${si===5?'Set ini hanya dari paket.':'Ketuk stiker yang belum punya untuk tukar 5 ⭐.'}</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${S0[2].map((st,i)=>{const h=alHas(si,i),n=s.h[alKey(si,i)]||0;return `<button data-s="${si}:${i}" style="border:2px solid ${h?'#d8a648':'rgba(0,0,0,.15)'};border-radius:12px;background:${h?'linear-gradient(#fff8e0,#ffe7a8)':'rgba(0,0,0,.05)'};padding:8px 4px;cursor:pointer;font:inherit"><div style="font-size:30px;${h?'':'filter:grayscale(1) opacity(.3)'}">${st[0]}</div><small style="font-weight:700">${h?esc(st[1]):'???'}</small>${n>1?`<br><small>x${n}</small>`:''}${i>=6?'<br><small style="color:#9b59b6">langka</small>':''}</button>`;}).join('')}</div>
+    <div class="ctx-row" style="margin-top:10px"><button class="pbtn" data-a="daily">🎁 Paket harian ${s.daily===xToday()?'(sudah)':'(gratis)'}</button><button class="pbtn alt" data-a="buy">💎 Paket 3 stiker · 30 💎</button></div>
+    <p class="muted">Dapat stiker dari menang di meja, memancing, bepergian ke kerajaan, balapan, permainan pasar malam, teater dan pencapaian bisnis. Duplikat jadi ⭐.</p></div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{alTab=+b.dataset.t;draw();});el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const [a,c]=b.dataset.s.split(':').map(Number);if(!alHas(a,c))XA.xAlStar(b.dataset.s);});
+    el.querySelector('[data-a="daily"]').onclick=()=>XA.xAlDaily();el.querySelector('[data-a="buy"]').onclick=()=>XA.xAlBuy();};
+  modal={el,st:{label:'Album'},busy:false,refresh(){draw();}};draw();}
+XA.xAl79=()=>openAlWin();
+xView('album79',{t:'Album',s:'Koleksi stiker',ic:'📒',bg:'linear-gradient(135deg,#d8a648,#fff1c8)',r:()=>{setTimeout(()=>{if(phView==='album79'){phView='home';closePhone();openAlWin();}},20);return '<p class="muted">Membuka album...</p>';}});
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
