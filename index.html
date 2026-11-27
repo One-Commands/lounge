@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v66';
+const GAME_VER='v67';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10180,6 +10180,47 @@ function drvHorn(){try{SFX.stop(.8);setTimeout(()=>SFX.stop(.8),180);}catch(e){}
   const d=DRV66.last?Math.hypot(you.pos.x-DRV66.last.x,you.pos.z-DRV66.last.z):0;if(d>0&&d<30){const s=drvS();s.fuel=Math.max(0,s.fuel-d/60);s.km+=d/1000;DRV66.acc+=d;if(DRV66.acc>40){DRV66.acc=0;drvHud();}if(s.fuel<=0){drvStop();showResult('⛽ Bensin habis! Isi BBM lewat tombol ⛽.');}}DRV66.last=you.pos.clone();})();
 setInterval(()=>{try{if(DRV66.on&&!drvCan())drvStop(1);drvHud();}catch(e){}},700);
 {const st=document.createElement('style');st.textContent=`#drv66{position:absolute;right:12px;top:156px;z-index:6;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:52vw}#drv66 button{background:rgba(18,12,34,.88);border:1px solid rgba(246,196,90,.6);color:#ffe7a8;border-radius:999px;padding:7px 12px;font:inherit;font-weight:800;font-size:13px;cursor:pointer}#drv66 .dgo{background:linear-gradient(#3c8cff,#2559c8);color:#fff;border-color:#9cc4ff}#drv66 .dgo.on{background:linear-gradient(#ff7a5a,#d8435b)}`;document.head.appendChild(st);}
+
+/* ================= v67: Perang & Saham — sektor pertahanan, saham bereaksi ke perang, kontrak senjata ================= */
+SECN63.defense='🛡️ Pertahanan';
+const DEF67=[{id:'GRDA',n:'Garuda Persenjataan Tbk',p0:3200,cap:6e11,o:'Dinasti Wiranata'},{id:'BJPA',n:'Baja Perkasa Arms Tbk',p0:1850,cap:3.2e11,o:'Grup Adiwangsa'},{id:'DRGA',n:'Dirgantara Nusa Tbk',p0:2600,cap:4.5e11,o:'Grup Sinarmulia'}];
+DEF67.forEach(d=>{if(MK.find(x=>x.id===d.id))return;try{ipoMake({id:d.id,n:d.n,sec:'defense',p0:d.p0,cap:d.cap});const a=MK.find(x=>x.id===d.id);if(a){a.c='#9aa8b8';a.def67=1;a.own=a.own||d.o;delete a.ipo;}}catch(e){console.error('def67',e);}});
+function w67(){return PF.w67=PF.w67||{log:[],ct:{},tot:0};}
+/* sector reactions: ef = {sector: pct} */
+const WAR67={start:{defense:.08,energy:.03,gold:0,mining:.02,airline:-.05,shipping:-.03,consumer:-.01,property:-.015},round:{defense:.012,energy:.004,airline:-.008,shipping:-.005},peace:{defense:-.07,energy:-.02,airline:.05,shipping:.03,consumer:.02,property:.015},win:{defense:-.03,airline:.025,shipping:.015}};
+function warMove(ef,why){const out=[];const byS={};MK.forEach(a=>{if(a.t!=='saham')return;const e=ef[a.sec];if(!e)return;const j=e*(.75+Math.random()*.5);a.p=Math.max(1,a.p*(1+j));a.f=(a.f||a.p)*(1+j*.5);if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;byS[a.sec]=byS[a.sec]||[];byS[a.sec].push(j);});
+  Object.entries(byS).forEach(([s,v])=>out.push([s,v.reduce((x,y)=>x+y,0)/v.length]));out.sort((x,y)=>Math.abs(y[1])-Math.abs(x[1]));
+  const W=w67();W.log.unshift({t:Date.now(),why,mv:out.slice(0,6)});W.log=W.log.slice(0,12);return out;}
+function mvTxt(mv){return mv.slice(0,3).map(([s,e])=>`${(SECN63[s]||s).split(' ').slice(1).join(' ')} ${e>=0?'+':''}${(e*100).toFixed(1).replace('.',',')}%`).join(', ');}
+warStart=(f=>function(a,b){const n0=WS().wars.length;const r=f.apply(this,arguments);if(WS().wars.length>n0){const mv=warMove(WAR67.start,`Perang ${kdN(a)} vs ${kdN(b)} pecah`);const m=`📈 Bursa bereaksi ke perang: ${mvTxt(mv)}.`;news.unshift(m);news=news.slice(0,6);logLine('sys',null,m);savePF();}return r;})(warStart);
+warRound=(f=>function(v){const r=f.apply(this,arguments);try{warMove(WAR67.round,`Ronde ${v.round} ${kdN(v.a)} vs ${kdN(v.b)}`);}catch(e){}return r;})(warRound);
+warEnd=(f=>function(v,ws,peace){const r=f.apply(this,arguments);try{const mv=warMove(peace?WAR67.peace:WAR67.win,peace?`Damai ${kdN(v.a)}–${kdN(v.b)}`:`${kdN(v[ws])} menang perang`);const m=`📉 ${peace?'Kabar damai':'Perang selesai'}: ${mvTxt(mv)}.`;news.unshift(m);news=news.slice(0,6);logLine('sys',null,m);savePF();}catch(e){}return r;})(warEnd);
+/* arms contracts: if you hold >=10% of a defence company you can sign a supply contract with a warring kingdom (Nusantara Raya itself stays neutral) */
+function defPct(a){try{return myPct(a);}catch(e){return (PF.hold[a.id]||0)/a.sh;}}
+function defBest(){return MK.filter(a=>a.def67).map(a=>({a,p:defPct(a)})).sort((x,y)=>y.p-x.p)[0];}
+XA.xArms67=arg=>{const [id,side]=String(arg).split(':');const v=WS().wars.find(x=>x.id===id);if(!v){showResult('Perang ini sudah selesai');return;}const B=defBest();if(!B||B.p<.1){showResult('🛡️ Kamu perlu minimal 10% saham salah satu perusahaan pertahanan.');return;}
+  const W=w67(),key=v.id+side;if(W.ct[key]){showResult('Kontrak dengan pihak ini sudah ditandatangani');return;}if(W.ct[v.id+(side==='a'?'b':'a')]){showResult('Kamu sudah memasok pihak lawan. Tidak bisa dua kaki.');return;}
+  const val=Math.round(B.a.p*B.a.sh*.015),cut=Math.round(val*B.p);W.ct[key]=1;W.tot+=cut;S.bal+=cut;v.merc[side]=(v.merc[side]||0)+Math.round(60+B.p*300);
+  B.a.p*=1.04;if(Array.isArray(B.a.h)&&B.a.h.length)B.a.h[B.a.h.length-1]=B.a.p;
+  try{const s=plS&&plS();if(s&&s.rel)s.rel[v[side]]=(s.rel[v[side]]||0)+3;}catch(e){}
+  const m=`🛡️ ${B.a.n} meneken kontrak senjata dengan ${kdN(v[side])}. Bagianmu ${zKC(cut)}, saham ${B.a.id} +4%.`;logLine('sys',null,m,'win');news.unshift(m);news=news.slice(0,6);SFX.coin();savePF();xSave();if(modal&&modal.refresh)modal.refresh();};
+function openWarStkWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const w=WS(),W=w67(),defs=MK.filter(a=>a.def67),B=defBest();
+    const sec=secStats().filter(s=>['defense','energy','gold','mining','airline','shipping'].includes(s.k));
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Perang dan Saham"><div class="mohead"><b>⚔️ Perang & Saham</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <p class="muted">Perang di luar negeri menggerakkan bursa. Saham pertahanan dan energi naik, penerbangan dan pelayaran turun. Saat damai, arahnya berbalik. ${NEGARA?esc(NEGARA.n):'Nusantara Raya'} tetap netral.</p>
+    <p class="sec-t">Perang aktif (${w.wars.length})</p>${w.wars.length?w.wars.map(v=>`<div class="wallet"><b>${esc(kdN(v.a))} vs ${esc(kdN(v.b))}</b><div class="row"><span>Skor</span><span>${v.ra}-${v.rb} · ronde ${v.round}</span></div>
+      <div class="ctx-row" style="margin-top:6px"><button class="pbtn ${W.ct[v.id+'a']?'':'alt'}" data-ar="${v.id}:a">${W.ct[v.id+'a']?'✅ Dipasok':'🛡️ Pasok'} ${esc(kdN(v.a))}</button><button class="pbtn ${W.ct[v.id+'b']?'':'alt'}" data-ar="${v.id}:b">${W.ct[v.id+'b']?'✅ Dipasok':'🛡️ Pasok'} ${esc(kdN(v.b))}</button></div></div>`).join(''):'<p class="muted">Sedang tidak ada perang. Saham pertahanan cenderung turun pelan.</p>'}
+    <p class="sec-t">Saham pertahanan</p>${defs.map(a=>{const ch=a.open?a.p/a.open-1:0,pc=defPct(a);return `<div class="row" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${a.id}</b> ${esc(a.n)}<br><small>Milikmu ${(pc*100).toFixed(2).replace('.',',')}%${pc>=.1?' · bisa kontrak':''}</small></span><span style="text-align:right">${Math.round(a.p).toLocaleString('id-ID')}<br><small class="${ch>=0?'up':'dn'}">${ch>=0?'+':''}${(ch*100).toFixed(1).replace('.',',')}%</small></span></div>`;}).join('')}
+    <p class="muted">Kontrak senjata butuh minimal 10% saham pertahanan (sekarang ${B?(B.p*100).toFixed(1).replace('.',','):0}%). Satu kontrak per pihak, dan tidak boleh memasok dua pihak yang berperang. Total pendapatan kontrak: ${zKC(W.tot)}.</p>
+    <p class="sec-t">Sektor terkait hari ini</p>${sec.map(s=>`<div class="row" style="display:flex;justify-content:space-between;padding:3px 0"><span>${s.n}</span><span class="${s.ch>=0?'up':'dn'}">${s.ch>=0?'+':''}${(s.ch*100).toFixed(1).replace('.',',')}%</span></div>`).join('')}
+    <p class="sec-t">Riwayat reaksi bursa</p>${W.log.length?W.log.slice(0,8).map(l=>`<div class="row" style="padding:3px 0"><small>${new Date(l.t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})} · ${esc(l.why)}</small><br><small>${mvTxt(l.mv)}</small></div>`).join(''):'<p class="muted">Belum ada.</p>'}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelectorAll('[data-ar]').forEach(b=>b.onclick=()=>XA.xArms67(b.dataset.ar));};
+  modal={el,st:{label:'Perang & Saham'},busy:false,refresh(){draw();}};draw();}
+XA.xWarStk=()=>openWarStkWin();
+xView('perang67',{t:'Perang & Saham',s:'Saham pertahanan',ic:'⚔️',bg:'linear-gradient(135deg,#5a6a7a,#c8d2dc)',r:()=>{setTimeout(()=>{if(phView==='perang67'){phView='home';closePhone();openWarStkWin();}},20);return '<p class="muted">Membuka...</p>';}});
+/* defence stocks drift down slowly in peacetime */
+setInterval(()=>{try{if(!started||WS().wars.length)return;MK.forEach(a=>{if(a.def67){a.p*=1-.002*Math.random();}});}catch(e){}},60000);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
