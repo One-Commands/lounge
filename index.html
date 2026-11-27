@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v67';
+const GAME_VER='v68';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10221,6 +10221,29 @@ XA.xWarStk=()=>openWarStkWin();
 xView('perang67',{t:'Perang & Saham',s:'Saham pertahanan',ic:'⚔️',bg:'linear-gradient(135deg,#5a6a7a,#c8d2dc)',r:()=>{setTimeout(()=>{if(phView==='perang67'){phView='home';closePhone();openWarStkWin();}},20);return '<p class="muted">Membuka...</p>';}});
 /* defence stocks drift down slowly in peacetime */
 setInterval(()=>{try{if(!started||WS().wars.length)return;MK.forEach(a=>{if(a.def67){a.p*=1-.002*Math.random();}});}catch(e){}},60000);
+
+/* ================= v68: Poles & Performa — area culling and avatar LOD (casino was ~3.4k draw calls, ~1.9k of them avatars) ================= */
+const PF68={on:1,near:15,far:16.5,far2:26,t:0,stat:{hid:0,lod:0}};
+function area68(x,z){const k=zoneAt(z);if(k>=0)return 'z'+k;return Math.abs(x)<ROOM+1&&Math.abs(z)<ROOM+1?'c':'w';}
+function door68(x,z){return Math.abs(x)<7&&Math.abs(z-ROOM)<9;}
+function lodPrep(e){const r=e.av&&e.av.root;if(!r)return null;if(r.userData.lod68)return r.userData.lod68;const A=[];const v=new THREE.Vector3(),s=new THREE.Vector3();
+  r.traverse(o=>{if(!o.isMesh||!o.geometry)return;if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();o.geometry.boundingBox.getSize(v);o.getWorldScale(s);A.push([o,v.x*v.y*v.z*s.x*s.y*s.z]);});
+  A.sort((x,y)=>y[1]-x[1]);const L={a:A.filter(x=>x[1]<.02).map(x=>x[0]),b:A.slice(6).filter(x=>x[1]>=.02).map(x=>x[0])};r.userData.lod68=L;return L;}
+function lodSet(list,hide){list.forEach(o=>{if(hide){if(o.visible){o.visible=false;o.userData.l68=1;}}else if(o.userData.l68){o.visible=true;o.userData.l68=0;}});}
+function cull68(){if(!PF68.on||typeof camera==='undefined'||!started)return;const cp=camera.position,ca=area68(cp.x,cp.z),cd=door68(cp.x,cp.z);let hid=0,lod=0;
+  for(const e of ents){if(!e||e===you||!e.av||!e.av.root)continue;const r=e.av.root,p=e.pos;const a=area68(p.x,p.z);
+    const want=a===ca||(cd&&door68(p.x,p.z))||((a==='c'||a==='w')&&(ca==='c'||ca==='w')&&door68(p.x,p.z)&&Math.hypot(p.x-cp.x,p.z-cp.z)<30);
+    if(!want){if(r.visible){r.visible=false;r.userData.ac68=1;}if(r.userData.ac68)hid++;continue;}
+    if(r.userData.ac68){r.visible=true;r.userData.ac68=0;}
+    const L=lodPrep(e);if(!L)continue;const d=Math.hypot(p.x-cp.x,p.z-cp.z),cur=r.userData.t68||0;
+    const t=d>(cur>=2?PF68.far2-1.5:PF68.far2)?2:d>(cur>=1?PF68.near:PF68.far)?1:0;
+    if(t!==cur){r.userData.t68=t;lodSet(L.a,t>=1);lodSet(L.b,t>=2);}if(t)lod++;}
+  PF68.stat={hid,lod};}
+setInterval(()=>{try{cull68();}catch(e){console.error('v68',e);}},250);
+/* re-prep when an avatar is rebuilt (outfit change) */
+if(typeof makeAvatar==='function'){makeAvatar=(f=>function(){const a=f.apply(this,arguments);try{if(a&&a.root)a.root.userData.lod68=null;}catch(e){}return a;})(makeAvatar);}
+/* tag labels of culled avatars should not float through walls */
+setInterval(()=>{try{for(const e of ents){if(e&&e.tagEl&&e.av&&e.av.root){const h=!!e.av.root.userData.ac68;if(h!==!!e._tg68){e._tg68=h;e.tagEl.style.visibility=h?'hidden':'';if(e.bubEl)e.bubEl.style.visibility=h?'hidden':'';}}}}catch(e){}},300);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
