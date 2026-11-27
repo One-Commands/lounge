@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v60.3';
+const GAME_VER='v60.4';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9723,6 +9723,46 @@ setInterval(()=>{if(!started)return;try{if(modal||document.querySelector('.mpinv
 /* tycoons sometimes buy big blocks on the market */
 setInterval(()=>{if(!started)return;try{if(Math.random()>.45)return;const sh=MK.filter(a=>a.t==='saham');const a=sh[pick(sh.length)],n=TYCOONS[pick(TYCOONS.length)];const amt=a.liq*(.25+Math.random()*.75);if(npcCash(n)<amt*1.4)return;
   const p0=a.p;npcTrade(a,amt,n,.12);const ch=(a.p/p0-1)*100;if(ch>.5){const m=`🐳 ${n} memborong saham ${a.id} senilai ${fmtBig(Math.round(amt))} koin. Harga ${ch>=0?'+':''}${ch.toFixed(1)}%.`;try{news.unshift(m);news=news.slice(0,6);}catch(e){}if(PF.hold[a.id]||(PF.corp[a.id]&&PF.corp[a.id].me))logLine('sys',null,m);}}catch(e){}},120000);
+
+/* ================= v60.4: CEO untuk perusahaan milikmu (≥60%) + krisis pasar ================= */
+const CEO60={NAMES:['Adrian Wibisana','Clarissa Tan','Rudy Hartanto','Maya Kusuma','Felix Gunadi','Livia Santoso','Bima Prakoso','Natasha Halim','Gregorius Lee','Sekar Ayuningtyas','Hendrik Salim','Vania Lukito','Arman Siregar','Jessica Wirawan','Dimas Adinegoro','Olivia Chandra','Kenzo Pratama','Ratna Paramitha'],
+  EV:[['krisis','📉','Krisis keuangan',.006,360000],['pandemi','🦠','Wabah penyakit',.004,300000],['perang','⚔️','Perang antar kerajaan',.003,300000],['minyak','🛢️','Harga minyak melonjak',.003,240000]]};
+function ceoS(){PF.ceo=PF.ceo||{};PF.ceoG=PF.ceoG||{};return PF.ceo;}
+function ceoNew(min){const sk=Math.min(99,Math.round((min||40)+Math.pow(Math.random(),1.6)*(99-(min||40))));return {n:CEO60.NAMES[pick(CEO60.NAMES.length)],sk,since:Date.now()};}
+/* persistent growth from CEOs: base prices of that company are multiplied by PF.ceoG[id] */
+function cgFix(){const G=(ceoS(),PF.ceoG);MK.forEach(a=>{if(a.t!=='saham')return;const X=G[a.id]||1;if(a.__cg===X)return;const r=X/(a.__cg||1);['p0','b0','f'].forEach(k=>{if(a[k])a[k]*=r;});a.__cg=X;});}
+try{cgFix();}catch(e){}
+mkFix=(f=>function(){try{cgFix();}catch(e){}return f.apply(this,arguments);})(mkFix);
+function crS(){return PF.cr60&&Date.now()<PF.cr60.until?PF.cr60:null;}
+function ceoTick(){const C=ceoS(),cr=crS();cgFix();
+  MK.forEach(a=>{if(a.t!=='saham')return;const own=myPct(a);if(own<.6){if(C[a.id]){logLine('sys',null,`👔 CEO ${C[a.id].n} meninggalkan ${a.n} karena kepemilikanmu di bawah 60%.`);delete C[a.id];}return;}
+    if(!C[a.id]){C[a.id]=ceoNew(45);logLine('sys',null,`👔 ${C[a.id].n} (skill ${C[a.id].sk}) diangkat jadi CEO ${a.n}. Ia akan menjaga dan menaikkan harga saham.`,'win');}
+    const k=C[a.id],s=k.sk/100,calm=cr?.5:1;
+    /* growth: fair value and base rise slowly */
+    const g=1+.0003*s*calm;a.f=(a.f||a.p)*g;PF.ceoG[a.id]=(PF.ceoG[a.id]||1)*g;a.p0*=g;if(a.b0)a.b0*=g;a.__cg=PF.ceoG[a.id];
+    /* stabilise: pull a price that fell below fair value back up */
+    const fv=a.f||a.p;if(a.p<fv*.98){a.p+=(fv-a.p)*.12*s*calm;}else if(a.p>fv*1.15){a.p-=(a.p-fv*1.15)*.05*s;}
+    if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;});
+  /* crises and wars push prices down; a CEO softens it */
+  if(cr){MK.forEach(a=>{if(a.t!=='saham')return;if(cr.id&&cr.id!==a.id)return;const soft=C[a.id]?1-.5*C[a.id].sk/100:1,d=cr.sev*soft;a.p*=1-d;a.f=(a.f||a.p)*(1-d*.4);if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;});}
+  else if(!PF.cr60||Date.now()-PF.cr60.until>180000){let p=.03;try{if(WS().wars.length)p+=.03;}catch(e){}
+    if(Math.random()<p){let E=CEO60.EV[pick(CEO60.EV.length)];try{if(E[0]==='perang'&&!WS().wars.length)E=CEO60.EV[0];}catch(e){}PF.cr60={k:E[0],ic:E[1],n:E[2],sev:E[3],until:Date.now()+E[4]};
+      const m=`${E[1]} ${E[2]}! Harga saham tertekan selama ${Math.round(E[4]/60000)} menit. CEO perusahaanmu meredam penurunan.`;try{news.unshift(m);news=news.slice(0,6);}catch(e){}logLine('sys',null,m,'lose');try{banner(`${E[1]} ${E[2].toUpperCase()}<small>Pasar saham tertekan</small>`,'',2600);}catch(e){}}
+    else if(Math.random()<.04){const sh=MK.filter(a=>a.t==='saham');const a=sh[pick(sh.length)],soft=C[a.id]?1-.6*C[a.id].sk/100:1,d=(.05+Math.random()*.08)*soft;a.p*=1-d;a.f=(a.f||a.p)*(1-d*.5);
+      const m=`📰 Skandal di ${a.n}: saham ${a.id} turun ${(d*100).toFixed(1)}%${C[a.id]?' (sudah diredam CEO '+C[a.id].n+')':''}.`;try{news.unshift(m);news=news.slice(0,6);}catch(e){}if(PF.hold[a.id]||myPct(a)>0)logLine('sys',null,m,'lose');}}
+  savePF();}
+setInterval(()=>{try{if(started)ceoTick();}catch(e){console.error('ceo60',e);}},20000);
+/* stock detail: CEO card */
+const _corpBox60=corpBox;corpBox=function(a){let h='';try{if(a&&a.t==='saham'){const C=ceoS(),k=C[a.id],cr=crS(),own=myPct(a);
+  if(cr)h+=`<div class="wallet"><small>${cr.ic} ${cr.n}</small><div class="row"><span>Pasar tertekan</span><span class="dn">${Math.ceil((cr.until-Date.now())/60000)} menit lagi</span></div></div>`;
+  if(k){const v=a.p*a.sh,cN=Math.round(Math.max(1e9,v*.004)),cT=Math.round(Math.max(5e8,v*.002)*(1+k.sk/50));
+    h+=`<div class="wallet"><small>👔 CEO ${esc(a.n)}</small><div class="row"><span>${esc(k.n)}</span><b>${'★'.repeat(Math.max(1,Math.round(k.sk/20)))} skill ${k.sk}</b></div><div class="row"><span>Kenaikan nilai</span><span class="up">±${(k.sk/100*.0003*180*100).toFixed(1)}%/jam</span></div><div class="row"><span>Penahan harga</span><span>menarik harga yang jatuh kembali ke nilai wajar</span></div><div class="row"><span>Saat krisis</span><span>penurunan diredam ${Math.round(k.sk/2)}%</span></div>
+      <div class="srow"><button class="small" data-corp="ceoTrain" ${k.sk>=99?'disabled':''}>📚 Latih +5 · 🪙 ${fmtBig(cT)}</button><button class="small" data-corp="ceoNew">🔄 Cari CEO baru · 🪙 ${fmtBig(cN)}</button></div></div>`;}
+  else if(own>0)h+=`<div class="wallet"><small>👔 CEO</small><div class="row"><span>Kepemilikanmu ${(own*100).toFixed(1)}%</span><span>CEO diangkat otomatis saat kamu punya 60%+</span></div></div>`;}}catch(e){}return h+_corpBox60(a);};
+const _corpDo60=corpDo;corpDo=function(act,a){if(act==='ceoTrain'||act==='ceoNew'){try{const C=ceoS(),k=C[a.id];if(!k)return;const v=a.p*a.sh;
+    if(act==='ceoTrain'){const c=Math.round(Math.max(5e8,v*.002)*(1+k.sk/50));if(!xPay(c))return;k.sk=Math.min(99,k.sk+5);logLine('sys',null,`📚 CEO ${k.n} dilatih, skill jadi ${k.sk}.`,'win');}
+    else{const c=Math.round(Math.max(1e9,v*.004));if(!xPay(c))return;const nk=ceoNew(50);logLine('sys',null,`🔄 ${k.n} diganti ${nk.n} (skill ${nk.sk}) sebagai CEO ${a.n}.`,nk.sk>=k.sk?'win':'');C[a.id]=nk;}
+    try{SFX.coin();}catch(e){}savePF();phoneRender();}catch(e){console.error(e);}return;}return _corpDo60(act,a);};
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
