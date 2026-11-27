@@ -3562,7 +3562,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v60.4';
+const GAME_VER='v60.5';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -9763,6 +9763,51 @@ const _corpDo60=corpDo;corpDo=function(act,a){if(act==='ceoTrain'||act==='ceoNew
     if(act==='ceoTrain'){const c=Math.round(Math.max(5e8,v*.002)*(1+k.sk/50));if(!xPay(c))return;k.sk=Math.min(99,k.sk+5);logLine('sys',null,`📚 CEO ${k.n} dilatih, skill jadi ${k.sk}.`,'win');}
     else{const c=Math.round(Math.max(1e9,v*.004));if(!xPay(c))return;const nk=ceoNew(50);logLine('sys',null,`🔄 ${k.n} diganti ${nk.n} (skill ${nk.sk}) sebagai CEO ${a.n}.`,nk.sk>=k.sk?'win':'');C[a.id]=nk;}
     try{SFX.coin();}catch(e){}savePF();phoneRender();}catch(e){console.error(e);}return;}return _corpDo60(act,a);};
+
+/* ================= v60.5: CEO bertindak seperti di dunia nyata (split, reverse split, buyback, dividen, laporan laba) + peristiwa crypto ================= */
+/* PF.shf[id] is the cumulative share-count multiplier (splits, reverse splits, buybacks, token burns). Per-share base prices divide by it. */
+function shfFix(){PF.shf=PF.shf||{};MK.forEach(a=>{const X=PF.shf[a.id]||1;if(a.__shf===X)return;const r=X/(a.__shf||1);a.sh*=r;['p0','b0','f'].forEach(k=>{if(a[k])a[k]/=r;});if(Array.isArray(a.h))a.h=a.h.map(v=>v/r);a.__shf=X;});}
+try{shfFix();}catch(e){}
+mkFix=(f=>function(){try{shfFix();}catch(e){}return f.apply(this,arguments);})(mkFix);
+function ceoNote(a,ic,t,cls){const k=ceoS()[a.id];if(k){k.log=k.log||[];k.log.unshift({ic,t,at:Date.now()});k.log=k.log.slice(0,5);}const m=`${ic} ${t}`;try{news.unshift(m);news=news.slice(0,6);}catch(e){}if(PF.hold[a.id]||myPct(a)>0||a.t==='crypto'&&PF.hold[a.id])logLine('sys',null,m,cls||'');}
+/* split k:1 (k=2) or reverse 1:2 (k=.5): everyone's share count changes, value stays */
+function shSplit(a,k){PF.shf=PF.shf||{};PF.shf[a.id]=(PF.shf[a.id]||1)*k;a.__shf=PF.shf[a.id];a.sh*=k;['p','p0','b0','f','open'].forEach(x=>{if(a[x])a[x]/=k;});if(Array.isArray(a.h))a.h=a.h.map(v=>v/k);
+  const fl=v=>a.t==='saham'?Math.floor(v):v;if(PF.hold[a.id])PF.hold[a.id]=fl(PF.hold[a.id]*k);if(PF.blkQ&&PF.blkQ[a.id])PF.blkQ[a.id]=fl(PF.blkQ[a.id]*k);
+  const H=npcH();for(const n in H)if(H[n]&&H[n][a.id])H[n][a.id]=fl(H[n][a.id]*k);const c=PF.corp&&PF.corp[a.id];if(c&&c.blk)c.blk.forEach(b=>b.q=fl(b.q*k));
+  (PF.ohlc&&PF.ohlc[a.id]||[]).forEach(r=>{for(let i=0;i<4;i++)if(typeof r[i]==='number')r[i]/=k;});(PF.lim||[]).forEach(o=>{if(o.id===a.id){o.q=fl(o.q*k);o.px/=k;}});(PF.ord||[]).forEach(o=>{if(o.id===a.id&&o.px)o.px/=k;});
+  if(PF.nOff&&PF.nOff.id===a.id){PF.nOff.q=fl(PF.nOff.q*k);PF.nOff.px/=k;}try{if(OD&&OD[a.id]){const d=OD[a.id];['o','h','l'].forEach(x=>{if(d[x])d[x]/=k;});}}catch(e){}try{capFix([a]);}catch(e){}}
+/* buyback / burn: shares outstanding shrink by fraction q, per-share value rises; your control fraction rises */
+function shShrink(a,q){const k=1-q;PF.shf=PF.shf||{};PF.shf[a.id]=(PF.shf[a.id]||1)*k;a.__shf=PF.shf[a.id];a.sh*=k;['p0','b0','f'].forEach(x=>{if(a[x])a[x]/=k;});a.p/=k;if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;
+  const c=PF.corp&&PF.corp[a.id];if(c&&c.cf!=null)c.cf=Math.min(.95,c.cf/k);try{capFix([a]);}catch(e){}}
+function medPx(){const L=MK.filter(a=>a.t==='saham').map(a=>a.p).sort((x,y)=>x-y);return L[Math.floor(L.length/2)]||1;}
+function ceoAct(){const C=ceoS(),now=Date.now(),med=medPx(),cr=crS();
+  MK.forEach(a=>{if(a.t!=='saham')return;const k=C[a.id];if(!k)return;k.cd=k.cd||{};const s=k.sk/100,ready=(key,ms)=>now-(k.cd[key]||0)>ms,mark=key=>{k.cd[key]=now;};
+    if(ready('split',900000)&&a.p>med*6&&Math.random()<.4+s*.4){mark('split');shSplit(a,2);a.p*=1.015;ceoNote(a,'✂️',`CEO ${k.n}: stock split 2:1 ${a.id}. Jumlah lembar dobel, harga per lembar jadi ${fmtBig(Math.round(a.p))} supaya lebih terjangkau investor. Pasar menyambut +1,5%.`,'win');return;}
+    if(ready('split',900000)&&a.p<med/6&&Math.random()<.4+s*.4){mark('split');shSplit(a,.5);ceoNote(a,'🔁',`CEO ${k.n}: reverse stock split 1:2 ${a.id}. Lembar beredar jadi setengah, harga per lembar naik dua kali jadi ${fmtBig(Math.round(a.p))}. Nilai kepemilikanmu tetap.`);return;}
+    if(ready('bb',360000)&&a.p<(a.f||a.p)*.95&&Math.random()<.3+s*.5){mark('bb');const q=.01+s*.02;shShrink(a,q);ceoNote(a,'🔄',`CEO ${k.n}: buyback ${(q*100).toFixed(1)}% saham ${a.id} karena harganya di bawah nilai wajar. Lembar beredar berkurang, harga naik dan porsimu ikut naik.`,'win');return;}
+    if(ready('eps',480000)&&Math.random()<.5){mark('eps');const beat=Math.random()<.35+s*.5,m=(.02+Math.random()*.06)*(cr?.6:1);
+      if(beat){a.p*=1+m;a.f=(a.f||a.p)*(1+m*.5);ceoNote(a,'📊',`Laporan laba ${a.n} melampaui target di bawah CEO ${k.n}. Saham +${(m*100).toFixed(1)}%.`,'win');}
+      else{const d=m*(1-s*.5);a.p*=1-d;a.f=(a.f||a.p)*(1-d*.4);ceoNote(a,'📊',`Laporan laba ${a.n} meleset dari target. Saham −${(d*100).toFixed(1)}%.`,'lose');}return;}
+    if(ready('div',600000)&&a.p>=(a.f||a.p)*.98&&Math.random()<.35){mark('div');const y=.004+s*.006,own=myPct(a),pay=Math.round(own*a.sh*a.p*y);if(pay>0){S.bal+=pay;a.p*=1-y;ceoNote(a,'💵',`CEO ${k.n} membagikan dividen ${(y*100).toFixed(1)}% dari ${a.n}. Kamu menerima 🪙 ${fmtBig(pay)}.`,'win');}return;}
+    if(ready('exp',900000)&&Math.random()<.12+s*.1){mark('exp');const m=.02+s*.04;a.f=(a.f||a.p)*(1+m);a.p*=1+m*.5;const what=['membuka pabrik baru','mengakuisisi pesaing kecil','masuk ke pasar Aurelia','meluncurkan produk baru','memangkas biaya operasional'][pick(5)];ceoNote(a,'🚀',`CEO ${k.n} ${what}. Nilai wajar ${a.id} +${(m*100).toFixed(1)}%.`,'win');}});
+  savePF();}
+setInterval(()=>{try{if(started)ceoAct();}catch(e){console.error('ceo605',e);}},30000);
+/* crypto: no CEO, the developer foundation and the market act on each coin */
+const CRY60=[['burn','🔥',.35],['upgrade','🛠️',.2],['halving','⛏️',.08],['etf','🏦',.07],['hack','🏴‍☠️',.12],['reg','⚖️',.12],['whale','🐋',.06]];
+function cryEvent(){const L=MK.filter(a=>a.t==='crypto');if(!L.length)return;const tot=CRY60.reduce((s,e)=>s+e[2],0);let r=Math.random()*tot,E=CRY60[0];for(const e of CRY60){r-=e[2];if(r<=0){E=e;break;}}
+  const a=L[pick(L.length)],held=PF.hold[a.id]>0;let t='';
+  if(E[0]==='burn'){const q=.005+Math.random()*.02;shShrink(a,q);t=`Yayasan ${a.n} membakar ${(q*100).toFixed(1)}% suplai ${a.id}. Suplai berkurang, harga naik.`;}
+  else if(E[0]==='upgrade'){const m=.03+Math.random()*.05;a.p*=1+m;a.f=(a.f||a.p)*(1+m*.6);t=`Jaringan ${a.n} upgrade besar. ${a.id} +${(m*100).toFixed(1)}%.`;}
+  else if(E[0]==='halving'){const m=.08+Math.random()*.1;a.p*=1+m;a.f=(a.f||a.p)*(1+m*.7);t=`Halving ${a.n}: hadiah penambang dipotong setengah, suplai baru melambat. ${a.id} +${(m*100).toFixed(1)}%.`;}
+  else if(E[0]==='etf'){const m=.06+Math.random()*.08;a.p*=1+m;a.f=(a.f||a.p)*(1+m*.5);t=`Bursa resmi menyetujui reksa dana ${a.n}. ${a.id} +${(m*100).toFixed(1)}%.`;}
+  else if(E[0]==='hack'){const d=.08+Math.random()*.12;a.p*=1-d;a.f=(a.f||a.p)*(1-d*.5);t=`Bursa crypto diretas, ${a.id} ikut jatuh −${(d*100).toFixed(1)}%.`;}
+  else if(E[0]==='reg'){const d=.04+Math.random()*.06;a.p*=1-d;a.f=(a.f||a.p)*(1-d*.4);t=`Aturan baru dari pemerintah menekan ${a.n}. ${a.id} −${(d*100).toFixed(1)}%.`;}
+  else{const up=Math.random()<.5,m=.04+Math.random()*.06;a.p*=up?1+m:1-m;t=`Paus crypto ${up?'memborong':'membuang'} ${a.id} dalam jumlah raksasa. Harga ${up?'+':'−'}${(m*100).toFixed(1)}%.`;}
+  if(Array.isArray(a.h)&&a.h.length)a.h[a.h.length-1]=a.p;const m=`${E[1]} ${t}`;try{news.unshift(m);news=news.slice(0,6);}catch(e){}if(held)logLine('sys',null,m,['hack','reg'].includes(E[0])?'lose':'win');savePF();}
+setInterval(()=>{try{if(started&&Math.random()<.5)cryEvent();}catch(e){console.error('cry605',e);}},90000);
+/* CEO card shows the latest decisions */
+const _corpBox605=corpBox;corpBox=function(a){let h=_corpBox605(a);try{const k=a&&ceoS()[a.id];if(k&&k.log&&k.log.length){const L=`<div class="wallet"><small>🧠 Keputusan CEO terakhir</small>${k.log.map(x=>`<div class="row"><span>${x.ic} ${esc(x.t.replace(/^CEO [^:]+: /,''))}</span></div>`).join('')}<div class="row"><span class="muted">CEO otomatis memilih: split kalau harga terlalu tinggi, reverse split kalau terlalu rendah, buyback saat murah, dividen, ekspansi, dan laporan laba.</span></div></div>`;
+  const i=h.indexOf('🧠');if(i<0){const j=h.indexOf('</div></div>',h.indexOf('👔 CEO'));h=j>0?h.slice(0,j+12)+L+h.slice(j+12):L+h;}}}catch(e){}return h;};
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
