@@ -3578,7 +3578,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v74';
+const GAME_VER='v75';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10554,6 +10554,38 @@ function openMsWin(){if(modal)return;closePhone();const el=document.createElemen
   modal={el,st:{label:'Musim & Bencana'},busy:false,refresh(){draw();}};draw();}
 XA.xMs74=()=>openMsWin();
 xView('musim74',{t:'Musim',s:'Cuaca, bencana, asuransi',ic:'🌦️',bg:'linear-gradient(135deg,#2f6fe0,#a8e0ff)',r:()=>{setTimeout(()=>{if(phView==='musim74'){phView='home';closePhone();openMsWin();}},20);return '<p class="muted">Membuka...</p>';}});
+
+/* ================= v75: Poles Besar — gabung dekor statis kasino, Pengaturan Plus, perbaikan kecil ================= */
+const V75={merged:null,cand:null,snap:null};
+function set75(){const s=SET.p75=SET.p75||{merge:1,lod:1,ks:1,drv:1};return s;}
+function v75Cands(){const L=[];const skip=new Set();try{(slotMachines||[]).forEach(o=>skip.add(o.g||o.grp||o));(diceMeshes||[]).forEach(o=>skip.add(o));(marq||[]).forEach(o=>skip.add(o.m||o));if(rouletteDisc)skip.add(rouletteDisc);}catch(e){}
+  scene.children.forEach(o=>{if(!o.isMesh||o.isInstancedMesh||!o.visible||skip.has(o)||Array.isArray(o.material))return;const m=o.material;if(!m||m.transparent||!o.geometry||!o.geometry.attributes||!o.geometry.attributes.normal)return;
+    if(Math.abs(o.position.x)>ROOM+1||Math.abs(o.position.z)>ROOM+1||o.position.y>14)return;if(o.onBeforeRender&&o.onBeforeRender.toString().length>30)return;L.push(o);});return L;}
+function v75Sig(o){o.updateMatrixWorld();const m=o.material;return o.matrixWorld.elements.map(v=>v.toFixed(3)).join(',')+'|'+(m.color?m.color.getHexString():'')+(m.emissive?m.emissive.getHexString():'')+'|'+o.visible+'|'+(o.parent===scene);}
+function v75Merge(){if(V75.merged||!set75().merge)return;const L=v75Cands();V75.snap=new Map(L.map(o=>[o,v75Sig(o)]));
+  setTimeout(()=>{try{const g=new THREE.Group();g.name='v75static';const keep=[];V75.snap.forEach((sig,o)=>{if(v75Sig(o)===sig)keep.push(o);});if(keep.length<20)return;scene.add(g);keep.forEach(o=>g.add(o));
+    const r=v60Merge(g,new Set());V75.merged=g;V75.stat=r;try{renderer.shadowMap.needsUpdate=true;}catch(e){}console.log('v75 merge',r);}catch(e){console.error('v75',e);}},6000);}
+setTimeout(function v75Boot(){if(!started||!scene){setTimeout(v75Boot,2000);return;}v75Merge();},8000);
+/* settings app */
+function openSet75(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=set75();const row=(k,t,d)=>`<div class="row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${t}</b><br><small class="muted">${d}</small></span><button class="pbtn ${s[k]?'':'alt'}" data-k="${k}">${s[k]?'AKTIF':'MATI'}</button></div>`;
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Pengaturan Plus"><div class="mohead"><b>⚙️ Pengaturan Plus</b><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    ${row('lod','NPC jauh lebih sederhana','Menghemat tenaga HP. NPC di area lain tidak digambar.')}
+    ${row('merge','Gabung dekor kasino','Dinding dan dekor kasino digabung supaya lebih ringan. Berlaku setelah muat ulang.')}
+    ${row('ks','Pil misi Kisah Taipan','Tampilkan misi bab sekarang di kiri layar.')}
+    ${row('drv','Tombol Nyetir','Tampilkan tombol 🚗 Nyetir saat di luar ruangan.')}
+    <div class="wallet" style="margin-top:10px"><small>Info performa</small><b>${typeof renderer!=='undefined'?renderer.info.render.calls:0} draw call</b><div class="row"><span>NPC disembunyikan / disederhanakan</span><span>${(PF68.stat||{}).hid||0} / ${(PF68.stat||{}).lod||0}</span></div><div class="row"><span>Dekor kasino digabung</span><span>${V75.stat?V75.stat[0]+' → '+V75.stat[1]:'-'}</span></div><div class="row"><span>Versi</span><span>${GAME_VER}</span></div></div></div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;s[k]=s[k]?0:1;try{saveSet();}catch(e){}v75Apply();draw();});};
+  modal={el,st:{label:'Pengaturan Plus'},busy:false,refresh(){draw();}};draw();}
+function v75Apply(){const s=set75();PF68.on=!!s.lod;if(!s.lod){try{ents.forEach(e=>{const r=e.av&&e.av.root;if(!r)return;if(r.userData.ac68){r.visible=true;r.userData.ac68=0;}const L=r.userData.lod68;if(L&&r.userData.t68){lodSet(L.a,false);lodSet(L.b,false);r.userData.t68=0;}});}catch(e){}}
+  try{ks73().hide=s.ks?0:1;ksHud();}catch(e){}try{if(!s.drv&&DRV66.on)drvStop(1);drvHud();}catch(e){}}
+drvHud=(f=>function(){if(!set75().drv){const el=$('drv66');if(el)el.remove();return;}return f.apply(this,arguments);})(drvHud);
+XA.xSet75=()=>openSet75();
+xView('set75',{t:'Pengaturan+',s:'Performa & tampilan',ic:'⚙️',bg:'linear-gradient(135deg,#30343c,#9aa0aa)',r:()=>{setTimeout(()=>{if(phView==='set75'){phView='home';closePhone();openSet75();}},20);return '<p class="muted">Membuka...</p>';}});
+setTimeout(function v75A(){if(!started){setTimeout(v75A,2000);return;}v75Apply();},5000);
+/* small fixes */
+/* driving: never keep the car visible inside a modal-driven teleport to an indoor zone */
+tpTo=(f=>function(){const r=f.apply(this,arguments);try{setTimeout(()=>{if(typeof DRV66!=='undefined'&&DRV66.on&&!drvCan())drvStop(1);},50);}catch(e){}return r;})(tpTo);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
