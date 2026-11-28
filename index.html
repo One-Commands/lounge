@@ -444,7 +444,8 @@ body.phOpen #ctx{display:none!important}
 .rkw .rkb{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.rkw .rkb button{min-height:40px;padding:0 14px}
 .rkh{background:#fffdf7;border:2px dashed #ecdcbc;border-radius:12px;padding:8px 12px;margin:-4px 0 10px;color:#3a2a1a}
 .rkpod{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:6px 0 12px}.rkpod>div{flex:1;max-width:180px;text-align:center;border-radius:14px 14px 4px 4px;padding:8px 6px;color:#3a2a1a}
-.rkpod b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkpod small{display:block;font-size:11px;color:#6a5236}.rkpod span{font-size:22px}.rkpod i{display:block;font-style:normal;font-weight:900;font-size:22px}
+.rkpod b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkpod small{display:block;font-size:11px;color:#6a5236;overflow-wrap:anywhere}
+#bal{display:inline-block;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}#balUsd{max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mobal{max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mot small{overflow-wrap:anywhere}.rkpod span{font-size:22px}.rkpod i{display:block;font-style:normal;font-weight:900;font-size:22px}
 .rkpod .p1{background:linear-gradient(#ffe08a,#f2b630);min-height:120px}.rkpod .p2{background:linear-gradient(#eef1f6,#c3cad6);min-height:95px}.rkpod .p3{background:linear-gradient(#f3d2b0,#d79b67);min-height:80px}
 .prhero{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#fff6d8,#ffe7a8);border:2px solid #e2c070;border-radius:14px;padding:12px}.prhero>div:last-child{flex:1;min-width:0}.prhero b{display:block;font-size:20px;color:#5a3a10}.prhero small{color:#7a5a2a}.prlv{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#e0a020 70%,#a86a10);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;text-shadow:0 2px 0 #8a5a10;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2)}.prbar{height:10px;background:#f0e2c0;border-radius:6px;overflow:hidden;margin:6px 0 4px}.prbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcc4a,#ff9a2a)}.mocard.prme{border-color:#e0a020;background:#fff8e0}.mocard.prdone{background:#f4fbef;border-color:#b8dca0}
 .cinema>*:not(canvas):not(#ov):not(#lbx):not(#vs):not(#flashfx):not(#result):not(.modal):not(.ultfx):not(#trvl):not(#broke){opacity:0!important;pointer-events:none!important;transition:opacity .25s}
@@ -691,7 +692,9 @@ try{const p=sessionStorage.getItem('acct-pending');if(p){const o=JSON.parse(p);f
 const $=id=>document.getElementById(id);
 const stage=$('stage'),ov=$('ov');
 if(!window.THREE){stage.insertAdjacentHTML('beforeend','<div class="err">Mesin 3D gagal dimuat. Muat ulang halaman.</div>');return;}
-function BIGU(n){const U=[[1e33,'Ds'],[1e30,'No'],[1e27,'Ok'],[1e24,'Sp'],[1e21,'Sk'],[1e18,'Kn'],[1e15,'Kd']],A=Math.abs(n);for(const [v,u] of U)if(A>=v)return (n/v).toLocaleString('id-ID',{maximumFractionDigits:A/v>=100?1:2})+' '+u;return Math.round(n).toLocaleString('id-ID');}
+function BIGU(n){if(!isFinite(n))return '∞';const U=[[1e63,'Vg'],[1e60,'Nd'],[1e57,'Od'],[1e54,'St'],[1e51,'Sd'],[1e48,'Qn'],[1e45,'Qd'],[1e42,'Td'],[1e39,'Dd'],[1e36,'Ud'],[1e33,'Ds'],[1e30,'No'],[1e27,'Ok'],[1e24,'Sp'],[1e21,'Sk'],[1e18,'Kn'],[1e15,'Kd']],A=Math.abs(n);
+  if(A>=1e66){const e=Math.floor(Math.log10(A)),m=n/Math.pow(10,e);return m.toLocaleString('id-ID',{maximumFractionDigits:2})+'e'+e;}
+  for(const [v,u] of U)if(A>=v)return (n/v).toLocaleString('id-ID',{maximumFractionDigits:A/v>=100?1:2})+' '+u;return Math.round(n).toLocaleString('id-ID');}
 const fmt=n=>(typeof n==='number'&&Math.abs(n)>=1e12&&isFinite(n))?zusS(n):n.toLocaleString('id-ID');
 const fmtBig=n=>{n=Math.floor(n);const A=Math.abs(n);if(A<1e9)return fmt(n);if(A<1e12)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';return zusS(n);};
 /* v60.7: mata uang besar Zus. 1 Zus = 1 T koin (1e12). Amounts from 1 T koin up are shown in Zus. */
@@ -700,6 +703,11 @@ function zusS(n){return zNum(n/ZUS)+' Zus';}
 function zKC(n){n=+n||0;return Math.abs(n)>=ZUS&&isFinite(n)?'Ƶ '+zusS(n):'🪙 '+fmtBig(n);}
 function fmK(n){n=+n||0;return Math.abs(n)>=ZUS&&isFinite(n)?zusS(n):fmtBig(n)+' koin';}
 function zKF(n){n=+n||0;return Math.abs(n)>=ZUS&&isFinite(n)?'Ƶ '+zusS(n):'🪙 '+fmt(n);}
+/* v96.2: mata uang Kencana ♛ untuk kekayaan raksasa. 1 Kencana = 1 Kn Zus (1e18 Zus = 1e30 koin). Pendapatan tetap pakai Zus. */
+const KCN=1e30;function kcnN(v){const A=Math.abs(v);if(A<1e6)return v.toLocaleString('id-ID',{maximumFractionDigits:A>=100?0:2});if(A<1e9)return (v/1e6).toLocaleString('id-ID',{maximumFractionDigits:2})+' jt';if(A<1e12)return (v/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A<1e15)return (v/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';return BIGU(v);}
+function kcnS(n){return kcnN(n/KCN)+' Kencana';}
+function wlS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?'♛ '+kcnS(n):zKC(n);}
+function balS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?kcnS(n):fmtBig(n);}
 const HOST="Bang Rio";
 
 /* ---------- state ---------- */
@@ -1488,7 +1496,7 @@ function crowdCheer(pos){npcs.forEach(n=>{if(n.pos.distanceTo(pos)<12&&Math.rand
 
 /* ---------- UI ---------- */
 function render(){
-  $('bal').textContent=fmtBig(S.bal);try{const ci=document.querySelector('#money .coin');if(ci)ci.textContent=Math.abs(S.bal)>=ZUS?'Ƶ':'K';}catch(e){}$('wins').textContent=S.wins;$('losses').textContent=S.losses;
+  $('bal').textContent=balS(S.bal);try{const ci=document.querySelector('#money .coin');if(ci)ci.textContent=Math.abs(S.bal)>=KCN?'♛':Math.abs(S.bal)>=ZUS?'Ƶ':'K';}catch(e){}$('wins').textContent=S.wins;$('losses').textContent=S.losses;
   if(render.last!==undefined&&render.last!==S.bal){const m=$('money');m.classList.remove('flash');void m.offsetWidth;m.classList.add('flash');}
   render.last=S.bal;
   if(typeof modal!=='undefined'&&modal)modal.refresh();
@@ -1917,7 +1925,7 @@ function phoneRender(){
   const titles={home:'',rank:'Ranking',bank:'Bank Merdeka',toko:'Toko Aksesoris',crypto:'Crypto',saham:'Saham',detail:phAsset?phAsset.n:'',jobs:'Kerja sampingan',guide:'Panduan kasino',biz:'Bisnis & Properti',mail:'Inbox',quest:'Quest harian',wallet:'Dompet'};
   let body='';
   if(phView==='home'){
-    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${fmt(Math.round(net))}</b>${Math.abs(net)>=1e12?'<small style="opacity:.7">Ƶ 1 Zus = 1 T koin. Satuan: M miliar · T triliun · Kd kuadriliun (1.000 T) · Kn kuintiliun · Sk sekstiliun · Sp septiliun · Ok oktiliun · No noniliun · Ds desiliun</small>':''}${nwRows()}</div>
+    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${wlS(Math.round(net))}</b>${Math.abs(net)>=1e12?'<small style="opacity:.7">Ƶ 1 Zus = 1 T koin. Satuan: M miliar · T triliun · Kd kuadriliun (1.000 T) · Kn kuintiliun · Sk sekstiliun · Sp septiliun · Ok oktiliun · No noniliun · Ds desiliun · Ud · Dd · Td … Vg (tiap naik ×1.000). ♛ 1 Kencana = 1 Kn Zus.</small>':''}${nwRows()}</div>
       <div class="apps">
         <button class="app" data-v="crypto"><i style="background:linear-gradient(135deg,#f7931a,#b25b00)">₿</i>Crypto</button>
         <button class="app" data-v="saham"><i style="background:linear-gradient(135deg,#3ddc84,#137a44)">📈</i>Saham</button>
@@ -1987,8 +1995,8 @@ function phoneRender(){
       else if(duel.stage==='live')dh=`<div class="duel"><h5>Duel sedang berlangsung di Meja Duel...</h5></div>`;
       else dh=`<div class="duel"><h5>Duel lawan ${esc(duel.n)} · ${fmK(duel.stake)}</h5><div class="duelv"><div><small>Kamu</small><b id="dY">${duel.y??'?'}</b><i id="dYr">${duel.y!=null?'reme '+reme(duel.y):''}</i></div><span>VS</span><div><small>${esc(duel.n)}</small><b id="dO">${duel.o??'?'}</b><i id="dOr">${duel.o!=null?'reme '+reme(duel.o):''}</i></div></div>
         <p class="pmsg" id="dMsg">${duel.msg||'Memutar...'}</p>${duel.stage==='done'?`<div class="srow"><button class="pbtn" data-again>Duel lagi</button><button class="pbtn" data-dx>Tutup</button></div>`:''}</div>`;}
-    body=`<div class="wallet"><small>Peringkatmu</small><b>#${rk} <span class="ttl">${titleOf(nw)}</span></b><div class="row"><span>Kekayaan bersih</span><span>${fmtUSD(toUSD(nw))} · ${zKC(Math.round(nw))}</span></div><div class="row"><span>Kurs</span><span>1 USD = ${zKF(Math.round(usdRate()))}</span></div><div class="row"><span>Hadiah berikutnya</span><span>${nx?`Top ${nx[0]}: ${fmt(nx[1])}`:'Semua sudah diklaim'}</span></div></div>`+dh+
-      R.map((r,i)=>`<div class="rk ${r.me?'me':''}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${r.me?meTag():''}${r.co&&r.co.length?' · 🏢 '+r.co.join(', '):''}${r.pv>1?' · 📈 '+fmtBig(Math.round(r.pv)):''}${r.mg?' · 🏬 '+r.mg+' mall':''}</small></div><span class="w"><b class="usd">${fmtUSD(toUSD(r.w))}</b><small class="kc">${zKC(r.w)}</small>${r.me?'':`<i class="${r.d>=0?'up':'dn'}">${r.d>=0?'▲':'▼'}</i>`}</span>${r.me?'':`${r.only?'':`<button data-duel="${esc(r.n)}" ${duel&&duel.stage==='live'?'disabled':''}>Duel</button>`}<button data-aduel="${esc(r.n)}">⚔️ Aset</button>`}</div>`).join('')+
+    body=`<div class="wallet"><small>Peringkatmu</small><b>#${rk} <span class="ttl">${titleOf(nw)}</span></b><div class="row"><span>Kekayaan bersih</span><span>${fmtUSD(toUSD(nw))} · ${wlS(Math.round(nw))}</span></div><div class="row"><span>Kurs</span><span>1 USD = ${zKF(Math.round(usdRate()))}</span></div><div class="row"><span>Hadiah berikutnya</span><span>${nx?`Top ${nx[0]}: ${fmt(nx[1])}`:'Semua sudah diklaim'}</span></div></div>`+dh+
+      R.map((r,i)=>`<div class="rk ${r.me?'me':''}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${r.me?meTag():''}${r.co&&r.co.length?' · 🏢 '+r.co.join(', '):''}${r.pv>1?' · 📈 '+fmtBig(Math.round(r.pv)):''}${r.mg?' · 🏬 '+r.mg+' mall':''}</small></div><span class="w"><b class="usd">${fmtUSD(toUSD(r.w))}</b><small class="kc">${wlS(r.w)}</small>${r.me?'':`<i class="${r.d>=0?'up':'dn'}">${r.d>=0?'▲':'▼'}</i>`}</span>${r.me?'':`${r.only?'':`<button data-duel="${esc(r.n)}" ${duel&&duel.stage==='live'?'disabled':''}>Duel</button>`}<button data-aduel="${esc(r.n)}">⚔️ Aset</button>`}</div>`).join('')+
       '<p class="news">Ranking dihitung dari kekayaan bersih (tunai + investasi + tabungan + barang + bisnis + perusahaan − hutang). Konglomerat pemilik saham pengendali ikut masuk. Tombol ⚔️ Aset = duel taruhan koin, saham, atau crypto. Kekayaan NPC ikut naik turun tiap 10 detik.</p>';
   }else if(phView==='jobs'){
     body=JOBS.map(j=>`<div class="job"><div class="t"><span>${j.n}</span><span class="up">${j.min}-${j.max}</span></div><small>${j.desc} · ${j.d} detik</small><div class="bar"><i id="jobbar-${j.id}" style="width:${job&&job.j.id===j.id?Math.min(100,(performance.now()-job.t0)/(j.d*10)):0}%"></i></div><button data-j="${j.id}" ${job?'disabled':''}>${job&&job.j.id===j.id?'Sedang dikerjakan...':'Ambil kerjaan'}</button></div>`).join('')+'<p class="news">Kerjaan jalan terus walau HP ditutup. Kamu tetap bisa main.</p>';
@@ -3589,7 +3597,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v96';
+const GAME_VER='v96.2';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -3826,7 +3834,7 @@ function aptModal(f){if(busy)return;if(modal&&!(aptMod&&modal.el===aptMod.el))re
         <section class="setg"><h4>Unit</h4>${Array.from({length:APT.R},(_,i)=>{const k=aptKey(f,i),r=a.r[k];
           return `<div class="arow"><div><b>${aptLbl(f,i)}</b><small>${r?(r.ten?`Disewa ${esc(r.ten.n)} · ${zKF(r.ten.rent)}/hari`:'Kosong, menunggu penyewa')+` · nilai ${fmt(Math.round(r.v))}`:`${T.n} · ${zKF(aptRoomPrice(f,i))}`}</small></div>${r?(r.ten?`<button class="small ghost" data-bz="aKick" data-id="${k}">Akhiri sewa</button>`:'')+`<button class="small ghost" data-bz="aSellR" data-id="${k}">Jual 90%</button>`:`<button class="small" data-bz="aBuyR" data-id="${k}">Beli</button>`}</div>`;}).join('')}
         <p class="muted">Unit yang kamu punya disewakan ke NPC (±3% nilai/hari). Tawaran sewa dan beli masuk ke 📬 Inbox di HP.</p></section>`;}
-    el.innerHTML=`<div class="panel" role="dialog" aria-label="${APT.n}"><div class="phead"><h3>🛎️ Resepsionis</h3><span class="pbal">Saldo <b>${fmtBig(S.bal)}</b></span><button class="pclose" aria-label="Tutup">✕</button></div><div class="pbody setb">${body}</div></div>`;
+    el.innerHTML=`<div class="panel" role="dialog" aria-label="${APT.n}"><div class="phead"><h3>🛎️ Resepsionis</h3><span class="pbal">Saldo <b>${balS(S.bal)}</b></span><button class="pclose" aria-label="Tutup">✕</button></div><div class="pbody setb">${body}</div></div>`;
     el.querySelector('.pclose').onclick=()=>{modal=null;aptMod=null;el.remove();};};
   aptMod={el,draw,set f(v){f=v;}};aptMod.f=f;draw();}
 
@@ -6338,7 +6346,7 @@ function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)key
       +card('📜','Kontrak sewa jangka panjang','Sewa 10% lebih murah, tapi unit apartemen kosong langsung terisi.',`<button class="${c.lease?'mogo':'mog'}" data-mo="lease">${c.lease?'Aktif':'Mati'}</button>`);}
     if(moTab==='hire'){const b=bizS();b.mgr=b.mgr||{};body=`<p class="muted">${anyMgr()?'Manajer mengurus area bisnismu. Rekrut untuk area lain supaya penghasilannya langsung masuk dompet.':'Kamu belum punya manajer. Rekrut satu supaya fitur Kantor Manajer (beli properti, saran saham, jual otomatis) terbuka.'}</p>`+Object.keys(AREAS).map(id=>{const A=AREAS[id];return card(A.ic||'🏬',esc(A.n),b.mgr[id]?'Manajer sudah bekerja di sini.':`Gaji rekrut ${zKC(A.mgr)}`,b.mgr[id]?'<small>✅ Aktif</small>':`<button class="mogo" data-mo="hire:${id}" ${S.bal<A.mgr?'disabled':''}>Rekrut</button>`);}).join('');}
     if(moTab==='war'){const L=WS();body=(L.wars.map(v=>card('⚔️',`${kdN(v.a)} ${v.ra}-${v.rb} ${kdN(v.b)}`,`Kekuatan ${Math.round(warPow(v,'a'))} vs ${Math.round(warPow(v,'b'))}`,`<button class="mogo" data-mo="wapp">Buka app Perang</button>`)).join('')||'<p class="muted">Sedang damai.</p>');}
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Kantor Manajer"><div class="mohead"><b>👔 Kantor Manajer</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Kantor Manajer"><div class="mohead"><b>👔 Kantor Manajer</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${tabs.map(([k,ic,n])=>`<button class="${k===moTab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.moclose').onclick=()=>{modal=null;el.remove();advRender();};el.addEventListener('pointerdown',e=>{if(e.target===el){modal=null;el.remove();}});
     el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{moTab=b.dataset.tab;SFX.pop();draw();});
@@ -6472,8 +6480,8 @@ let autoLite=0;{const _gl=gfxLite;gfxLite=function(){return _gl()||!!autoLite;};
 /* T7: balance counts up/down smoothly */
 {const _r=render;let shown=null,anim=null;render=function(){const r=_r.apply(this,arguments);const el=$('bal');if(!el)return r;const tgt=S.bal;
     if(shown===null){shown=tgt;return r;}if(Math.abs(tgt-shown)<1){shown=tgt;return r;}
-    const from=shown,t0=performance.now();cancelAnimationFrame(anim);el.textContent=fmtBig(Math.round(from));
-    const step=t=>{const k=Math.min(1,(t-t0)/450),v=from+(tgt-from)*(1-Math.pow(1-k,3));shown=v;el.textContent=fmtBig(Math.round(v));if(k<1)anim=requestAnimationFrame(step);else{shown=tgt;el.textContent=fmtBig(tgt);}};anim=requestAnimationFrame(step);return r;};}
+    const from=shown,t0=performance.now();cancelAnimationFrame(anim);el.textContent=balS(Math.round(from));
+    const step=t=>{const k=Math.min(1,(t-t0)/450),v=from+(tgt-from)*(1-Math.pow(1-k,3));shown=v;el.textContent=balS(Math.round(v));if(k<1)anim=requestAnimationFrame(step);else{shown=tgt;el.textContent=balS(tgt);}};anim=requestAnimationFrame(step);return r;};}
 /* T5 + T6: search and pinned apps in the phone sidebar */
 PF.phPin=PF.phPin||[];let phQ='';
 phSideList=(f=>function(){let L=f();const pins=PF.phPin=PF.phPin||[];const P=L.filter(x=>pins.includes(x[0])),R=L.filter(x=>!pins.includes(x[0]));
@@ -6973,7 +6981,7 @@ function twBuild(){if(twBuilt)return;twBuilt=true;
         stationAdd('twmgr',X+1.5,Zm,-Math.PI/2,'Meja Manajer',{useDist:2.8,verb:'Bicara',act:()=>{if(typeof openMgrOffice==='function')openMgrOffice();},btn:'MANAJER',ctx:()=>`<div class="ctx-head"><h3>👔 Manajer sedang bekerja</h3><small>Mengurus sewa, penjualan, dan saran investasimu</small></div><div class="ctx-row"><button class="go" id="ctxGo">Bicara (E)</button></div>`});}
       lift(g,zc,0);
       stationAdd('twdeskP',0,zc-6.4,Math.PI,'Meja kerja',{useDist:2.8,verb:'Kerja',act:()=>{if(typeof openMgrOffice==='function')openMgrOffice();},btn:'MEJA',ctx:()=>`<div class="ctx-head"><h3>🖋️ Meja kerja pribadi</h3><small>Buka Kantor Manajer dan laporan bisnis</small></div><div class="ctx-row"><button class="go" id="ctxGo">Duduk (E)</button></div>`});
-      stationAdd('twsafe',26,zc+12.6,Math.PI,'Brankas',{useDist:2.6,verb:'Buka',act:()=>XA.xTwSafe(),btn:'BRANKAS',ctx:()=>`<div class="ctx-head"><h3>🔐 Brankas pribadi</h3><small>Kekayaan bersih ${fmtBig(Math.round(netWorth()))}</small></div><div class="ctx-row"><button class="go" id="ctxGo">Buka (E)</button></div>`});
+      stationAdd('twsafe',26,zc+12.6,Math.PI,'Brankas',{useDist:2.6,verb:'Buka',act:()=>XA.xTwSafe(),btn:'BRANKAS',ctx:()=>`<div class="ctx-head"><h3>🔐 Brankas pribadi</h3><small>Kekayaan bersih ${wlS(Math.round(netWorth()))}</small></div><div class="ctx-row"><button class="go" id="ctxGo">Buka (E)</button></div>`});
       stationAdd('twbar',22,zc-12.8,0,'Bar pribadi',{useDist:2.8,verb:'Minum',act:()=>{if(typeof XA.xCsv==='function'){const B=cityB();B.resto=Math.max(Date.now(),B.resto||0)+600000;savePF();showResult('🥃 Rileks di bar pribadi. Gaji kerja +15% selama 10 menit');SFX.coin();}},btn:'BAR',ctx:()=>`<div class="ctx-head"><h3>🥃 Bar pribadi</h3><small>Gratis untuk pemilik. Buff gaji +15% 10 menit.</small></div><div class="ctx-row"><button class="go" id="ctxGo">Rileks (E)</button></div>`});}
     twSign=twSign||signTex(512,150,twFloorSignDraw);plane(g,4.6,1.35,new THREE.MeshBasicMaterial({map:twSign}),-4,3.0,zc+TW.hd-.3,Math.PI);}
 }
@@ -7006,7 +7014,7 @@ setInterval(()=>{if(!started)return;const s=twS(),now=Date.now();let inc=0,ch=fa
   if(inc){S.bal+=Math.round(inc*xMult());s.tot=(s.tot||0)+inc;}if(ch){if(twSign)redrawTex(twSign,twFloorSignDraw);savePF();}},60000);
 XA.xTwHall=()=>{const s=twS(),f=TWC.f,e=s.ev[f]||0;if(Date.now()-e<300000)return;s.ev[f]=Date.now();const got=Math.round(3e11*.004*xMult()),evs=['pernikahan mewah','gala dinner perusahaan','peluncuran produk','konser privat','seminar bisnis'];
   S.bal+=got;logLine('sys',null,`🎉 ${twName(f)} lantai ${f} disewa untuk ${evs[pick(evs.length)]}. +${fmtBig(got)}.`,'win');SFX.win();xpAdd(5);save();savePF();render();};
-XA.xTwSafe=()=>{xModal('🔐 Brankas Pribadi',(body)=>{const nw=netWorth();body.innerHTML=`<div class="wallet"><small>Kekayaan bersih</small><b>${fmtBig(Math.round(nw))}</b><div class="row"><span>Koin tunai</span><span>${fmtBig(Math.round(S.bal))}</span></div><div class="row"><span>Saham & crypto</span><span>${fmtBig(Math.round(portVal()))}</span></div><div class="row"><span>Properti</span><span>${fmtBig(Math.round(propVal?propVal():0))}</span></div><div class="row"><span>Pendapatan sewa menara</span><span>${fmtBig(Math.round(twS().tot||0))} total</span></div></div>`;});};
+XA.xTwSafe=()=>{xModal('🔐 Brankas Pribadi',(body)=>{const nw=netWorth();body.innerHTML=`<div class="wallet"><small>Kekayaan bersih</small><b>${wlS(Math.round(nw))}</b><div class="row"><span>Koin tunai</span><span>${fmtBig(Math.round(S.bal))}</span></div><div class="row"><span>Saham & crypto</span><span>${fmtBig(Math.round(portVal()))}</span></div><div class="row"><span>Properti</span><span>${fmtBig(Math.round(propVal?propVal():0))}</span></div><div class="row"><span>Pendapatan sewa menara</span><span>${fmtBig(Math.round(twS().tot||0))} total</span></div></div>`;});};
 xView('menara',{t:TW.n,s:'Menara',ic:'🏙️',bg:'linear-gradient(135deg,#2e2620,#b89a5e)',r:()=>{const s=twS();let rent=0,sold=0,tenants=0;for(let f=2;f<=33;f++){const x=twF(f);if(x.st==='sewa'){rent+=x.rent;tenants++;}if(x.st==='jual')sold++;}
   const row=f=>{const x=twF(f),t=twType(f);if(t!==1&&t!==2)return '';return `<div class="chap ${x.st==='sewa'?'now':''}"><span style="font-size:20px">${t===1?'🏢':'🏙️'}</span><div><b>Lantai ${f} · ${twName(f)}</b><small>${x.st==='kosong'?'Kosong · nilai '+fmtBig(twVal(f)):x.st==='cari'?'Mencari penyewa...':x.st==='sewa'?'Disewa '+esc(x.ten)+' · '+fmtBig(x.rent)+'/hari':'Milik '+esc(x.buyer)}</small></div><div class="bk" style="margin:0">${x.st==='kosong'?`<button data-xa="xTwAct" data-id="cari:${f}">Sewakan</button><button class="p" data-xa="xTwAct" data-id="jual:${f}">Jual</button>`:x.st==='sewa'?`<button data-xa="xTwAct" data-id="stop:${f}">Akhiri</button><button class="p" data-xa="xTwAct" data-id="jual:${f}">Jual</button>`:x.st==='jual'?`<button data-xa="xTwAct" data-id="beli:${f}">Beli lagi</button>`:''}</div></div>`;};
   return `<div class="wallet"><small>Gedung milikmu · tidak bisa dijual utuh</small><b>${TW.n} · 35 lantai</b><div class="row"><span>Lantai disewa</span><span>${tenants}</span></div><div class="row"><span>Pendapatan sewa</span><span>${fmtBig(rent)}/hari</span></div><div class="row"><span>Lantai terjual</span><span>${sold}</span></div><div class="bk" style="margin-top:6px"><button class="p" data-xa="xTwGo" data-id="1">🛎️ Ke lobby</button><button class="p" data-xa="xTwGo" data-id="35">👑 Ke kantor pribadi (Lt 35)</button></div></div>
@@ -8035,14 +8043,14 @@ function openRankWin(){if(modal)return;closePhone();for(const k in keys)keys[k]=
   const el=document.createElement('div');el.className='modal';stage.appendChild(el);const m={el,st:{label:'Ranking'},busy:false,refresh(){draw();}};modal=m;
   const close=()=>{if(modal===m)modal=null;el.parentNode&&el.parentNode.removeChild(el);clearInterval(m.iv);};
   const row=(r,i)=>`<div class="rkw ${r.me?'me':''}" data-n="${esc(r.n)}"><span class="pos">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span><div class="nm"><b>${esc(r.n)}</b><small>${titleOf(r.w)}${!r.me&&npcPct(r.n).length?' · 📈 '+npcPct(r.n).slice(0,6).map(x=>x.id+' '+x.p+(x.c?' 👑':'')).join(', ')+(npcPct(r.n).length>6?` +${npcPct(r.n).length-6} lainnya`:''):(r.co&&r.co.length?' · 🏢 '+r.co.join(', '):'')}${r.mg?' · 🏬 '+r.mg+' mall':''}${r.me&&r.st&&r.st.length?' · 📈 '+r.st.slice(0,6).join(', ')+(r.st.length>6?` +${r.st.length-6} lainnya`:''):''}${r.me&&!(r.co&&r.co.length)&&!(r.st&&r.st.length)?' · belum pegang saham':''}</small></div>
-    <span class="w"><b>${fmtUSD(toUSD(r.w))}</b><small>${zKC(r.w)}</small></span><div class="rkb"><button class="mog" data-h="${esc(r.n)}">${rkWOpen===r.n?'Tutup':'📋 Harta'}</button>${r.me?'':`${r.only?'':`<button class="mog" data-du="${esc(r.n)}">Duel</button>`}<button class="mogo" data-ad="${esc(r.n)}">⚔️ Aset</button>`}</div></div>
+    <span class="w"><b>${fmtUSD(toUSD(r.w))}</b><small>${wlS(r.w)}</small></span><div class="rkb"><button class="mog" data-h="${esc(r.n)}">${rkWOpen===r.n?'Tutup':'📋 Harta'}</button>${r.me?'':`${r.only?'':`<button class="mog" data-du="${esc(r.n)}">Duel</button>`}<button class="mogo" data-ad="${esc(r.n)}">⚔️ Aset</button>`}</div></div>
     ${rkWOpen===r.n?`<div class="harta rkh"><h5>📋 Rincian harta ${esc(r.me?'kamu':r.n)}</h5>${r.me?hartaMe():hartaNpc(r.n)}</div>`:''}`;
   const draw=()=>{try{draw0();}catch(e){console.error('rank draw',e);el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ranking"><div class="mohead"><b>🏆 Ranking</b><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain"><p class="muted">Ranking gagal dimuat, data sedang diperbaiki otomatis. Tutup lalu buka lagi.</p><small>${esc(String(e&&e.message||e))}</small></div></div>`;try{rkHeal(1);}catch(_){}}};
   const draw0=()=>{const R=ranking(),rk=R.findIndex(r=>r.me)+1,nw=netWorth(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
-    if(rkWTab==='rank'){const top=R.slice(0,3);body=`<div class="mocard rkme"><div class="moic">🏆</div><div class="mot"><b>Peringkatmu #${rk} · ${titleOf(nw)}</b><small>Kekayaan bersih ${fmtUSD(toUSD(nw))} · ${zKC(Math.round(nw))}</small></div></div>
-      <div class="rkpod">${[1,0,2].map(j=>top[j]?`<div class="p${j+1}"><span>${['🥇','🥈','🥉'][j]}</span><b>${esc(top[j].me?'Kamu':top[j].n)}</b><small>${zKC(top[j].w)}</small><i>${j+1}</i></div>`:'').join('')}</div>`+R.map(row).join('');}
+    if(rkWTab==='rank'){const top=R.slice(0,3);body=`<div class="mocard rkme"><div class="moic">🏆</div><div class="mot"><b>Peringkatmu #${rk} · ${titleOf(nw)}</b><small>Kekayaan bersih ${fmtUSD(toUSD(nw))} · ${wlS(Math.round(nw))}</small></div></div>
+      <div class="rkpod">${[1,0,2].map(j=>top[j]?`<div class="p${j+1}"><span>${['🥇','🥈','🥉'][j]}</span><b>${esc(top[j].me?'Kamu':top[j].n)}</b><small>${wlS(top[j].w)}</small><i>${j+1}</i></div>`:'').join('')}</div>`+R.map(row).join('');}
     else{const best=PF.rankBest||99;body=RANK_REW.slice().reverse().map(([l,v])=>`<div class="mocard"><div class="moic">${l===1?'👑':'🎖️'}</div><div class="mot"><b>Masuk Top ${l}</b><small>Hadiah ${zKF(v)} · ${best<=l?'✅ sudah didapat':'belum'}</small></div></div>`).join('')+`<p class="muted">Ranking dihitung dari kekayaan bersih: tunai, investasi, tabungan, barang, bisnis dan perusahaan dikurangi hutang. NPC boleh lebih kaya darimu.</p>`;}
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ranking"><div class="mohead"><b>🏆 Ranking</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ranking"><div class="mohead"><b>🏆 Ranking</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['rank','🏆','Peringkat'],['rew','🎁','Hadiah']].map(([k,ic,n])=>`<button class="${k===rkWTab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;m.drawn=performance.now();};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();
@@ -8194,7 +8202,7 @@ function openSocWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k
         `<div class="thd">Papan poin anggota</div>`+R.map((x,i)=>`<div class="mocard"><div class="moic">${i===0?'👑':'#'+(i+1)}</div><div class="mot"><b>${esc(x.n)}</b><small>${x.pts} poin</small></div></div>`).join('');}
       else body=`<p class="muted">Pilih satu klub. Iuran sekali bayar, bonusnya berlaku selama kamu jadi anggota.</p>`+SCLUBS.map(c=>card(c[1],c[2],`${c[4]} · anggota: ${clubMembers(c[0]).slice(0,3).join(', ')}, dst.`,B('xClubJoin',c[0],'Gabung · 🪙 '+fmtBig(clubFee(c)),'mogo',S.bal<clubFee(c)))).join('');}
     else body=(s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>');
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Sosial"><div class="mohead"><b>🤝 Sosial</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Sosial"><div class="mohead"><b>🤝 Sosial</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['teman','🤝','Teman'],['klub','🥂','Klub'],['log','📜','Catatan']].map(([k,ic,n])=>`<button class="${k===SOCW.tab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -8342,7 +8350,7 @@ function openIpoWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k
     else if(NIW.tab==='daftar'){body=s.list.length?s.list.slice().reverse().map(d=>{const a=MK.find(x=>x.id===d.id);if(!a)return'';const ch=(a.p/d.p0-1)*100,mine=PF.hold[d.id]||0;
       return card(d.ic||'🏢',`${d.id} · ${esc(d.n)}`,`Pemilik ${esc(d.o)} · harga ${zKF(Math.round(a.p))} (<span class="${ch>=0?'up':'dn'}">${ch>=0?'+':''}${ch.toFixed(1).replace('.',',')}%</span> dari IPO)${mine?` · punyamu ${fmt(Math.floor(mine))} lembar`:''}`);}).join('')+'<p class="muted">Jual beli saham ini lewat app Saham seperti saham lain.</p>':'<p class="muted">Belum ada perusahaan NPC yang IPO.</p>';}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="IPO Bursa"><div class="mohead"><b>🛎️ IPO Bursa</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="IPO Bursa"><div class="mohead"><b>🛎️ IPO Bursa</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['buka','🛎️','Penawaran'],['daftar','📋','Sudah IPO'],['log','📜','Catatan']].map(([k,ic,n])=>`<button class="${k===NIW.tab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -8421,7 +8429,7 @@ function openMuWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
     else if(MUW.tab==='tamu'){const g=m.guest&&Date.now()<m.guest.end?m.guest:null;body=(g?card(g.ic,`Sedang dipamerkan: ${esc(g.n)}`,`Milik ${esc(g.o)} · selesai ${Math.ceil((g.end-Date.now())/60000)} menit lagi`,'','prme'):'')+
       `<p class="muted">Pinjam satu karya dari kolektor NPC selama 30 menit. Penawaran berganti tiap 30 menit.</p>`+mzOffers().map(o=>card(o.ic,esc(o.n),`Milik ${esc(o.o)} · taksiran ${zKC(o.v)} · sewa ${zKC(o.fee)}`,B('xMuGuest',o.k,'Pinjam','mogo',!m.lv||!!g||S.bal<o.fee))).join('');}
     else body=m.h.length?m.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Museum"><div class="mohead"><b>🏛️ Museum</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Museum"><div class="mohead"><b>🏛️ Museum</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['info','🏛️','Museum'],['koleksi','🖼️','Koleksi'],['tamu','🤝','Pameran tamu'],['log','📜','Catatan']].map(([k,ic,n])=>`<button class="${k===MUW.tab?'on':''}" data-tab="${k}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -8578,7 +8586,7 @@ function openIstana(tab){if(modal)return;closePhone();for(const k in keys)keys[k
         :'<p class="muted">Belum punya. Dapatkan lewat Gacha.</p>');}).join('')+
       `<p class="muted">Efek sekarang: bisnis +${(offStat('keu')*.1+offStat('dag')*.12).toFixed(1).replace('.',',')}% · kekuatan perang +${offStat('prt')*8} · suap ${Math.round(bribeChance()*100)}% · takhta aman ${Math.round(offStat('pgw')*.6)}%</p>`;}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Istana"><div class="mohead"><b>🏯 Istana</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Istana"><div class="mohead"><b>🏯 Istana</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['takhta','👑','Takhta'],['tugas','📋','Tugas'],['gacha','🎴','Gacha'],['pejabat','🧑‍💼','Pejabat'],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===ISW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -8820,7 +8828,7 @@ function openMilWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k
         ML51.TECH.map(t=>{const done=!!s.tech[t[0]],req=t[6].every(r=>s.tech[r]),need=t[6].filter(r=>!s.tech[r]).map(r=>ML51.TECH.find(y=>y[0]===r)[2]).join(', ');
           return card(t[1],`${t[2]}${done?' ✅':''}`,`${t[3]} · ${zKC(t[4])} · ${t[5]} menit dasar${!done&&!req?` · butuh ${need}`:''}`,done?'<b class="up">Selesai</b>':B('xMlRes',t[0],'Riset','mogo',!req||!!s.res||!s.lab.length||S.bal<t[4]),done?'prme':'');}).join('');}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Markas Militer"><div class="mohead"><b>🎖️ Markas Militer</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Markas Militer"><div class="mohead"><b>🎖️ Markas Militer</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['kuat','⚔️','Kekuatan'],['pasukan','🪖','Pasukan'],['komandan','🎖️','Komandan'],['senjata','🛒','Senjata'],['riset','🔬','Riset'],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===MLW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -9318,7 +9326,7 @@ function openKgWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
     else if(KGW.tab==='pasar'){const disc=1-Math.min(.6,(s.lv.pasar||0)*.03);body=resBar+`<p class="muted">Beli sumber daya dengan koin. Pasar Kerajaan level ${s.lv.pasar||0}: diskon ${Math.round((1-disc)*100)}%. Harga ikut indeks pasar.</p>`+
       KG55.RES.map(([k,ic,n])=>{const unit={food:2e5,wood:2.5e5,stone:4e5,gold:2e6}[k]*Math.max(1,PF.inf52||1)*disc;return card(ic,n,`${zKC(unit)} per unit`,[1e4,1e5,1e6].map(q=>B('xKgBuy',k+':'+q,`+${N(q)} · ${fmtBig(unit*q)}`,q===1e4?'mogo':'mog',S.bal<unit*q)).join(''));}).join('');}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Kerajaanku"><div class="mohead"><b>🏰 Kerajaanku</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Kerajaanku"><div class="mohead"><b>🏰 Kerajaanku</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['ring','🏰','Ringkasan'],['bang','🏗️','Bangunan'],['pasar','🏪','Pasar'],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===KGW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -9438,7 +9446,7 @@ function openPlWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
     else if(PLW.tab==='peta'){const w=WS();body=KDS.map(([id,ic,nm])=>{const ps=TYCOONS.filter(n=>s.t[n].kd===id),K=w.k[id]||{pow:0,wil:0};
         return card(ic,`${esc(nm)} · ⚔️ ${Math.round(K.pow)}`,`Wilayah ${K.wil}${atWar(id)?' · <span class="dn">sedang perang</span>':''}<br>${ps.length?ps.map(n=>`${plGood(n)?'😇':'😈'} ${esc(n)}`).join(' · '):'Tidak ada konglomerat di belakangnya'}`,'',k&&k.kd===id?'prme':'');}).join('');}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada kabar politik. Konglomerat bergerak kira-kira tiap 45 detik.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Politik Konglomerat"><div class="mohead"><b>🎩 Politik Konglomerat</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Politik Konglomerat"><div class="mohead"><b>🎩 Politik Konglomerat</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['kong','🎩','Konglomerat'],['peta','🗺️','Kerajaan'],['log','📰','Kabar']].map(([kk,ic,n])=>`<button class="${kk===PLW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -9562,7 +9570,7 @@ function openGfWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
       card('🎵',`Musik istana ${s.mus?'· aktif':'· mati'}`,'Lagu istana bernada kuno yang dibuat langsung oleh game, makin meriah dengan genderang saat festival atau parade. Siang ada kicau burung, malam ada jangkrik. Volumenya ikut pengaturan musik.',B('xGfMus','',s.mus?'Aktif':'Mati',s.mus?'mogo':'mog'))+
       card('🏮','Pasar Malam','Saat malam, lampion menyala di atas lapak pasar, cahaya hangat menerangi sumur, dan kunang-kunang muncul di taman.','');}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Perayaan Kerajaan"><div class="mohead"><b>🎉 Perayaan Kerajaan</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Perayaan Kerajaan"><div class="mohead"><b>🎉 Perayaan Kerajaan</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['acara','🎉','Perayaan'],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===GFW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
     if(t.dataset.tab){GFW.tab=t.dataset.tab;try{SFX.pop();}catch(e){}draw();return;}
@@ -9648,7 +9656,7 @@ function openDpWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
     else if(DPW.tab==='dewan'){body=my?(s.dec.length?s.dec.map(d=>{const C=DP_COUNCIL[d.i];return card(C[0],C[1].replace('{kd}',esc(kdN(d.kd))),`Usulan masuk ${Math.max(1,Math.round((Date.now()-d.at)/60000))} menit lalu${tkAuto().on?' · kalau tidak dipilih, menteri memutuskan otomatis setelah 1,5 menit':''}`,C[2].map((o,i)=>B('xDpDec',d.at+':'+i,o[0],i?'mog':'mogo')).join(''));}).join(''):'<p class="muted">Belum ada usulan. Dewan kerajaan bersidang kira-kira tiap 2,5 menit.</p>'):'<p class="muted">Dewan kerajaan hanya bersidang kalau kamu jadi raja.</p>';
       body+=s.h.filter(x=>x.ic==='🤖'||x.c==='up').slice(0,6).map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join('');}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan diplomasi.</p>';
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Diplomasi"><div class="mohead"><b>🕊️ Diplomasi</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Diplomasi"><div class="mohead"><b>🕊️ Diplomasi</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div>
       <div class="mowrap"><div class="moside">${[['hub','🕊️','Hubungan'],['dewan','🏛️','Dewan'+(s.dec.length?' ('+s.dec.length+')':'')],['log','📜','Catatan']].map(([kk,ic,n])=>`<button class="${kk===DPW.tab?'on':''}" data-tab="${kk}"><span>${ic}</span>${n}</button>`).join('')}</div><div class="momain">${body}</div></div></div>`;
     el.querySelector('.momain').scrollTop=sc;};
   el.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;e.stopPropagation();if(t.classList.contains('moclose')){close();return;}
@@ -10153,7 +10161,7 @@ function milesCtx(){const F=fl66();return `<div class="ctx-head"><h3>✈️ Perm
 XA.xMiles=()=>openMilesWin();
 function openMilesWin(){if(modal)return;closePhone();const F=fl66(),D=flDest();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
   const lvl=F.m>=500?['💎 Platinum','#bcd2ff']:F.m>=200?['🥇 Gold','#ffd25f']:F.m>=50?['🥈 Silver','#d0d4da']:['🎫 Blue','#7fb8ff'];
-  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Permata Miles"><div class="mohead"><b>✈️ Permata Miles</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Permata Miles"><div class="mohead"><b>✈️ Permata Miles</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
   <div class="wallet"><small>Status member</small><b style="color:${lvl[1]}">${lvl[0]}</b><div class="row"><span>Miles</span><span>${F.m.toLocaleString('id-ID')}</span></div><div class="row"><span>Penerbangan luar negeri</span><span>${F.n}</span></div><div class="row"><span>Tiket gratis tersedia</span><span>${F.free}</span></div></div>
   <p class="muted">Setiap 10 penerbangan ke luar negeri dapat 1 tiket gratis. Miles = harga tiket / 100 rb. Gold dapat diskon 10%, Platinum 20%.</p>
   <p class="sec-t">Jadwal keberangkatan</p>${D.map((o,j)=>{const [st,c]=flStatus(o.Z,j);const p=XS().jet?0:tixP(o.Z);return `<div class="row" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${esc(o.Z.n)}</b><br><small style="color:${c==='#bcd2ff'?'#5a6a8a':c}">${st} · Gate A${j+1}</small></span><button class="pbtn" data-fl="${o.Z.id}">${p?zKC(Math.round(p*milesDisc())):'Gratis'}</button></div>`;}).join('')}</div></div>`;
@@ -10219,7 +10227,7 @@ XA.xArms67=arg=>{const [id,side]=String(arg).split(':');const v=WS().wars.find(x
 function openWarStkWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
   const draw=()=>{const w=WS(),W=w67(),defs=MK.filter(a=>a.def67),B=defBest();
     const sec=secStats().filter(s=>['defense','energy','gold','mining','airline','shipping'].includes(s.k));
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Perang dan Saham"><div class="mohead"><b>⚔️ Perang & Saham</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Perang dan Saham"><div class="mohead"><b>⚔️ Perang & Saham</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <p class="muted">Perang di luar negeri menggerakkan bursa. Saham pertahanan dan energi naik, penerbangan dan pelayaran turun. Saat damai, arahnya berbalik. ${NEGARA?esc(NEGARA.n):'Nusantara Raya'} tetap netral.</p>
     <p class="sec-t">Perang aktif (${w.wars.length})</p>${w.wars.length?w.wars.map(v=>`<div class="wallet"><b>${esc(kdN(v.a))} vs ${esc(kdN(v.b))}</b><div class="row"><span>Skor</span><span>${v.ra}-${v.rb} · ronde ${v.round}</span></div>
       <div class="ctx-row" style="margin-top:6px"><button class="pbtn ${W.ct[v.id+'a']?'':'alt'}" data-ar="${v.id}:a">${W.ct[v.id+'a']?'✅ Dipasok':'🛡️ Pasok'} ${esc(kdN(v.a))}</button><button class="pbtn ${W.ct[v.id+'b']?'':'alt'}" data-ar="${v.id}:b">${W.ct[v.id+'b']?'✅ Dipasok':'🛡️ Pasok'} ${esc(kdN(v.b))}</button></div></div>`).join(''):'<p class="muted">Sedang tidak ada perang. Saham pertahanan cenderung turun pelan.</p>'}
@@ -10296,7 +10304,7 @@ setInterval(()=>{try{const H=home69();if(H69.guests&&!partyOn())v69Guests(0);}ca
 setInterval(()=>{try{if(!started)return;const H=home69(),d=xToday();if(H.tipD===d)return;if(Math.abs(you.pos.x-INT.X.rumah)>40)return;H.tipD=d;const st=homeStars(),gift=Math.round(homeCost(.2)*st);S.bal+=gift;logLine('sys',null,`🏠 Tetangga mampir dan memuji rumahmu (⭐${st}). Mereka membawa hadiah ${zKC(gift)}.`,'win');savePF();}catch(e){}},20000);
 XA.xTheme69=id=>{const t=TH69.find(x=>x[0]===id),H=home69();if(!t)return;if(!H.own[id]){const c=homeCost(t[5]);if(!xPay(c))return;H.own[id]=1;logLine('sys',null,`🎨 Tema rumah ${t[1]} dibeli (${zKC(c)}).`,'win');}H.th=id;SFX.coin();v69Theme();savePF();if(modal&&modal.refresh)modal.refresh();};
 function openHomeWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
-  const draw=()=>{const H=home69(),st=homeStars();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Rumah Impian"><div class="mohead"><b>🏠 Rumah Impian</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  const draw=()=>{const H=home69(),st=homeStars();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Rumah Impian"><div class="mohead"><b>🏠 Rumah Impian</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <div class="wallet"><small>${esc(dyS().fam)}</small><b>${'⭐'.repeat(st)}${'☆'.repeat(5-st)}</b><div class="row"><span>Kenyamanan</span><span>${homeComfort()}</span></div><div class="row"><span>Nilai isi rumah</span><span>${zKC(homeValue())}</span></div><div class="row"><span>Total tamu</span><span>${H.guests}</span></div></div>
     <p class="sec-t">Tema interior</p><div class="ctx-row" style="flex-wrap:wrap">${TH69.map(t=>`<button class="pbtn ${H.th===t[0]?'':'alt'}" data-th="${t[0]}">${t[1]}${H.own[t[0]]?(H.th===t[0]?' ✓':''):' · '+zKC(homeCost(t[5]))}<br><small>+${t[4]} nyaman</small></button>`).join('')}</div>
     <p class="sec-t">Pesta</p><p class="muted">${partyOn()?`🎉 Pesta sedang berlangsung (${Math.ceil((H.party-Date.now())/60000)} menit lagi).`:`Undang ${3+st} tamu. Rumah makin bagus, makin banyak tamu, XP dan hubungan dengan konglomerat.`}</p>
@@ -10336,7 +10344,7 @@ remeRound=(f=>async function(t){const bet=S.bet,h0=S.hist[S.hist.length-1];const
     const pts=last.w?3:1,bonus=(t&&t.vip?1:0)+(bet>=lgMin(s)*100?1:0);s.me+=pts+bonus;s.n++;if(last.w)s.w++;savePF();}catch(e){}return r;})(remeRound);
 function openLgWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);let iv=null;
   const draw=()=>{const s=lgS(),D=LG70.divs[s.div],T=lgTable(s),rk=lgRank(s),left=Math.max(0,s.end-Date.now()),mm=Math.floor(left/60000),ss=Math.floor(left/1000)%60;
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Liga Reme"><div class="mohead"><b>🏆 Liga Reme</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Liga Reme"><div class="mohead"><b>🏆 Liga Reme</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <div class="wallet"><small>Musim berjalan · sisa ${mm}:${String(ss).padStart(2,'0')}</small><b>${D[1]} ${D[0]}</b><div class="row"><span>Peringkatmu</span><span>#${rk} · ${s.me} poin</span></div><div class="row"><span>Main / menang</span><span>${s.n} / ${s.w}</span></div><div class="row"><span>Taruhan minimal dihitung</span><span>${zKC(lgMin(s))}</span></div></div>
     <p class="muted">Main Reme, Qeme atau Leme di meja mana saja dengan taruhan minimal di atas. Menang +3, kalah +1, meja VIP +1, taruhan 100x minimal +1. Peringkat 1–2 naik divisi, 9–10 turun.</p>
     <p class="sec-t">Klasemen</p>${T.map((x,i)=>`<div class="row" style="display:flex;justify-content:space-between;padding:5px 8px;border-radius:8px;${x.me?'background:rgba(47,111,224,.14);font-weight:800':''}${i===1&&s.div<5?';border-bottom:2px dashed #2f9e5a':''}${i===7&&s.div>0?';border-bottom:2px dashed #d8435b':''}"><span>${i+1}. ${i<3?['🥇','🥈','🥉'][i]+' ':''}${esc(x.n)}</span><span>${x.p} poin${lgPrize(s.div,i+1)?' · '+zKC(lgPrize(s.div,i+1)):''}</span></div>`).join('')}
@@ -10444,7 +10452,7 @@ XA.xFcBuild=id=>{const F=FC72.list.find(q=>q.id===id),s=fc72();if(!F)return;cons
 XA.xFcSell=id=>{const F=FC72.list.find(q=>q.id===id),s=fc72(),x=s.f[id];if(!F||!x||x.st<1)return;const n=Math.floor(x.st),v=Math.round(n*fcPx(F)*s.mk[id]);x.st-=n;S.bal+=v;s.exp+=v;x.sold=(x.sold||0)+n;SFX.coin();showResult(`🚚 ${n} ${F.g} diekspor: +${zKC(v)}`);savePF();if(modal&&modal.refresh)modal.refresh();};
 XA.xFcAuto=()=>{const s=fc72();s.auto=s.auto?0:1;savePF();if(modal&&modal.refresh)modal.refresh();};
 function openFcWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
-  const draw=()=>{const s=fc72();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Pabrik"><div class="mohead"><b>🏭 Pabrik & Rantai Pasok</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  const draw=()=>{const s=fc72();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Pabrik"><div class="mohead"><b>🏭 Pabrik & Rantai Pasok</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <p class="muted">Pabrik membuat barang tiap menit. Kalau stok cukup, bisnis yang dipasok dapat bonus penghasilan (+6% per level, maks +60%). Kelebihan stok bisa diekspor dengan harga pasar. Saat ada perang, harga BBM dan elektronik naik.</p>
     <div class="wallet"><small>Total</small><b>${zKC(Math.round(s.exp))} ekspor</b><div class="row"><span>Biaya operasional</span><span>${zKC(Math.round(s.up||0))}</span></div><div class="row"><span>Ekspor otomatis (sisakan cadangan 15 menit)</span><span><button class="pbtn ${s.auto?'':'alt'}" data-a="auto">${s.auto?'AKTIF':'MATI'}</button></span></div></div>
     ${FC72.list.map(F=>{const x=s.f[F.id]||{lv:0,st:0},lv=x.lv,mk=s.mk[F.id];return `<div class="wallet" style="margin-top:8px"><small>${F.ic} ${F.n} · memasok ${F.arn}</small><b>${lv?'Level '+lv:'Belum dibangun'}</b>
@@ -10509,7 +10517,7 @@ function ksDialog(title,lines,done){closePhone();const el=document.createElement
     const close=()=>{el.remove();modal=null;};el.querySelector('.moclose').onclick=close;el.querySelector('[data-a="n"]').onclick=()=>{if(i<lines.length-1){i++;draw();SFX.pop();}else{close();done&&done();}};};
   modal={el,st:{label:title},busy:false,refresh(){}};draw();}
 function openKsWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
-  const draw=()=>{const s=ks73(),cur=KCH[s.ch];el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Kisah Taipan"><div class="mohead"><b>📖 Kisah Taipan</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  const draw=()=>{const s=ks73(),cur=KCH[s.ch];el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Kisah Taipan"><div class="mohead"><b>📖 Kisah Taipan</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <div class="wallet"><small>Rival</small><b>🦹 ${KS73.rival}</b><div class="row"><span>Kekayaan Viktor</span><span>${zKC(Math.round(s.rv))}</span></div><div class="row"><span>Kekayaanmu</span><span class="${netWorth()>s.rv?'up':'dn'}">${zKC(Math.round(netWorth()))}</span></div></div>
     ${KCH.map((C,i)=>{const st=i<s.ch?'done':i===s.ch?'cur':'lock';const [a,b]=i===s.ch?C.p(s):[0,1];return `<div class="row" style="padding:8px;border-radius:10px;margin-top:6px;background:${st==='cur'?'rgba(47,111,224,.12)':'rgba(0,0,0,.03)'};opacity:${st==='lock'?.5:1}">
       <b>${st==='done'?'✅':st==='cur'?'▶️':'🔒'} Bab ${i+1}: ${esc(C.n)}</b><br><small>${st==='lock'?'Terkunci':esc(C.goal)}${st==='cur'?` · ${a}/${b}`:''}${st!=='lock'?` · hadiah ${zKC(ksReward(i))}`:''}</small>
@@ -10555,7 +10563,7 @@ setInterval(()=>{try{msTick();}catch(e){console.error('ms74',e);}},60000);
 let FL74=null;function flood74(){try{const on=disOn()&&disOn()[0]==='banjir';if(!cityGrp)return;if(on&&!FL74){FL74=new THREE.Mesh(new THREE.PlaneGeometry(360,360),new THREE.MeshBasicMaterial({color:0x2f7ac8,transparent:true,opacity:.62,depthWrite:false}));FL74.rotation.x=-Math.PI/2;FL74.position.set(0,.3,-60);FL74.renderOrder=2;cityGrp.add(FL74);}if(FL74)FL74.visible=!!on;}catch(e){}}
 XA.xIns74=()=>{const s=ms74();if(s.ins){s.ins=0;showResult('🛡️ Asuransi properti dihentikan');}else{const p=insPrem();if(!xPay(p))return;s.ins=1;s.insT=Date.now();s.paid+=p;showResult(`🛡️ Asuransi aktif. Premi ${zKC(p)} per 10 menit, menanggung 90% kerugian bencana.`);}SFX.coin();savePF();if(modal&&modal.refresh)modal.refresh();};
 function openMsWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
-  const draw=()=>{const s=ms74(),se=season(),D=disOn(),left=seasonLeft();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Musim dan Bencana"><div class="mohead"><b>${se.ic} Musim & Bencana</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  const draw=()=>{const s=ms74(),se=season(),D=disOn(),left=seasonLeft();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Musim dan Bencana"><div class="mohead"><b>${se.ic} Musim & Bencana</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <div class="wallet"><small>Sekarang</small><b>${se.ic} ${se.n}</b><div class="row"><span>Berganti dalam</span><span>${Math.ceil(left/60000)} menit</span></div><div class="row"><span>Efek</span><span>${se.id==='hujan'?'Mall +6% · risiko banjir & badai':'Kios +8% · harga pangan naik'}</span></div>${D?`<div class="row"><span>Bencana aktif</span><span class="dn">${D[1]} ${D[2]} · ${Math.ceil((s.ev.end-Date.now())/60000)} menit</span></div>`:''}</div>
     <p class="sec-t">🛡️ Asuransi properti</p><p class="muted">Menanggung 90% kerugian rumah, apartemen dan mega properti akibat bencana. Premi ${zKC(insPrem())} tiap 10 menit (0,15% nilai bisnis).</p>
     <div class="wallet"><div class="row"><span>Status</span><span class="${s.ins?'up':'dn'}">${s.ins?'AKTIF':'Tidak aktif'}</span></div><div class="row"><span>Total premi dibayar</span><span>${zKC(s.paid)}</span></div><div class="row"><span>Total klaim diterima</span><span>${zKC(s.claim)}</span></div></div>
@@ -10622,7 +10630,7 @@ function rcNpcTick(dt){const R=RC76.on;if(!R||R.ph!=='go')return;const zc=zoneZ(
   if(c.t>=RC76.laps*Math.PI*2){c.done=1;c.ft=performance.now()-R.t0;}const p=rcPt(c.t,zc,c.lane);c.m.position.set(p[0],0,p[1]);c.m.rotation.y=Math.atan2(-Math.sin(c.t)*RC76.A,Math.cos(c.t)*RC76.B);});}
 function rcFee(i){return [Math.max(5e4,Math.round(S.bal*.01)),Math.max(2e5,Math.round(S.bal*.05)),Math.max(1e6,Math.round(S.bal*.1))][i];}
 function openRcWin(){if(modal||RC76.on)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);const s=rc76(),own=myCars();
-  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Balap"><div class="mohead"><b>🏁 Sirkuit Permata</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Balap"><div class="mohead"><b>🏁 Sirkuit Permata</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
   <p class="muted">Balapan 3 lap melawan 4 pembalap NPC. Juara 1 dapat 3x uang pendaftaran, juara 2 dapat 1,5x, juara 3 uang kembali. Tahan Shift atau dorong joystick penuh supaya ngebut. Keluar lintasan tidak dihitung.</p>
   <div class="wallet"><small>Statistik</small><b>${s.wins} kali juara dari ${s.races} balapan</b><div class="row"><span>Rekor waktu</span><span>${s.best?(s.best/1000).toFixed(2)+' detik':'-'}</span></div><div class="row"><span>Mobil</span><span>${own.length?esc(CAR66[drvS().pick&&CAR66[drvS().pick]?drvS().pick:own[0]][0]):'🏎 Mobil sewaan (×2,6)'}</span></div></div>
   <p class="sec-t">Kelas balapan</p><div class="ctx-row" style="flex-wrap:wrap">${['Pemula','Pro','Juara'].map((n,i)=>`<button class="pbtn ${i?'alt':''}" data-f="${i}">${['🟢','🟡','🔴'][i]} ${n} · ${zKC(rcFee(i))}</button>`).join('')}</div></div></div>`;
@@ -10696,7 +10704,7 @@ function thOut(){tpTo(-25,ROOM-7,Math.PI);}
 XA.xTh77In=()=>thIn();XA.xTh77Out=()=>thOut();XA.xTh77=()=>openThWin();
 function openThWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);const n=showNow(),cur=Math.floor(Date.now()/TH77.per);
   const rows=[0,1,2,3,4].map(j=>{const id=cur+j,S0=TH77.shows[id%3],st=new Date(id*TH77.per);return `<div class="row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span>${S0[1]} <b>${esc(S0[2])}</b><br><small class="muted">${esc(S0[3])}</small></span><span>${j===0&&n.on?'<b class="up">TAMPIL</b>':st.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</span></div>`;}).join('');
-  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Teater"><div class="mohead"><b>🎭 Teater Permata</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Teater"><div class="mohead"><b>🎭 Teater Permata</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
   <div class="wallet"><small>Happy Hour</small><b>${hhOn()?'🍹 AKTIF · kemenangan +10%':'Belum aktif'}</b><div class="row"><span>Happy Hour kota</span><span>jam 20.00–21.00 (jam game)</span></div><div class="row"><span>Happy Hour pribadi</span><span>${Date.now()<th77().hhT?Math.ceil((th77().hhT-Date.now())/60000)+' menit lagi':'tonton pertunjukan sampai selesai'}</span></div></div>
   <p class="sec-t">Jadwal (tiap 10 menit, durasi 2 menit)</p>${rows}<div class="ctx-row" style="margin-top:8px"><button class="pbtn" data-a="in">🎟️ Masuk teater ${XS().vip?'(gratis)':'· '+zKC(50000)}</button></div></div></div>`;
   modal={el,st:{label:'Teater'},busy:false,refresh(){}};const close=()=>{el.remove();modal=null;};el.querySelector('.moclose').onclick=close;el.querySelector('[data-a="in"]').onclick=()=>{close();thIn();};}
@@ -10837,7 +10845,7 @@ XA.xExSell=name=>{const s=ex80();if(!s.art[name])return;const v=Math.round(Math.
 let exSel={kd:null,fi:0,ld:''};
 function openExWin(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);let iv=null;
   const draw=()=>{const s=ex80(),now=Date.now();if(!exSel.kd)exSel.kd=KDS[0][0];const offs=(()=>{try{return tkS().off.slice().sort((a,b)=>b.st-a.st);}catch(e){return [];}})();const L=exSel.ld?exLeader(exSel.ld):null;
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ekspedisi"><div class="mohead"><b>🧭 Ekspedisi Kerajaan</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Ekspedisi"><div class="mohead"><b>🧭 Ekspedisi Kerajaan</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <p class="muted">Kirim tim mencari harta di kerajaan lain. Peluang naik dengan dana lebih besar, pemimpin pejabat bertier tinggi dan hubungan baik. Kerajaan yang sedang perang lebih berbahaya.</p>
     <p class="sec-t">Berjalan (${s.run.length}/${EX80.max})</p>${s.run.length?s.run.map(r=>{const p=Math.min(1,(now-r.t0)/(r.end-r.t0));return `<div class="wallet" style="margin-top:6px"><small>${EX80.fund[r.fi][0]} ${EX80.fund[r.fi][1]} · ${esc(r.ln)} · peluang ${Math.round(r.ch*100)}%</small><b>${kdN(r.kd)}</b><div style="height:8px;border-radius:6px;background:rgba(255,255,255,.2);margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.round(p*100)}%;background:linear-gradient(90deg,#ffd25f,#ff9f43)"></div></div><small>${Math.ceil((r.end-now)/60000)} menit lagi</small></div>`;}).join(''):'<p class="muted">Belum ada ekspedisi.</p>'}
     <p class="sec-t">Tujuan</p><div class="ctx-row" style="flex-wrap:wrap">${KDS.map(k=>`<button class="pbtn ${exSel.kd===k[0]?'':'alt'}" data-kd="${k[0]}">${k[1]} ${esc(k[2])}${(()=>{try{return atWar(k[0])?' ⚔️':'';}catch(e){return '';}})()}</button>`).join('')}</div>
@@ -10886,7 +10894,7 @@ setTimeout(()=>{try{al81Tick();}catch(e){}},8000);
 let al81Sel=null;
 function openAl81Win(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
   const draw=()=>{const s=al81(),R=al81Routes();const P=al81Sel?s.fl.find(f=>f.id===al81Sel):null;
-    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Maskapai"><div class="mohead"><b>✈️ Maskapai Milikmu</b><span class="mobal">${zKC(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Maskapai"><div class="mohead"><b>✈️ Maskapai Milikmu</b><span class="mobal">${wlS(Math.round(S.bal))}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <div class="wallet"><small>Maskapai</small><b>${esc(s.name)}</b><div class="row"><span>Armada</span><span>${s.fl.length}/${AL81.max}</span></div><div class="row"><span>Pendapatan</span><span>${zKC(al81Total())}/menit</span></div><div class="row"><span>Reputasi</span><span>${s.rep}/100</span></div><div class="row"><span>Total dihasilkan</span><span>${zKC(s.earn)}</span></div></div>
     <div class="ctx-row" style="flex-wrap:wrap;margin-top:6px"><button class="pbtn alt" data-a="ad">📣 Iklan (+8 reputasi) · ${zKC(Math.max(5e7,Math.round(netWorth()*.004)))}</button><button class="pbtn alt" data-a="nm">✏️ Ganti nama</button></div>
     <p class="muted">Penumpang lebih ramai di jam sibuk (06–10 dan 17–21). Rute ke negara yang sedang perang sepi. Terlalu banyak kursi di satu rute membuat pesawat setengah kosong. Saat kamu offline maskapai tetap jalan (50%, maks 8 jam).</p>
@@ -11659,27 +11667,32 @@ const GLASS92=canvasTex(128,256,(q,w,h)=>{q.fillStyle='#1a1430';q.fillRect(0,0,w
   q.strokeStyle='#2a1a10';q.lineWidth=4;q.strokeRect(2,2,w-4,h-4);for(let y=0;y<h;y+=32){q.beginPath();q.moveTo(0,y);q.lineTo(w,y);q.stroke();}q.beginPath();q.moveTo(w/2,0);q.lineTo(w/2,h);q.stroke();});
 const BANNER92=canvasTex(64,192,(q,w,h)=>{q.fillStyle='#8a1424';q.fillRect(0,0,w,h-24);q.beginPath();q.moveTo(0,h-24);q.lineTo(w/2,h);q.lineTo(w,h-24);q.fill();q.fillStyle='#d8a648';q.fillRect(0,0,w,8);q.fillRect(4,8,4,h-32);q.fillRect(w-8,8,4,h-32);
   q.fillStyle='#ffd25f';q.font='bold 40px serif';q.textAlign='center';q.fillText('♛',w/2,80);q.font='bold 14px serif';q.fillText('LV',w/2,112);});
+/* raise the old ceiling, cove lights, chandeliers, pillar caps and roof slab to the new height */
+function raise92(){const DY=18;scene.children.forEach(o=>{if(Math.abs(o.position.x)>ROOM+2||Math.abs(o.position.z)>ROOM+2)return;const y=o.position.y,gt=o.geometry&&o.geometry.type;
+  if((o.isGroup&&Math.abs(y-8.95)<.05)){o.position.y+=14;return;}if((gt==='PlaneGeometry'&&Math.abs(y-9)<.01&&o.rotation.x>1)||(gt==='BoxGeometry'&&(Math.abs(y-8.82)<.01||Math.abs(y-8.3)<.01||Math.abs(y-8.7)<.01)))o.position.y+=DY;
+  else if(gt==='BoxGeometry'&&(Math.abs(y-13.3)<.01||Math.abs(y-13)<.01))o.position.y+=15;});
+  scene.children.forEach(o=>{if(o.isGroup&&Math.abs(o.position.y-22.95)<.05&&Math.abs(o.position.x)<ROOM&&Math.abs(o.position.z)<ROOM){const rod=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,4,6),new THREE.MeshBasicMaterial({color:0xd8a648}));rod.position.y=2;o.add(rod);}});}
 function castle92(){const G=new THREE.Group();scene.add(G);const MC={};const M=c=>MC[c]||(MC[c]=mat(c)),MB=c=>MC['b'+c]||(MC['b'+c]=new THREE.MeshBasicMaterial({color:c}));
   const B=(w,h,d,m,x,y,z,ry)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='number'?M(m):m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;G.add(o);return o;};
   const C=(rt,rb,h,m,x,y,z,seg)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||16),typeof m==='number'?M(m):m);o.position.set(x,y,z);G.add(o);return o;};
   const K=(r,h,m,x,y,z,seg)=>{const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg||16),typeof m==='number'?M(m):m);o.position.set(x,y,z);G.add(o);return o;};
-  const R=ROOM+.35,H=13,sw=stoneM92(1,1),gold=0xd8a648,roofC=0x1f2f5a;
+  const R=ROOM+.35,H=28,CH=27,sw=stoneM92(1,1),gold=0xd8a648,roofC=0x1f2f5a;
   /* ---- exterior: stone cladding over the dark shell ---- */
   const clad=(w,h,x,y,z,ry)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),stoneM92(w/8,h/4));p.position.set(x,y,z);p.rotation.y=ry;G.add(p);};
   clad(ROOM*2+1,H,0,H/2,-(R+.29),Math.PI);clad(ROOM*2+1,H,-(R+.29),H/2,0,-Math.PI/2);clad(ROOM*2+1,H,R+.29,H/2,0,Math.PI/2);
-  clad(ROOM-3,H,-(ROOM+3)/2,H/2,R+.3,0);clad(ROOM-3,H,(ROOM+3)/2,H/2,R+.3,0);clad(6,H-5.6,0,5.6+(H-5.6)/2,R+.3,0);
+  clad(ROOM-3,H,-(ROOM+3)/2,H/2,R+.3,0);clad(ROOM-3,H,(ROOM+3)/2,H/2,R+.3,0);clad(6,H-5.6,0,5.6+(H-5.6)/2,R+.3,0);clad(ROOM*2+1,H-12,0,12+(H-12)/2,R+.3,0);
   /* crenellations along the roof edge */
   const cr=[];for(let x=-ROOM;x<=ROOM;x+=2.4){cr.push([x,R]);cr.push([x,-R]);}for(let z=-ROOM;z<=ROOM;z+=2.4){cr.push([R,z]);cr.push([-R,z]);}
   {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,1.4,1.3),sw,cr.length),o=new THREE.Object3D();cr.forEach((p,i)=>{o.position.set(p[0],H+1.3,p[1]);o.updateMatrix();im.setMatrixAt(i,o.matrix);});G.add(im);}
   B(ROOM*2+2,.6,1.6,sw,0,H+.3,R);B(ROOM*2+2,.6,1.6,sw,0,H+.3,-R);B(1.6,.6,ROOM*2+2,sw,R,H+.3,0);B(1.6,.6,ROOM*2+2,sw,-R,H+.3,0);
   /* corner towers with conical roofs and pennants */
-  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const x=a*44.6,z=b*44.6,r=3.6,h=24;C(r,r+.3,h,stoneM92(3,6),x,h/2,z,20);C(r+.6,r+.6,1,sw,x,h+.5,z,20);
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const x=a*44.6,z=b*44.6,r=3.6,h=40;C(r,r+.3,h,stoneM92(3,6),x,h/2,z,20);C(r+.6,r+.6,1,sw,x,h+.5,z,20);
     for(let k=0;k<10;k++){const t=k/10*Math.PI*2;B(.8,1.1,.8,sw,x+Math.cos(t)*(r+.3),h+1.5,z+Math.sin(t)*(r+.3));}K(r+.9,9,roofC,x,h+5.6,z,20);K(.25,1.6,gold,x,h+10.9,z,6);
     const fl=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.3),new THREE.MeshBasicMaterial({color:0xd8435b,side:THREE.DoubleSide}));fl.position.set(x+1.2,h+11.4,z);G.add(fl);
-    for(let k=0;k<3;k++){const wnd=new THREE.Mesh(new THREE.PlaneGeometry(.9,1.8),MB(0xffd58a));const t=Math.atan2(-z,-x);wnd.position.set(x+Math.cos(t)*(r+.32),8+k*5,z+Math.sin(t)*(r+.32));wnd.rotation.y=-t+Math.PI/2;G.add(wnd);}
+    for(let k=0;k<3;k++){const wnd=new THREE.Mesh(new THREE.PlaneGeometry(.9,1.8),MB(0xffd58a));const t=Math.atan2(-z,-x);wnd.position.set(x+Math.cos(t)*(r+.32),8+k*9,z+Math.sin(t)*(r+.32));wnd.rotation.y=-t+Math.PI/2;G.add(wnd);}
     colliders.push({x0:x-r,x1:x+r,z0:z-r,z1:z+r,top:h});});
   /* gatehouse: twin towers, pointed arch, portcullis frame, drawbridge planks */
-  for(const s of [-1,1]){const x=s*12.2,z=R+2.4,r=2.8,h=20;C(r,r+.2,h,stoneM92(2,5),x,h/2,z,18);C(r+.5,r+.5,.8,sw,x,h+.4,z,18);for(let k=0;k<8;k++){const t=k/8*Math.PI*2;B(.7,1,.7,sw,x+Math.cos(t)*(r+.2),h+1.3,z+Math.sin(t)*(r+.2));}
+  for(const s of [-1,1]){const x=s*12.2,z=R+2.4,r=2.8,h=34;C(r,r+.2,h,stoneM92(2,5),x,h/2,z,18);C(r+.5,r+.5,.8,sw,x,h+.4,z,18);for(let k=0;k<8;k++){const t=k/8*Math.PI*2;B(.7,1,.7,sw,x+Math.cos(t)*(r+.2),h+1.3,z+Math.sin(t)*(r+.2));}
     K(r+.7,7,roofC,x,h+4.3,z,18);K(.2,1.4,gold,x,h+8.5,z,6);const bn=new THREE.Mesh(new THREE.PlaneGeometry(1.8,5.4),new THREE.MeshBasicMaterial({map:BANNER92,transparent:true,side:THREE.DoubleSide}));bn.position.set(x,9,z+r+.05);G.add(bn);
     colliders.push({x0:x-r,x1:x+r,z0:z-r,z1:z+r,top:h});}
   {const a=new THREE.Mesh(new THREE.TorusGeometry(3.6,.35,8,24,Math.PI),M(gold));a.position.set(0,5.6,R+.75);G.add(a);const a2=new THREE.Mesh(new THREE.TorusGeometry(4.3,.5,8,24,Math.PI),sw);a2.position.set(0,5.4,R+.7);G.add(a2);
@@ -11699,26 +11712,29 @@ function castle92(){const G=new THREE.Group();scene.add(G);const MC={};const M=c
   const IW=ROOM-.05,pil=stoneM92(.4,3,0xf0dcc0),archM=stoneM92(2,.3,0xf0dcc0),glassM=new THREE.MeshBasicMaterial({map:GLASS92});
   const flames=[];
   const bay=(x,z,ry,len,glass)=>{/* x,z = wall point, ry faces into room, len along the wall */const ax=Math.cos(ry),az=-Math.sin(ry);
-    for(const s of [-1,1]){const px=x+ax*s*len/2,pz=z+az*s*len/2;B(.9,9,.5,pil,px,4.5,pz,ry);flames.push([px+Math.sin(ry)*.5,5.6,pz+Math.cos(ry)*.5]);}
-    const a=new THREE.Mesh(new THREE.TorusGeometry(len/2,.28,6,20,Math.PI),archM);a.position.set(x+Math.sin(ry)*.2,9-len/2,z+Math.cos(ry)*.2);a.rotation.y=ry;G.add(a);
-    if(glass){const gw=new THREE.Mesh(new THREE.PlaneGeometry(len*.42,3.6),glassM);gw.position.set(x+Math.sin(ry)*.04,6.4,z+Math.cos(ry)*.04);gw.rotation.y=ry;G.add(gw);const top=new THREE.Mesh(new THREE.CircleGeometry(len*.21,14,0,Math.PI),glassM);top.position.set(x+Math.sin(ry)*.04,8.2,z+Math.cos(ry)*.04);top.rotation.y=ry;G.add(top);}};
+    for(const s of [-1,1]){const px=x+ax*s*len/2,pz=z+az*s*len/2;B(.9,CH,.5,pil,px,CH/2,pz,ry);flames.push([px+Math.sin(ry)*.5,5.6,pz+Math.cos(ry)*.5]);}
+    const a=new THREE.Mesh(new THREE.TorusGeometry(len/2,.28,6,20,Math.PI),archM);a.position.set(x+Math.sin(ry)*.2,CH-len/2,z+Math.cos(ry)*.2);a.rotation.y=ry;G.add(a);
+    if(glass){const gw=new THREE.Mesh(new THREE.PlaneGeometry(len*.42,11),glassM);gw.position.set(x+Math.sin(ry)*.04,CH-10.6,z+Math.cos(ry)*.04);gw.rotation.y=ry;G.add(gw);const top=new THREE.Mesh(new THREE.CircleGeometry(len*.21,14,0,Math.PI),glassM);top.position.set(x+Math.sin(ry)*.04,CH-5.1,z+Math.cos(ry)*.04);top.rotation.y=ry;G.add(top);}};
   for(let z=-40;z<=40;z+=8){const busyL=Math.abs(z)<6||Math.abs(Math.abs(z)-22)<6;bay(-IW,z,Math.PI/2,8,!busyL);bay(IW,z,-Math.PI/2,8,Math.abs(z)>4);}
   for(let x=-40;x<=40;x+=8){const busyB=(x>-12&&x<18)||Math.abs(x+18.5)<5||Math.abs(x-26)<5;bay(x,-IW,0,8,!busyB);}
+  /* upper wall band from the old 9 m panelling up to the new ceiling */
+  {const um=stoneM92(10,1,0xe8d8c0);for(const [x,z,ry] of [[0,-IW+.02,0],[-IW+.02,0,Math.PI/2],[IW-.02,0,-Math.PI/2],[0,IW-.02,Math.PI]]){const p=new THREE.Mesh(new THREE.PlaneGeometry(ROOM*2,CH-9),um);p.position.set(x,9+(CH-9)/2,z);p.rotation.y=ry;G.add(p);
+    const t=B(ry===0||ry===Math.PI?ROOM*2:.3,.35,ry===0||ry===Math.PI?.3:ROOM*2,gold,x,9.1,z);}}
   /* stone columns wrapped around the old wood pillars */
   const colM=stoneM92(.6,3,0xf4e4c8);const cols=[];scene.children.forEach(o=>{const p=o.geometry&&o.geometry.parameters;if(o.isMesh&&p&&o.geometry.type==='BoxGeometry'&&p.width===.9&&p.height===9&&p.depth===.9&&Math.abs(o.position.x)<ROOM&&Math.abs(o.position.z)<ROOM)cols.push([o.position.x,o.position.z]);});
-  cols.forEach(([x,z])=>{C(.62,.7,8.4,colM,x,4.3,z,14);C(.95,.75,.5,gold,x,8.7,z,14);C(.8,.9,.4,gold,x,.2,z,14);});
+  cols.forEach(([x,z])=>{C(.62,.7,CH-.6,colM,x,(CH-.6)/2+.1,z,14);C(.95,.75,.5,gold,x,CH-.3,z,14);C(.72,.72,.2,gold,x,9,z,14);C(.8,.9,.4,gold,x,.2,z,14);});
   /* ceiling ribs: gold-trimmed stone ribs in a grid with diagonal crossings */
-  for(let z=-40;z<=40;z+=16)B(ROOM*2,.35,.45,archM,0,8.8,z);for(let x=-40;x<=40;x+=16)B(.45,.35,ROOM*2,archM,x,8.82,0);
-  for(let x=-40;x<40;x+=16)for(let z=-40;z<40;z+=16){const d=Math.hypot(16,16);for(const s of [-1,1]){const r=B(d,.22,.25,gold,x+8,8.78,z+8);r.rotation.y=s*Math.PI/4;}const bs=new THREE.Mesh(new THREE.SphereGeometry(.45,10,8),M(gold));bs.position.set(x+8,8.6,z+8);G.add(bs);}
+  for(let z=-40;z<=40;z+=16)B(ROOM*2,.35,.45,archM,0,CH-.2,z);for(let x=-40;x<=40;x+=16)B(.45,.35,ROOM*2,archM,x,CH-.18,0);
+  for(let x=-40;x<40;x+=16)for(let z=-40;z<40;z+=16){const d=Math.hypot(16,16);for(const s of [-1,1]){const r=B(d,.22,.25,gold,x+8,CH-.22,z+8);r.rotation.y=s*Math.PI/4;}const bs=new THREE.Mesh(new THREE.SphereGeometry(.45,10,8),M(gold));bs.position.set(x+8,CH-.4,z+8);G.add(bs);}
   /* heraldic banners hanging along the main walkway */
-  for(let z=-36;z<=36;z+=12)for(const s of [-1,1]){const bn=new THREE.Mesh(new THREE.PlaneGeometry(1.4,3.6),new THREE.MeshBasicMaterial({map:BANNER92,transparent:true,side:THREE.DoubleSide}));bn.position.set(s*4.6,6.8,z);bn.rotation.y=Math.PI/2;G.add(bn);B(.08,.08,1.8,gold,s*4.6,8.65,z);}
+  for(let z=-36;z<=36;z+=12)for(const s of [-1,1]){const bn=new THREE.Mesh(new THREE.PlaneGeometry(1.4,3.6),new THREE.MeshBasicMaterial({map:BANNER92,transparent:true,side:THREE.DoubleSide}));bn.position.set(s*4.6,CH-3.6,z);bn.rotation.y=Math.PI/2;G.add(bn);B(.08,.08,1.8,gold,s*4.6,CH-1.75,z);}
   /* torch flames on the pilasters: one glowing Points cloud */
   {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(flames.flat(),3));const tex=typeof GLOW86!=='undefined'?GLOW86:null;
    const pts=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffa040,size:1.6,map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));G.add(pts);
    const tor=new THREE.InstancedMesh(new THREE.ConeGeometry(.16,.5,6),MB(0xffc860),flames.length),o=new THREE.Object3D();flames.forEach((p,i)=>{o.position.set(p[0],p[1]-.25,p[2]);o.updateMatrix();tor.setMatrixAt(i,o.matrix);});G.add(tor);}
   try{G.userData.m=merge90(G);}catch(e){console.error("m92",e);}
   G.userData.c92=1;return G;}
-buildWorld=(f=>function(){const r=f.apply(this,arguments);try{castle92();}catch(e){console.error('castle92',e);}return r;})(buildWorld);
+buildWorld=(f=>function(){const r=f.apply(this,arguments);try{raise92();}catch(e){console.error('raise92',e);}try{castle92();}catch(e){console.error('castle92',e);}return r;})(buildWorld);
 try{NEW82.unshift(['🏰','Kasino jadi kastil','Menara, benteng, gerbang, keep di atap; di dalam arkade batu, kaca patri, obor dan panji.','baru82']);}catch(e){}
 
 /* ================= v93: Distrik Perkantoran (CBD) — menara kantor dapat podium, mahkota bertingkat, sirip kaca, helipad, lampu LED dan jembatan langit ================= */
