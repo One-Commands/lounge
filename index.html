@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v88';
+const GAME_VER='v89';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11549,6 +11549,70 @@ gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{if(pp85Th(kd)){cons
     stationAdd('gkvl88',X+VL88.X,Z+VL88.Z+12,0,'Villa',{useDist:5,verb:'Villa',btn:'VILLA',act:()=>openVl88(),ctx:()=>{const v=vl88().v[kd];return `<div class="ctx-head"><h3>🏖️ ${esc(VL88.N[pp85Th(kd)])}</h3><small>${v?`Milikmu · level ${v.lv} · ${zKC(Math.round(vlHr(kd,v)))}/jam`:'Dijual '+zKC(vlPrice(kd))}</small></div><div class="ctx-row">${v?bzB('xVlWin88',1,'🏖️ Kelola'):bzB('xVl88B',kd,'🏖️ Beli villa')}</div>`;}});}}catch(e){console.error('vl88b',e);}return g;})(gkBuild);
 
 try{NEW82.unshift(['🏖️','Villa Luar Negeri','Beli villa bertema di tiap kerajaan, disewakan ke turis.','villa88']);}catch(e){}
+
+/* ================= v89: Audiensi & Misi Raja (reputasi per kerajaan, gelar kehormatan) ================= */
+const MR89={T:[[20,'🤝','Sahabat Kerajaan',5],[50,'🎖️','Bangsawan Kehormatan',10],[80,'👑','Pangeran Kehormatan',15]],
+  HI:{jawa:'Sugeng rawuh di Nirwana Agung, sahabat.',tropis:'Selamat datang di pulau kami, angin laut menyambutmu.',gotik:'Bienvenue, tamu dari negeri jauh.',gurun:'Ahlan wa sahlan, semoga oase memberimu kesejukan.',modern:'Selamat datang di kota masa depan.',bahari:'Selamat datang, pelaut! Pelabuhan kami terbuka.',naga:'Selamat datang, semoga naga emas memberkatimu.',sabana:'Selamat datang di tanah matahari, gendang kami menyambutmu.',andes:'Selamat datang di negeri di atas awan.',salju:'Velkommen! Hangatkan dirimu di aula kami.'}};
+function mr89(){return PF.mr89=PF.mr89||{rep:{},m:{},cd:{},band:{}};}
+const mrRep=kd=>mr89().rep[kd]||0;
+function mrTitle(kd){const r=mrRep(kd);let t=null;MR89.T.forEach(x=>{if(r>=x[0])t=x;});return t;}
+const mrBonus=kd=>{const t=mrTitle(kd);return t?t[3]/100:0;};
+function mrAddRep(kd,v){const s=mr89(),t0=mrTitle(kd);s.rep[kd]=Math.max(0,Math.min(100,(s.rep[kd]||0)+v));const t1=mrTitle(kd);if(t1&&t1!==t0){const K=gpKd(kd);logLine('sys',null,`${t1[1]} ${kdRaja(kd)} menganugerahimu gelar ${t1[2]} ${K.n}! Jual dagangan +${t1[3]}% dan tamu villa +${t1[3]}% di sana.`,'win');try{SFX.big();banner(`${t1[1]} ${t1[2].toUpperCase()}<small>${esc(K.n)}</small>`,'',2800);}catch(e){}}}
+/* missions: antar (bring trade goods), bandit (clear a camp in town), lumbung (fund the granary), wisata (both passport stamps) */
+function mrNew(kd){const ty=['antar','bandit','lumbung','wisata'],s=pp85(),k=ty.filter(t=>t!=='wisata'||!(s.st[kd+':L']&&s.st[kd+':R']));const t=k[Math.floor(Math.random()*k.length)],th=pp85Th(kd);
+  if(t==='antar'){const G=TR87.G.filter(x=>x[4]!==th);const g=G[Math.floor(Math.random()*G.length)];return {t,id:g[0],n:[10,20,30][Math.floor(Math.random()*3)]};}
+  if(t==='lumbung')return {t,c:Math.round(Math.max(5e7,netWorth()*.002))};return {t};}
+function mrDesc(kd,m){if(!m)return '';if(m.t==='antar'){const G=TR87.G.find(x=>x[0]===m.id),I=tr87().inv[m.id];return `📦 Bawakan ${m.n} ${G[1]} ${G[2]} ke istana ini (kamu bawa ${I?I.q:0}). Beli di kerajaan asalnya lewat Kantor Dagang.`;}
+  if(m.t==='bandit')return `🏴 Bandit berkemah di ujung kanan kota. Datangi kemahnya dan usir mereka (peluang menang naik dengan kekuatan militermu ⚔️ ${mlPow()}).`;
+  if(m.t==='lumbung')return `🌾 Sumbang ${zKC(m.c)} untuk lumbung rakyat.`;return '📸 Ambil kedua stempel paspor di tempat wisata kerajaan ini.';}
+function mrReady(kd,m){if(!m)return false;if(m.t==='antar'){const I=tr87().inv[m.id];return !!(I&&I.q>=m.n);}if(m.t==='bandit')return !!mr89().band[kd+':ok'];if(m.t==='wisata'){const s=pp85();return !!(s.st[kd+':L']&&s.st[kd+':R']);}return true;}
+XA.xMr89A=kd=>{const s=mr89();if(s.m[kd])return;if(Date.now()<(s.cd[kd]||0)){showResult('Raja belum punya tugas baru. Coba lagi '+Math.ceil(((s.cd[kd]||0)-Date.now())/60000)+' menit lagi');return;}s.m[kd]=mrNew(kd);delete s.band[kd+':ok'];if(s.m[kd].t==='bandit')bandSpawn(kd);SFX.pop();logLine('sys',null,`📜 Misi dari ${kdRaja(kd)}: ${mrDesc(kd,s.m[kd]).replace(/<[^>]+>/g,'')}`);savePF();try{modal&&modal.refresh&&modal.refresh();}catch(e){}};
+XA.xMr89D=kd=>{const s=mr89(),m=s.m[kd];if(!m)return;if(!mrReady(kd,m)&&m.t!=='lumbung'){showResult('Misi belum selesai');return;}let rw=0,rp=10;
+  if(m.t==='antar'){const I=tr87().inv[m.id],c=Math.round(I.cost/I.q*m.n);I.q-=m.n;I.cost-=c;if(I.q<=0)delete tr87().inv[m.id];rw=Math.round(tr87Price(kd,m.id)*m.n*1.6);rp=8+m.n/2;}
+  else if(m.t==='lumbung'){if(!xPay(m.c))return;rp=10;try{const K=tkK();if(tkKing()&&tkKing().kd===kd)K.rak=Math.min(100,K.rak+4);}catch(e){}tkAddInf(kd,5);}
+  else if(m.t==='bandit'){rw=Math.round(Math.max(3e7,netWorth()*.003));rp=14;}else{rw=Math.round(Math.max(2e7,netWorth()*.001));rp=8;}
+  if(rw)S.bal+=rw;delete s.m[kd];s.cd[kd]=Date.now()+180000;mrAddRep(kd,rp);try{tkAddInf(kd,3);xpAdd(25,'Misi raja');}catch(e){}SFX.big();
+  try{banner(`📜 MISI RAJA SELESAI<small>${esc(gpKd(kd).n)} · reputasi +${Math.round(rp)}${rw?' · +'+zKC(rw):''}</small>`,'',2400);}catch(e){}logLine('sys',null,`📜 Misi ${gpKd(kd).n} selesai: reputasi +${Math.round(rp)}${rw?', hadiah '+zKC(rw):''}.`,'win');save();savePF();try{modal&&modal.refresh&&modal.refresh();}catch(e){}};
+XA.xMr89X=kd=>{const s=mr89();delete s.m[kd];s.cd[kd]=Date.now()+60000;savePF();try{modal&&modal.refresh&&modal.refresh();}catch(e){}};
+XA.xBand89=kd=>{const s=mr89(),m=s.m[kd];if(!m||m.t!=='bandit'||s.band[kd+':ok'])return;if(Date.now()<(s.band[kd+':t']||0)){showResult('Pasukanmu masih memulihkan diri');return;}
+  const ch=Math.min(.95,.55+mlPow()/40000);if(Math.random()<ch){s.band[kd+':ok']=1;bandSpawn(kd);SFX.big();try{banner('🏴 BANDIT KABUR!<small>Kembali ke raja untuk laporan</small>','',2200);}catch(e){}logLine('sys',null,`⚔️ Bandit di ${gpKd(kd).n} berhasil diusir. Laporkan ke raja.`,'win');}
+  else{s.band[kd+':t']=Date.now()+45000;SFX.error();logLine('sys',null,`🏴 Bandit di ${gpKd(kd).n} melawan balik. Coba lagi sebentar lagi (latih pasukan untuk peluang lebih besar).`);}savePF();ctxKey=null;};
+XA.xMr89D=incWrap(XA.xMr89D,'misi','Hadiah misi raja');Object.assign(INC_X,{misi:['📜','Misi raja']});
+/* bandit camp in the kingdom town */
+function bandSpawn(kd){try{if(!GK.built||GK.kd!==kd)return;const old=GK.built.userData.band89;if(old){GK.built.remove(old);for(let i=stations.length-1;i>=0;i--)if(stations[i].type==='gkband89')stations.splice(i,1);}GK.built.userData.band89=null;
+  const s=mr89(),m=s.m[kd];if(!m||m.t!=='bandit'||s.band[kd+':ok'])return;const {X,Z}=GK,x=178,z=196,g=new THREE.Group();g.position.set(X+x,0,Z+z);
+  for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.ConeGeometry(3,3.4,4),mat(0x3a3a3a));t.position.set(-6+i*6,1.7,-4);g.add(t);}const f=new THREE.Mesh(new THREE.ConeGeometry(.8,1.6,8),new THREE.MeshBasicMaterial({color:0xff7a2a}));f.position.set(0,.8,2);g.add(f);
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.6),new THREE.MeshBasicMaterial({color:0x1a1a1a,side:THREE.DoubleSide}));fl.position.set(7,5,-4);g.add(fl);const pole=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,6,5),mat(0x5a3a20));pole.position.set(5.8,3,-4);g.add(pole);
+  for(let i=0;i<4;i++){try{const p=miniPerson(g,-4.5+i*3,3.5,Math.PI,0x2a2a2a);const sw=new THREE.Mesh(new THREE.BoxGeometry(.12,.12,1.4),mat(0xcccccc));sw.position.set(.5,1.4,.5);p.add(sw);}catch(e){}}
+  try{const l=labelPlane('Kemah Bandit','Usir untuk misi raja','#ff8a8a');l.scale.setScalar(.9);l.position.set(0,7,0);g.add(l);}catch(e){}GK.built.add(g);GK.built.userData.band89=g;
+  stationAdd('gkband89',X+x,Z+z+7,0,'Kemah Bandit',{useDist:5,verb:'Usir',btn:'USIR',act:()=>XA.xBand89(kd),ctx:()=>`<div class="ctx-head"><h3>🏴 Kemah Bandit</h3><small>Peluang menang ${Math.round(Math.min(.95,.55+mlPow()/40000)*100)}% · kekuatan ⚔️ ${mlPow()}</small></div><div class="ctx-row">${bzB('xBand89',kd,'⚔️ Usir bandit')}</div>`});}catch(e){console.error('band89',e);}}
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{g.userData.band89=null;setTimeout(()=>bandSpawn(kd),0);}catch(e){}return g;})(gkBuild);
+/* audience window */
+function openMr89(kd){if(modal)return;try{closePhone();}catch(e){}const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=mr89(),K=gpKd(kd),m=s.m[kd],r=mrRep(kd),t=mrTitle(kd),nx=MR89.T.find(x=>x[0]>r),cd=Math.max(0,(s.cd[kd]||0)-Date.now());
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Audiensi"><div class="mohead"><b>👑 Audiensi ${esc(kdRaja(kd))}</b><span class="mobal">⭐ ${Math.round(r)}/100</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+      <p><i>"${esc(MR89.HI[pp85Th(kd)]||'Selamat datang.')}"</i></p>
+      <div class="wallet"><div class="row"><span>Reputasi di ${esc(K.n)}</span><span>${Math.round(r)}/100</span></div><div class="row"><span>Gelar</span><span>${t?t[1]+' '+t[2]:'Belum ada'}</span></div>
+        ${nx?`<div class="row"><span>Gelar berikutnya</span><span>${nx[1]} ${nx[2]} di ${nx[0]}</span></div>`:''}<div class="row"><span>Bonus gelar</span><span>jual dagangan & tamu villa +${Math.round(mrBonus(kd)*100)}%</span></div></div>
+      <p class="sec-t">📜 Misi dari raja</p>
+      ${m?`<p>${mrDesc(kd,m)}</p><div class="ctx-row"><button class="pbtn" data-d="1">${m.t==='lumbung'?'🌾 Sumbang':'✅ Laporkan'}</button><button class="small" data-x="1">Batalkan</button></div>${mrReady(kd,m)||m.t==='lumbung'?'':'<p class="muted">Belum selesai.</p>'}`
+        :cd?`<p class="muted">Raja belum punya tugas baru. Kembali ${Math.ceil(cd/60000)} menit lagi.</p>`:`<div class="ctx-row"><button class="pbtn" data-a="1">📜 Minta misi</button></div>`}
+      <p class="sec-t">🏅 Gelar kehormatanmu</p>
+      ${tr87Kds().map(k=>{const tt=mrTitle(k);return `<div class="row" style="display:flex;justify-content:space-between;padding:4px 0"><span>${esc(gpKd(k).n)}</span><span>${tt?tt[1]+' '+tt[2]:'—'} · ⭐ ${Math.round(mrRep(k))}</span></div>`;}).join('')}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};const q=(a,fn)=>{const b=el.querySelector(a);if(b)b.onclick=fn;};
+    q('[data-a]',()=>XA.xMr89A(kd));q('[data-d]',()=>XA.xMr89D(kd));q('[data-x]',()=>XA.xMr89X(kd));};
+  modal={el,st:{label:'Audiensi'},busy:false,refresh(){draw();}};draw();}
+XA.xMrWin89=kd=>openMr89(kd);
+/* station beside the throne when an NPC king rules */
+gpBuild=(f=>function(kd){const g=f.apply(this,arguments);try{let k=null;try{k=tkKing();}catch(e){}if(pp85Th(kd)&&!(k&&k.kd===kd)){const X=GP52.X;
+    stationAdd('gpmisi89',X+5,-38,0,'Audiensi Raja',{useDist:3.4,verb:'Bicara',btn:'BICARA',act:()=>openMr89(kd),ctx:()=>{const m=mr89().m[kd];return `<div class="ctx-head"><h3>📜 Audiensi ${esc(kdRaja(kd))}</h3><small>Reputasi ${Math.round(mrRep(kd))}/100${m?' · misi aktif':''}</small></div><div class="ctx-row">${bzB('xMrWin89',kd,'📜 Bicara')}</div>`;}});
+    try{const e=emojiSprite('📜',1.2);e.position.set(X+5,3,-38);g.add(e);}catch(e){}}}catch(e){console.error('mr89',e);}return g;})(gpBuild);
+gpDrop=(f=>function(){for(let i=stations.length-1;i>=0;i--)if(stations[i].type==='gpmisi89')stations.splice(i,1);return f.apply(this,arguments);})(gpDrop);
+/* title bonuses: better sale price and more villa guests */
+XA.xTr87S=(f=>function(arg){const [kd,id]=String(arg).split(':');const I=tr87().inv[id],b=mrBonus(kd);const rev=I?tr87Price(kd,id)*I.q:0;const r=f.apply(this,arguments);if(I&&b>0&&!tr87().inv[id]){const x=Math.round(rev*b);S.bal+=x;logLine('sys',null,`🎖️ Bonus gelar di ${gpKd(kd).n}: +${zKC(x)}.`);}return r;})(XA.xTr87S);
+vlOcc=(f=>function(kd){return Math.min(.99,f.apply(this,arguments)+mrBonus(kd));})(vlOcc);
+xView('misi89',{t:'Misi Raja',s:'Reputasi & gelar',ic:'📜',bg:'linear-gradient(135deg,#7a3a9a,#ffd25f)',r:()=>{const s=mr89();return `<p class="muted">Temui raja di ruang takhta tiap kerajaan (tombol 📜 di samping takhta) untuk minta misi.</p>${tr87Kds().map(k=>{const t=mrTitle(k),m=s.m[k];return `<div class="row"><span>${esc(gpKd(k).n)}${m?' · 📜 '+m.t:''}</span><span>${t?t[1]:''} ⭐ ${Math.round(mrRep(k))}</span></div>`;}).join('')}`;}});
+try{NEW82.unshift(['📜','Audiensi & Misi Raja','Minta misi dari raja NPC, kumpulkan reputasi dan gelar kehormatan.','misi89']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
