@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v87';
+const GAME_VER='v88';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11498,6 +11498,57 @@ gkBuild=(f=>function(kd){const c0=colliders.length;const g=f.apply(this,argument
     colliders.push({x0:X+x-3,x1:X+x+3,z0:Z+z-2.7,z1:Z+z+.7,top:3.4});
     stationAdd('gktr87',X+x,Z+z+2.2,0,'Kantor Dagang',{useDist:4,verb:'Dagang',btn:'DAGANG',act:()=>openTr87(kd),ctx:()=>`<div class="ctx-head"><h3>🐪 Kantor Dagang ${esc(K.n)}</h3><small>Muatan ${tr87Used()}/${tr87Cap()} · beli produk lokal, jual barang dari kerajaan lain</small></div><div class="ctx-row">${bzB('xTrWin87',kd,'🐪 Buka')}</div>`});}}catch(e){console.error('tr87b',e);}GK.cols=new Set(colliders.slice(c0));return g;})(gkBuild);
 try{NEW82.unshift(['🐪','Dagang Antar Kerajaan','Beli produk lokal murah, jual di kerajaan lain. Perang bikin harga melonjak.','dagang87'],['🌨️','Cuaca & malam kerajaan','Salju, badai pasir, kabut, hujan bunga, lampu malam.','paspor85']);}catch(e){}
+
+/* ================= v88: Villa di Luar Negeri (beli villa bertema di tiap kerajaan, disewakan ke turis) ================= */
+const VL88={X:-178,Z:196,rate:.005,lvMax:5,N:{jawa:'Villa Joglo',tropis:'Villa Pantai',gotik:'Château',gurun:'Riad Oase',modern:'Penthouse Kaca',bahari:'Villa Tepi Kanal',naga:'Rumah Siheyuan',sabana:'Lodge Safari',andes:'Hacienda Gunung',salju:'Kabin Fjord'}};
+function vl88(){return PF.vl88=PF.vl88||{v:{},last:Date.now(),earn:0};}
+const vlPrice=kd=>Math.round(Math.max(5e8,netWorth()*.03)*(1+.04*tr87Kds().indexOf(kd)));
+const vlUp=v=>Math.round(v.p*.3*(v.lv));
+function vlOcc(kd){let o=.72+.04*((Math.floor(Date.now()/600000)+kd.length)%6);try{if(atWar(kd))o=.3;}catch(e){}const s=pp85();if(s.st[kd+':L']&&s.st[kd+':R'])o+=.05;return Math.min(.98,o);}
+const vlHr=(kd,v)=>v.p*VL88.rate*(1+.25*(v.lv-1))*vlOcc(kd);
+function vlTick(){const s=vl88(),now=Date.now();let dt=(now-s.last)/3600000;s.last=now;if(dt<=0)return;let f=1;if(dt>.05){f=.5;dt=Math.min(dt,8);}let inc=0;for(const kd in s.v)inc+=vlHr(kd,s.v[kd])*dt*f;inc=Math.round(inc);if(inc>0){S.bal+=inc;s.earn+=inc;}if(f<1&&inc>0)logLine('sys',null,`🏖️ Selama kamu pergi, villa luar negeri menghasilkan ${zKC(inc)}.`,'win');}
+Object.assign(INC_X,{villa:['🏖️','Villa luar negeri']});vlTick=incWrap(vlTick,'villa',d=>d>0?'Sewa villa ke turis':'Villa');
+setInterval(()=>{try{if(started){vlTick();savePF();}}catch(e){console.error('vl88',e);}},60000);
+netWorth=(f=>function(){let v=f.apply(this,arguments);try{const s=PF.vl88;if(s)for(const kd in s.v){const x=s.v[kd];v+=x.p*.9+x.p*.3*(x.lv*(x.lv-1)/2)*.6;}}catch(e){}return v;})(netWorth);
+XA.xVl88B=kd=>{const s=vl88();if(s.v[kd])return;if(!(GK.built&&GK.kd===kd)){showResult('Datangi kerajaannya dulu untuk membeli villa');return;}const p=vlPrice(kd);if(!xPay(p))return;vlTick();s.v[kd]={p,lv:1,at:Date.now()};SFX.big();
+  try{banner(`🏖️ ${VL88.N[pp85Th(kd)].toUpperCase()} DIBELI<small>${esc(gpKd(kd).n)} · disewakan ke turis</small>`,'',2400);}catch(e){}logLine('sys',null,`🏖️ Kamu membeli ${VL88.N[pp85Th(kd)]} di ${gpKd(kd).n} seharga ${zKC(p)}. Turis mulai menyewa.`,'win');save();savePF();vlRebuild(kd);try{modal&&modal.refresh&&modal.refresh();}catch(e){}};
+XA.xVl88U=kd=>{const s=vl88(),v=s.v[kd];if(!v||v.lv>=VL88.lvMax)return;const c=vlUp(v);if(!xPay(c))return;vlTick();v.lv++;SFX.big();logLine('sys',null,`🏖️ ${VL88.N[pp85Th(kd)]} di ${gpKd(kd).n} naik ke level ${v.lv}: sewa +25%.`,'win');save();savePF();vlRebuild(kd);try{modal&&modal.refresh&&modal.refresh();}catch(e){}};
+XA.xVl88S=kd=>{const s=vl88(),v=s.v[kd];if(!v)return;vlTick();const r=Math.round(v.p*.85+v.p*.3*(v.lv*(v.lv-1)/2)*.5);S.bal+=r;delete s.v[kd];logLine('sys',null,`🏷️ Villa di ${gpKd(kd).n} dijual: +${zKC(r)}.`);save();savePF();vlRebuild(kd);try{modal&&modal.refresh&&modal.refresh();}catch(e){}};
+XA.xVl88B=incWrap(XA.xVl88B,'villa','Beli villa');XA.xVl88U=incWrap(XA.xVl88U,'villa','Renovasi villa');XA.xVl88S=incWrap(XA.xVl88S,'villa','Jual villa');
+function openVl88(){if(modal)return;try{closePhone();}catch(e){}const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=vl88(),here=GK.built&&inKd86()?GK.kd:null;let tot=0;for(const kd in s.v)tot+=vlHr(kd,s.v[kd]);
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Villa"><div class="mohead"><b>🏖️ Villa di Luar Negeri</b><span class="mobal">${Object.keys(s.v).length}/10</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+      <p class="muted">Beli villa bertema di kota sekitar istana tiap kerajaan. Turis menyewanya dan uangnya masuk otomatis tiap menit (saat offline 50%, maksimal 8 jam). Kerajaan yang perang sepi turis. Paspor lengkap di kerajaan itu menambah tamu.</p>
+      <div class="wallet"><div class="row"><span>Sewa per jam</span><span>${zKC(Math.round(tot))}</span></div><div class="row"><span>Total pendapatan villa</span><span>${zKC(Math.round(s.earn))}</span></div></div>
+      ${tr87Kds().map(kd=>{const K=gpKd(kd),v=s.v[kd],nm=VL88.N[pp85Th(kd)];
+        return `<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${esc(nm)}</b> · ${esc(K.n)}<br><small>${v?`Level ${v.lv} · tamu ${Math.round(vlOcc(kd)*100)}% · ${zKC(Math.round(vlHr(kd,v)))}/jam`:`Harga ${zKC(vlPrice(kd))} · sewa ±${zKC(Math.round(vlPrice(kd)*VL88.rate*vlOcc(kd)))}/jam`}</small></span>
+        <span style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${v?(v.lv<VL88.lvMax?`<button class="pbtn" data-u="${kd}">Renovasi ${zKC(vlUp(v))}</button>`:'')+`<button class="small" data-s="${kd}">Jual</button>`:here===kd?`<button class="pbtn" data-b="${kd}">Beli</button>`:`<button class="small" data-f="${kd}">✈️ Ke sana</button>`}</span></div>`;}).join('')}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};
+    el.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>XA.xVl88B(b.dataset.b));el.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>XA.xVl88U(b.dataset.u));el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>XA.xVl88S(b.dataset.s));
+    el.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{el.remove();modal=null;try{XA.xFly(b.dataset.f);}catch(e){}});};
+  modal={el,st:{label:'Villa'},busy:false,refresh(){draw();}};draw();}
+XA.xVlWin88=()=>openVl88();
+xView('villa88',{t:'Villa',s:'Villa luar negeri',ic:'🏖️',bg:'linear-gradient(135deg,#3fc8d8,#ffd25f)',r:()=>{setTimeout(()=>{if(phView==='villa88'){phView='home';closePhone();openVl88();}},20);return '<p class="muted">Membuka...</p>';}});
+/* 3D villa: themed house, pool, loungers and tourists when owned; a plot with a sale sign otherwise */
+function vlModel(kd){const th=pp85Th(kd),st=gkStyle(kd),v=vl88().v[kd],g=new THREE.Group(),{X,Z}=GK,x0=VL88.X,z0=VL88.Z;const B=(w,h,d,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);g.add(m);return m;};
+  const K=(r,h,c,x,y,z,seg,ry)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg||4),mat(c));m.position.set(x,y,z);m.rotation.y=ry||0;g.add(m);return m;};
+  g.position.set(X+x0,0,Z+z0);B(26,.2,22,0x8ac86a,0,.1,0);
+  if(!v){for(const a of [-1,1])for(const b of [-1,1])B(.3,1.2,.3,0xd8435b,a*12,.6,b*10);B(.3,2.6,.3,0x6a4a2a,0,1.3,10);B(4,1.6,.2,0xffd25f,0,2.8,10.1);try{const l=labelPlane('Tanah Villa Dijual',VL88.N[th]+' · '+zKC(vlPrice(kd)),'#ffd25f');l.scale.setScalar(.8);l.position.set(0,5.5,10);g.add(l);}catch(e){}return g;}
+  const lv=v.lv,wc={jawa:0xf0e0c0,tropis:0xe8d0a0,gotik:0xf4efe4,gurun:0xe0b27a,modern:0xf4f6fa,bahari:0xffe0e8,naga:0xb8302a,sabana:0xc8844a,andes:0xb8b0a0,salju:0x6a4a2a}[th]||0xf0e8dc;
+  B(14,5,9,wc,-3,2.5,-4);if(lv>=3)B(9,4,7,wc,-5,7,-4.5);
+  if(th==='modern'){B(14.6,.4,9.6,0x30343c,-3,5.2,-4);B(14.2,3.6,.1,0x9fd8ff,-3,2.6,.56);}
+  else if(th==='gurun'){B(14.6,.8,9.6,0xc8945a,-3,5.4,-4);}
+  else{const r=K(10,4,st.roof||0x7a3a2a,-3,7,-4,4,Math.PI/4);r.scale.set(1,1,.7);if(th==='salju')K(10.2,1,0xffffff,-3,8.4,-4,4,Math.PI/4).scale.set(.5,1,.35);}
+  const pool=new THREE.Mesh(new THREE.BoxGeometry(8,.3,5),new THREE.MeshBasicMaterial({color:0x3fc8e8}));pool.position.set(5,.25,4);g.add(pool);B(9,.2,6,0xf0e8dc,5,.1,4);
+  for(let i=0;i<Math.min(4,lv+1);i++){B(1,.3,2.2,0xffffff,-6+i*2.4,.5,5);try{const p=miniPerson(g,-6+i*2.4,5,0,[0xff7ab0,0x3ddc84,0xffd25f,0x2f6fe0][i]);p.rotation.x=-Math.PI/2.4;p.position.y=.7;}catch(e){}}
+  if(lv>=2){const u=new THREE.Mesh(new THREE.ConeGeometry(2,1,8),mat(0xd8435b));u.position.set(9,3,8);g.add(u);B(.1,3,.1,0xffffff,9,1.5,8);}
+  if(lv>=4)for(const a of [-11,11])B(1,1,1,0x2f8a40,a,.6,8);if(lv>=5){try{const e=emojiSprite('⭐',1.6);e.position.set(-3,12,-4);g.add(e);}catch(e){}}
+  try{const l=labelPlane(VL88.N[th]+' (milikmu)','Level '+lv+' · disewa turis','#8ef0a8');l.scale.setScalar(.8);l.position.set(-3,13.5,0);g.add(l);}catch(e){}return g;}
+function vlRebuild(kd){try{if(!GK.built||GK.kd!==kd)return;const old=GK.built.userData.vl88;if(old){GK.built.remove(old);old.traverse(o=>{if(o.geometry)o.geometry.dispose();});}const m=vlModel(kd);GK.built.add(m);GK.built.userData.vl88=m;}catch(e){console.error('vlr',e);}}
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{if(pp85Th(kd)){const m=vlModel(kd);g.add(m);g.userData.vl88=m;const {X,Z}=GK;
+    stationAdd('gkvl88',X+VL88.X,Z+VL88.Z+12,0,'Villa',{useDist:5,verb:'Villa',btn:'VILLA',act:()=>openVl88(),ctx:()=>{const v=vl88().v[kd];return `<div class="ctx-head"><h3>🏖️ ${esc(VL88.N[pp85Th(kd)])}</h3><small>${v?`Milikmu · level ${v.lv} · ${zKC(Math.round(vlHr(kd,v)))}/jam`:'Dijual '+zKC(vlPrice(kd))}</small></div><div class="ctx-row">${v?bzB('xVlWin88',1,'🏖️ Kelola'):bzB('xVl88B',kd,'🏖️ Beli villa')}</div>`;}});}}catch(e){console.error('vl88b',e);}return g;})(gkBuild);
+
+try{NEW82.unshift(['🏖️','Villa Luar Negeri','Beli villa bertema di tiap kerajaan, disewakan ke turis.','villa88']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
