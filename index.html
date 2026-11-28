@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v92';
+const GAME_VER='v93';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11616,14 +11616,14 @@ try{NEW82.unshift(['📜','Audiensi & Misi Raja','Minta misi dari raja NPC, kump
 
 /* ================= v90: Polish & performa — gabungkan mesh statis kompleks kerajaan supaya draw call turun ================= */
 function merge90(g){const skip=new Set();try{(GK.spin||[]).forEach(s=>skip.add(s.o));if(KW86.glow)skip.add(KW86.glow);(KW86.aur||[]).forEach(o=>skip.add(o));}catch(e){}
-  const bins=new Map();g.updateMatrixWorld(true);
+  const bins=new Map();g.updateMatrixWorld(true);const gInv=new THREE.Matrix4().copy(g.matrixWorld).invert(),mw=new THREE.Matrix4();
   g.children.forEach(o=>{if(!o.isMesh||o.isInstancedMesh||!o.visible||skip.has(o)||o.children.length)return;const m=o.material;if(!m||Array.isArray(m)||m.transparent||!(m.isMeshLambertMaterial||m.isMeshBasicMaterial))return;
     const ge=o.geometry;if(!ge||!ge.attributes||!ge.attributes.position||!ge.attributes.normal||!ge.attributes.uv)return;
     const key=m.type+'|'+m.color.getHex()+'|'+(m.map?m.map.uuid:'')+'|'+m.side+'|'+(m.vertexColors?1:0);let b=bins.get(key);if(!b){b={m,list:[]};bins.set(key,b);}b.list.push(o);});
   let before=0,after=0;
   bins.forEach(b=>{if(b.list.length<3)return;before+=b.list.length;let nv=0,ni=0;b.list.forEach(o=>{const ge=o.geometry;nv+=ge.attributes.position.count;ni+=ge.index?ge.index.count:ge.attributes.position.count;});
     const P=new Float32Array(nv*3),N=new Float32Array(nv*3),U=new Float32Array(nv*2),I=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let vo=0,io=0;const v=new THREE.Vector3(),nm=new THREE.Matrix3();
-    b.list.forEach(o=>{const ge=o.geometry,p=ge.attributes.position,n=ge.attributes.normal,u=ge.attributes.uv,mw=o.matrixWorld;nm.getNormalMatrix(mw);
+    b.list.forEach(o=>{const ge=o.geometry,p=ge.attributes.position,n=ge.attributes.normal,u=ge.attributes.uv;mw.multiplyMatrices(gInv,o.matrixWorld);nm.getNormalMatrix(mw);
       for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(mw);P[(vo+i)*3]=v.x;P[(vo+i)*3+1]=v.y;P[(vo+i)*3+2]=v.z;v.fromBufferAttribute(n,i).applyMatrix3(nm).normalize();N[(vo+i)*3]=v.x;N[(vo+i)*3+1]=v.y;N[(vo+i)*3+2]=v.z;U[(vo+i)*2]=u.getX(i);U[(vo+i)*2+1]=u.getY(i);}
       if(ge.index){const a=ge.index.array;for(let i=0;i<a.length;i++)I[io+i]=a[i]+vo;io+=a.length;}else{for(let i=0;i<p.count;i++)I[io+i]=vo+i;io+=p.count;}vo+=p.count;});
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('normal',new THREE.BufferAttribute(N,3));geo.setAttribute('uv',new THREE.BufferAttribute(U,2));geo.setIndex(new THREE.BufferAttribute(I,1));geo.computeBoundingSphere();
@@ -11720,6 +11720,38 @@ function castle92(){const G=new THREE.Group();scene.add(G);const MC={};const M=c
   G.userData.c92=1;return G;}
 buildWorld=(f=>function(){const r=f.apply(this,arguments);try{castle92();}catch(e){console.error('castle92',e);}return r;})(buildWorld);
 try{NEW82.unshift(['🏰','Kasino jadi kastil','Menara, benteng, gerbang, keep di atap; di dalam arkade batu, kaca patri, obor dan panji.','baru82']);}catch(e){}
+
+/* ================= v93: Distrik Perkantoran (CBD) — menara kantor dapat podium, mahkota bertingkat, sirip kaca, helipad, lampu LED dan jembatan langit ================= */
+const CBD93={done:0,n:0,br:0};
+function cbd93(){if(CBD93.done)return;CBD93.done=1;scene.updateMatrixWorld(true);const T=[];
+  scene.traverse(o=>{if(!o.isMesh||o.isInstancedMesh||!o.parent)return;const p=o.geometry&&o.geometry.parameters;if(!p||o.geometry.type!=='BoxGeometry'||!o.material||!o.material.map)return;
+    const h=p.height*o.scale.y,w=p.width*o.scale.x,d=p.depth*o.scale.z;if(h<26||w>30||d>30||o.rotation.y||o.scale.x!==1||o.scale.y!==1||o.scale.z!==1)return;const v=new THREE.Vector3();o.getWorldPosition(v);if(Math.abs(v.x)>420||v.z<-420||v.z>200)return;if(Math.abs(v.x)<60&&Math.abs(v.z)<60)return;
+    const ge=o.geometry;if(!ge.boundingBox)ge.computeBoundingBox();const bb=ge.boundingBox,sc=o.scale;T.push({o,par:o.parent,x:o.position.x+(bb.min.x+bb.max.x)/2*sc.x,y0:o.position.y+bb.min.y*sc.y,z:o.position.z+(bb.min.z+bb.max.z)/2*sc.z,w,h,d});});
+  const byPar=new Map();T.forEach(t=>{if(!byPar.has(t.par))byPar.set(t.par,[]);byPar.get(t.par).push(t);});
+  const MC={};const M=c=>MC[c]||(MC[c]=mat(c)),MB=c=>MC['b'+c]||(MC['b'+c]=new THREE.MeshBasicMaterial({color:c}));
+  const LED=[0x7fd4ff,0xff5fa2,0xffd25f,0x3ddc84,0xb08aff];
+  byPar.forEach((list,par)=>{let G=null;const mk=t=>{const g=new THREE.Group();g.position.set(-t.o.position.x,-t.o.position.y,-t.o.position.z);t.o.add(g);t.G=g;return g;};list.forEach(mk);
+    const B=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='number'?M(m):m);o.position.set(x,y,z);G.add(o);return o;};
+    const Cy=(r,h,m,x,y,z,seg)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||16),typeof m==='number'?M(m):m);o.position.set(x,y,z);G.add(o);return o;};
+    list.forEach((t,i)=>{G=t.G;const {x,z,w,h,d,y0}=t,top=y0+h,k=(Math.round(x*7+z*3)%5+5)%5;
+      /* podium with a glass band and entrance canopy */
+      B(w+3,4.4,d+3,0x3a4252,x,y0+2.2,z);B(w+3.2,1.2,d+3.2,MB(0x9fd8ff),x,y0+3,z);B(w+4,.4,d+4,0xd8dce4,x,y0+4.6,z);
+      /* vertical glass fins on the corners */
+      for(const a of [-1,1])for(const b of [-1,1])B(.35,h-5,.35,MB(0xbfe6ff),x+a*(w/2+.18),y0+4.4+(h-5)/2,z+b*(d/2+.18));
+      /* crown: setbacks, LED band, then spire, helipad or garden depending on the tower */
+      B(w+.6,.8,d+.6,MB(LED[k]),x,top-1.6,z);
+      const c1=B(w*.72,h*.09,d*.72,0x5a6478,x,top+h*.045,z);B(w*.74,.5,d*.74,MB(LED[(k+2)%5]),x,top+h*.09,z);
+      const t2=top+h*.09;
+      if(k===0||k===3){B(w*.44,h*.08,d*.44,0x6a748a,x,t2+h*.04,z);Cy(.25,h*.25,0xdddddd,x,t2+h*.08+h*.125,z,6);const s=new THREE.Mesh(new THREE.SphereGeometry(.5,8,6),MB(0xff3030));s.position.set(x,t2+h*.08+h*.25+.3,z);G.add(s);}
+      else if(k===1||k===4){const r=Math.min(w,d)*.32;Cy(r,.4,0x3a3e48,x,t2+.2,z,24);const hp=new THREE.Mesh(new THREE.CircleGeometry(r*.8,24),MB(0xffd25f));hp.rotation.x=-Math.PI/2;hp.position.set(x,t2+.42,z);G.add(hp);B(r*.5,.05,r*.12,MB(0x3a3e48),x,t2+.46,z);B(r*.12,.05,r*.8,MB(0x3a3e48),x-r*.25,t2+.46,z);B(r*.12,.05,r*.8,MB(0x3a3e48),x+r*.25,t2+.46,z);}
+      else{B(w*.6,.6,d*.6,0x6a5040,x,t2+.3,z);for(let j=0;j<4;j++){const tr=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),M(0x2f8a40));tr.position.set(x+(j%2?1:-1)*w*.18,t2+1.3,z+(j<2?1:-1)*d*.18);G.add(tr);}}
+      CBD93.n++;});
+    /* skybridges between close towers of similar height */
+    for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){const a=list[i],b=list[j],dx=b.x-a.x,dz=b.z-a.z,L=Math.hypot(dx,dz);if(L>22||L<8)continue;const hy=a.y0+Math.min(a.h,b.h)*.62;if(Math.min(a.h,b.h)<30)continue;G=a.G;G=a.G;
+      const br=new THREE.Mesh(new THREE.BoxGeometry(2.6,2.4,L),MB(0x9fd8ff));br.position.set((a.x+b.x)/2,hy,(a.z+b.z)/2);br.rotation.y=Math.atan2(dx,dz);G.add(br);const fr=new THREE.Mesh(new THREE.BoxGeometry(2.9,.3,L),M(0xd8dce4));fr.position.set((a.x+b.x)/2,hy-1.3,(a.z+b.z)/2);fr.rotation.y=br.rotation.y;G.add(fr);CBD93.br++;}
+    list.forEach(t=>{try{merge90(t.G);}catch(e){}});});}
+setTimeout(function c93(){if(!started){setTimeout(c93,1500);return;}try{cbd93();}catch(e){console.error('cbd93',e);}},800);
+try{NEW82.unshift(['🏙️','Distrik perkantoran','Menara kantor dapat podium kaca, mahkota bertingkat, helipad, taman atap, lampu LED dan jembatan langit.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
