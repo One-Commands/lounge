@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v84.1';
+const GAME_VER='v85';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11344,6 +11344,61 @@ function gk85Town(g,kd){const st=gkStyle(kd),th=st.th;if(!th)return;const {X,Z}=
 }
 /* outermost wrap: theme the town and register every collider added by all gkBuild layers, so they are removed on leave */
 gkBuild=(f=>function(kd){const c0=colliders.length;const g=f.apply(this,arguments);try{gk85Town(g,kd);}catch(e){console.error('gk85',e);}GK.cols=new Set(colliders.slice(c0));return g;})(gkBuild);
+
+/* ================= v85: Paspor Wisata Kerajaan + Kuliner Khas ================= */
+/* spots: [theme] -> [L name, R name, dish id, dish emoji, dish name, buff text, buff] */
+const PP85={jawa:['Alun-alun & Pendopo','Sawah Terasering','gudeg','🍛','Gudeg Kendil','bonus +5',{bonus:5}],
+  tropis:['Laguna & Dermaga','Kebun Kelapa','ikan','🐟','Ikan Bakar Kelapa','mancing +10',{fish:10}],
+  gotik:['Balai Kota','Kebun Anggur','roti','🥖','Roti Keju Panggang','kerja +10',{job:10}],
+  gurun:['Souk Zahran','Kebun Kurma & Qubba','kurma','🫖','Teh Kurma & Kebab','hoki +4',{luck:4}],
+  modern:['Taman Seni Digital','Monorel Hanseo','mie','🍜','Mi Pedas Hanseo','kerja +10',{job:10}],
+  bahari:['Pelabuhan Nelayan','Kanal Gondola','sup','🦐','Sup Seafood Bahari','mancing +10',{fish:10}],
+  naga:['Kolam Teratai','Kebun Teh','bakpao','🥟','Bakpao Naga','hoki +4',{luck:4}],
+  sabana:['Lingkar Gendang','Padang Satwa','nasi','🍲','Nasi Merah Rempah','bonus +5',{bonus:5}],
+  andes:['Teras Melingkar','Reruntuhan Batu','jagung','🌽','Jagung Bakar & Quinoa','kerja +10',{job:10}],
+  salju:['Danau Beku','Gereja Kayu','salmon','🍣','Sup Salmon Hangat','mancing +10',{fish:10}]};
+function pp85(){return PF.pp85=PF.pp85||{st:{},food:null,ft:0,done:0};}
+const pp85Th=kd=>{try{return gkStyle(kd).th;}catch(e){return null;}};
+function pp85Count(){const s=pp85();return Object.keys(s.st).length;}
+function pp85Total(){return KDS.filter(k=>PP85[pp85Th(k[0])]).length*2;}
+/* passport set bonus: all stamps -> permanent luck +2 & bonus +3 */
+buffs=(f=>function(){const r=f.apply(this,arguments);try{const s=pp85();if(s.food&&Date.now()<s.ft){const d=Object.values(PP85).find(x=>x[2]===s.food);if(d)for(const k in d[6])r[k]=(r[k]||0)+d[6][k];}if(s.done){r.luck=(r.luck||0)+2;r.bonus=(r.bonus||0)+3;}}catch(e){}return r;})(buffs);
+XA.xPp85=arg=>{const [kd,side]=String(arg).split(':'),T=PP85[pp85Th(kd)];if(!T)return;const s=pp85(),key=kd+':'+side,K=gpKd(kd);
+  if(s.st[key]){showResult(`Stempel ${T[side==='L'?0:1]} sudah ada di paspor`);return;}
+  s.st[key]=Date.now();const rw=Math.round(Math.max(1e5,netWorth()*.001));S.bal+=rw;try{tkAddInf(kd,2);}catch(e){}try{xpAdd(15,'Wisata');}catch(e){}
+  try{SFX.big();banner(`📸 STEMPEL ${String(T[side==='L'?0:1]).toUpperCase()}<small>${esc(K.n)} · +${zKC(rw)} · pengaruh +2</small>`,'',2200);}catch(e){}
+  logLine('sys',null,`📸 Paspor: stempel ${T[side==='L'?0:1]} (${K.n}) didapat. +${zKC(rw)}, pengaruh +2.`,'win');
+  if(s.st[kd+':L']&&s.st[kd+':R']){const b=Math.round(Math.max(1e6,netWorth()*.005));S.bal+=b;logLine('sys',null,`🎁 Semua tempat wisata ${K.n} sudah dikunjungi! Suvenir khas didapat, bonus +${zKC(b)}.`,'win');}
+  if(!s.done&&pp85Count()>=pp85Total()){s.done=1;logLine('sys',null,'🌍 Paspor penuh! Gelar Penjelajah 10 Kerajaan: hoki +2 dan bonus +3 permanen.','win');try{banner('🌍 PENJELAJAH 10 KERAJAAN<small>Hoki +2 · bonus +3 selamanya</small>','',3000);}catch(e){}}
+  save();savePF();ctxKey=null;};
+XA.xFood85=kd=>{const T=PP85[pp85Th(kd)];if(!T)return;const p=foodP();if(!xPay(p))return;const s=pp85();s.food=T[2];s.ft=Date.now()+15*60e3;try{SFX.coin();banner(`${T[3]} ${T[4].toUpperCase()}<small>${T[5]} selama 15 menit</small>`,'',1800);}catch(e){}try{xpAdd(5,'Kuliner');}catch(e){}
+  logLine('sys',null,`${T[3]} Makan ${T[4]} di ${gpKd(kd).n}: ${T[5]} selama 15 menit.`);save();savePF();ctxKey=null;};
+/* stations + a themed food cart in each kingdom town */
+gkBuild=(f=>function(kd){const c0=colliders.length;const g=f.apply(this,arguments);try{const T=PP85[pp85Th(kd)];if(T){const {X,Z}=GK,K=gpKd(kd);
+    [['L',-90,174],['R',102,174]].forEach(([sd,x,z])=>{const nm=T[sd==='L'?0:1];
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,2.6,6),mat(0x5a3a20));post.position.set(X+x,1.3,Z+z);g.add(post);const sg=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.2,.15),mat(0xffd25f));sg.position.set(X+x,2.6,Z+z);g.add(sg);
+      try{const e=emojiSprite('📸',1.4);e.position.set(X+x,3.9,Z+z);g.add(e);}catch(e){}
+      stationAdd('gkpp85',X+x,Z+z+1.4,0,nm,{useDist:4,verb:'Foto',btn:'FOTO',act:()=>XA.xPp85(kd+':'+sd),ctx:()=>{const has=pp85().st[kd+':'+sd];return `<div class="ctx-head"><h3>📸 ${esc(nm)}</h3><small>${has?'Stempel sudah ada di paspor ✅':'Foto di sini untuk stempel paspor '+esc(K.n)}</small></div><div class="ctx-row">${has?bzB('xPpWin85',1,'🛂 Lihat paspor',1):bzB('xPp85',kd+':'+sd,'📸 Ambil stempel')}</div>`;}});});
+    {const x=-24,z=126,c=new THREE.Group();const cart=new THREE.Mesh(new THREE.BoxGeometry(3.6,1.2,2),mat(0x8a5a2a));cart.position.y=1.1;c.add(cart);for(const s of [-1,1]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.2,12),mat(0x3a2a1a));w.rotation.x=Math.PI/2;w.position.set(s*1.2,.55,1.05);c.add(w);}
+      for(const a of [-1.6,1.6])for(const b of [-.8,.8]){const p=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2.2,5),mat(0x6a4a2a));p.position.set(a,2.8,b);c.add(p);}const aw=new THREE.Mesh(new THREE.BoxGeometry(4.2,.2,2.6),mat(gkStyle(kd).trim||0xd8435b));aw.position.y=3.9;c.add(aw);
+      c.position.set(X+x,0,Z+z);g.add(c);try{miniPerson(g,X+x,Z+z-1.8,0,0xffffff);}catch(e){}try{const e=emojiSprite(T[3],1.6);e.position.set(X+x,5,Z+z);g.add(e);}catch(e){}
+      colliders.push({x0:X+x-1.8,x1:X+x+1.8,z0:Z+z-1,z1:Z+z+1,top:2.2});
+      stationAdd('gkfood85',X+x,Z+z+2,0,T[4],{useDist:3.5,verb:'Makan',btn:'MAKAN',act:()=>XA.xFood85(kd),ctx:()=>{const s=pp85(),on=s.food===T[2]&&Date.now()<s.ft;return `<div class="ctx-head"><h3>${T[3]} ${esc(T[4])}</h3><small>Kuliner khas ${esc(K.n)} · ${T[5]} selama 15 menit · ${zKC(foodP())}${on?' · sedang aktif ✅':''}</small></div><div class="ctx-row">${bzB('xFood85',kd,T[3]+' Makan')}</div>`;}});}}}catch(e){console.error('pp85',e);}GK.cols=new Set(colliders.slice(c0));return g;})(gkBuild);
+/* passport window */
+function openPp85(){if(modal)return;try{closePhone();}catch(e){}const el=document.createElement('div');el.className='modal';stage.appendChild(el);
+  const draw=()=>{const s=pp85(),n=pp85Count(),N=pp85Total();const fd=s.food&&Date.now()<s.ft?Object.values(PP85).find(x=>x[2]===s.food):null;
+    el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Paspor Wisata"><div class="mohead"><b>🛂 Paspor Wisata Kerajaan</b><span class="mobal">${n}/${N} stempel</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+    <p class="muted">Terbang ke tiap kerajaan, masuk kompleks istana, lalu foto di dua tempat wisata khasnya (tiang 📸 di depan kawasan). Tiap stempel memberi koin dan pengaruh. Lengkapi satu kerajaan untuk suvenir, lengkapi semua untuk gelar <b>Penjelajah 10 Kerajaan</b> (hoki +2, bonus +3 permanen).</p>
+    ${fd?`<div class="wallet"><div class="row"><span>${fd[3]} ${fd[4]}</span><span>${fd[5]} · ${Math.ceil((s.ft-Date.now())/60000)} mnt</span></div></div>`:''}
+    ${s.done?'<div class="wallet"><div class="row"><span>🌍 Penjelajah 10 Kerajaan</span><span>hoki +2 · bonus +3</span></div></div>':''}
+    ${KDS.map(k=>{const T=PP85[pp85Th(k[0])];if(!T)return '';const a=s.st[k[0]+':L'],b=s.st[k[0]+':R'];
+      return `<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${k[1]} ${esc(k[2])}</b>${a&&b?' 🎁':''}<br><small>${a?'✅':'⬜'} ${esc(T[0])} · ${b?'✅':'⬜'} ${esc(T[1])}<br>${T[3]} ${esc(T[4])} (${T[5]})</small></span><button class="pbtn" data-fly="${k[0]}">✈️ Ke sana</button></div>`;}).join('')}</div></div>`;
+    el.querySelector('.moclose').onclick=()=>{el.remove();modal=null;};
+    el.querySelectorAll('[data-fly]').forEach(b=>b.onclick=()=>{el.remove();modal=null;try{XA.xFly(b.dataset.fly);}catch(e){}});};
+  modal={el,st:{label:'Paspor'},busy:false,refresh(){draw();}};draw();}
+XA.xPpWin85=()=>openPp85();
+xView('paspor85',{t:'Paspor Wisata',s:'Stempel 10 kerajaan',ic:'🛂',bg:'linear-gradient(135deg,#2f6fe0,#3ddc84)',r:()=>{setTimeout(()=>{if(phView==='paspor85'){phView='home';closePhone();openPp85();}},20);return '<p class="muted">Membuka...</p>';}});
+try{NEW82.unshift(['🛂','Paspor Wisata & Kuliner','Stempel 2 tempat wisata tiap kerajaan + makanan khas (buff 15 mnt).','paspor85'],['🏰','Istana & kota bertema','Raja di takhta, istana, fasad dan kota sekitar beda tiap kerajaan.','paspor85']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
