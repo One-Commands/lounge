@@ -3604,7 +3604,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v101';
+const GAME_VER='v102';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -12255,10 +12255,54 @@ function cxRescale(r){if(!(r>1.0001)||!isFinite(r))return;cxFix();PF.cx101=(PF.c
   for(const k in PF.ohlc||{}){const a=MK.find(x=>x.id===k);if(a&&a.t==='crypto')(PF.ohlc[k]||[]).forEach(row=>{if(Array.isArray(row))for(let i=0;i<4;i++)if(typeof row[i]==='number')row[i]*=r;});}}
 function eco101(){if(!started)return;const base=mkBase();if(!(base>1e15)||!isFinite(base))return;const msg=[];
   try{const avgH=PRX0.h.reduce((a,b)=>a+b,0)/PRX0.h.length,X=base*.001/avgH;if(isFinite(X)&&X>(PF.prx||1)*1000){const b0=bizVal();PF.prx=X;prxApply();msg.push(`properti (bisnismu ${zKC(b0)} → ${zKC(bizVal())})`);}}catch(e){console.error('eco101 prx',e);}
-  try{cxFix();const C=MK.filter(a=>a.t==='crypto');const top=Math.max(...C.map(a=>a.p));const r=base*1e-6/top;if(isFinite(r)&&r>1000){const b0=C.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);cxRescale(r);const b1=C.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);msg.push(`crypto (punyamu ${zKC(b0)} → ${zKC(b1)})`);}}catch(e){console.error('eco101 cx',e);}
+  try{cxFix();const C=MK.filter(a=>a.t==='crypto');const top=Math.max(...C.map(a=>a.p));let r=base*1e-6/top;{let hv=0;C.forEach(a=>{hv=Math.max(hv,(PF.hold[a.id]||0)*a.p);for(const n in PF.npcH||{}){const q=(PF.npcH[n]||{})[a.id];if(q>0)hv=Math.max(hv,q*a.p);}});if(hv>0)r=Math.min(r,base*2/hv);}if(isFinite(r)&&r>1000){const b0=C.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);cxRescale(r);const b1=C.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);msg.push(`crypto (punyamu ${zKC(b0)} → ${zKC(b1)})`);}}catch(e){console.error('eco101 cx',e);}
   if(msg.length){const t=`📈 Inflasi: harga ${msg.join(' dan ')} mengikuti kekayaan zaman.`;logLine('sys',null,t,'win');try{news.unshift(t);news=news.slice(0,6);}catch(e){}savePF();save();try{phoneRender();}catch(e){}}}
 setTimeout(function e101(){if(!started){setTimeout(e101,2000);return;}try{cxFix();eco101();}catch(e){console.error('eco101',e);}setInterval(()=>{try{cxFix();eco101();}catch(e){}},180000);},8000);
 try{NEW82.unshift(['📈','Inflasi aset & angka aman','Properti dan crypto ikut naik sesuai kekayaan zaman, budget manajer ikut kekayaanmu, saldo tidak bisa jebol jadi tak terhingga, Kantor Manajer bisa discroll.','baru82']);}catch(e){}
+
+/* ================= v102: Redenominasi — saat kekayaan mendekati batas angka, semua uang, harga saham/crypto/properti dan kekayaan NPC dibagi bersamaan, lalu angka berlanjut ke mata uang baru (tanpa tulisan e) ================= */
+const RD102={F:1e180,DEX:180,TRIG:1e255,busy:0};
+/* new currency names after Tak Terhingga, each 1 Kn of the previous */
+KTIER.push(['1e300','Nirmala','💠'],['1e318','Adikara','⚜️'],['1e336','Mahadewa','🔆'],['1e354','Jagat','🌍'],['1e372','Buana','🌐'],['1e390','Arunika','🌅'],['1e408','Bentala','🗻'],['1e426','Angkasa','🚀'],['1e444','Antariksa','🛰️'],['1e462','Purnama','🌕'],['1e480','Gemintang','✴️'],['1e498','Halilintar','⚡'],['1e516','Mahameru','🏔️'],['1e534','Swarnadwipa','🏝️'],['1e552','Kalpataru','🌳'],['1e570','Wijayakusuma','🌺'],['1e588','Cahaya Abadi','🌞'],['1e606','Sang Hyang','👁️']);
+function era102(){return (PF&&PF.era|0)||0;}
+/* tier of an amount, counting the eras: works on exponents so nothing overflows */
+function tier102(n){const A=Math.abs(n);if(!(A>0)||!isFinite(A))return null;const L=Math.log10(A)+RD102.DEX*era102();if(L<30)return null;let i=Math.floor((L-30)/18+1e-9);
+  const t=KTIER[Math.min(i,KTIER.length-1)];if(i>KTIER.length-1){/* beyond every name: keep the last name, mantissa grows in Kn steps */}
+  const nm=i>KTIER.length-1?t[1]+' '+(i-KTIER.length+2):t[1];return {i,exp:30+18*i-RD102.DEX*era102(),n:nm,ic:t[2]};}
+kTierOf=(f=>function(n){const T=tier102(n);if(!T||Math.abs(n)<1e30)return f.apply(this,arguments);return [Number('1e'+T.exp),T.n,T.ic];})(kTierOf);
+/* above 1e300 a plain base can't be stored: divide in two steps */
+tierS=(f=>function(n){if(Math.abs(n)<1e30)return f.apply(this,arguments);const T=tier102(n);if(!T)return f.apply(this,arguments);let m=Number((n/Number('1e'+T.exp)).toPrecision(12));if(Math.abs(m)>=1e18*0.9999995){const T2=tier102(n*1.000001);if(T2&&T2.i>T.i)return kcnN(n/Number('1e'+T2.exp))+' '+T2.n;}return kcnN(m)+' '+T.n;})(tierS);
+tierI=(f=>function(n){if(Math.abs(n)<1e30)return f.apply(this,arguments);const T=tier102(n);return T?T.ic:f.apply(this,arguments);})(tierI);
+balS=(f=>function(n){n=+n||0;if(!era102()||Math.abs(n)<1e30)return f.apply(this,arguments);return tierS(n);})(balS);
+/* money keys that are really quantities or scale factors and must not be divided */
+const RD_SKIP=new Set(['sh','q','cf','shf','cdx','__cdx','cx101','__cx','mkx','__mkx','era','lot','lots','n','cnt','count','lv','xp','at','t','t0','ts','id','seed']);
+const RD_SKIP_TOP=new Set(['hold','npcH','shf','cdx','px','cost','ohlc','lim','ord']);
+function rdWalk(o,d,seen){if(!o||typeof o!=='object'||d>10||seen.has(o))return 0;seen.add(o);let c=0;
+  for(const k of Object.keys(o)){if(RD_SKIP.has(k))continue;let v;try{v=o[k];}catch(e){continue;}
+    if(typeof v==='number'){if(Math.abs(v)>=1e30&&isFinite(v)){o[k]=v/RD102.F;c++;}}else if(v&&typeof v==='object')c+=rdWalk(v,d+1,seen);}return c;}
+function redenom(){if(RD102.busy)return;RD102.busy=1;const F=RD102.F;let c=0;try{
+  const before=netWorth();
+  S.bal=S.bal/F;if(S.bet)S.bet=S.bet/F;
+  /* market: every price field, whatever its size, so each asset stays consistent */
+  MK.forEach(a=>{['p','p0','b0','f','open','liq'].forEach(k=>{if(typeof a[k]==='number')a[k]/=F;});if(Array.isArray(a.h))a.h=a.h.map(v=>v/F);if(a.__mkx)a.__mkx/=F;c++;});
+  PF.mkx=(PF.mkx||1)/F;
+  if(PF.px)for(const k in PF.px)if(typeof PF.px[k]==='number')PF.px[k]/=F;
+  if(PF.cost)for(const k in PF.cost)if(typeof PF.cost[k]==='number')PF.cost[k]/=F;
+  (PF.lim||[]).forEach(o=>{if(o.px)o.px/=F;if(o.amt&&o.amt>=1e30)o.amt/=F;});(PF.ord||[]).forEach(o=>{if(o.px)o.px/=F;if(o.amt&&o.amt>=1e30)o.amt/=F;});
+  for(const k in PF.ohlc||{})(PF.ohlc[k]||[]).forEach(row=>{if(Array.isArray(row))for(let i=0;i<4;i++)if(typeof row[i]==='number')row[i]/=F;});
+  /* everything else that is money: all large numbers in the rest of the save */
+  const seen=new Set();for(const k of Object.keys(PF)){if(RD_SKIP_TOP.has(k)||RD_SKIP.has(k))continue;const v=PF[k];if(typeof v==='number'){if(Math.abs(v)>=1e30&&isFinite(v)){PF[k]=v/F;c++;}}else c+=rdWalk(v,1,seen);}
+  try{prxApply();}catch(e){}
+  PF.era=(PF.era|0)+1;
+  try{if(typeof INC41!=='undefined'){INC41.ss={};INC41.last=S.bal;}}catch(e){}try{ADV.list=[];}catch(e){}try{G100.good=S.bal;PF.g100=S.bal;}catch(e){}
+  const T=tier102(S.bal);savePF();save();try{render();phoneRender();}catch(e){}
+  const msg=`💱 REDENOMINASI ke-${PF.era}! Semua uang, harga saham, crypto, properti dan kekayaan NPC dibagi bersamaan supaya angka tidak mentok. Nilai hartamu tetap sama: ${wlS(S.bal)}. Mata uang berikutnya sudah siap: ${KTIER.slice(15,19).map(x=>x[2]+' '+x[1]).join(', ')} dan seterusnya.`;
+  logLine('sys',null,msg,'win');try{news.unshift(msg);news=news.slice(0,6);}catch(e){}
+  try{SFX.big();banner(`💱 REDENOMINASI<small>Angka disederhanakan · hartamu tetap ${wlS(S.bal)}</small>`,'',3200);}catch(e){}
+  console.log('redenom',c,'fields',before,'->',netWorth());}catch(e){console.error('redenom',e);}RD102.busy=0;}
+function rd102Check(){if(!started||busy||RD102.busy)return;let nw=0;try{nw=netWorth();}catch(e){}if(S.bal>=RD102.TRIG||nw>=RD102.TRIG)redenom();}
+setTimeout(function r102(){if(!started){setTimeout(r102,1500);return;}setInterval(()=>{try{rd102Check();}catch(e){}},4000);},6000);
+try{NEW82.unshift(['💱','Redenominasi siap','Saat hartamu mendekati batas angka, semua uang dan harga dibagi bersamaan otomatis, nilai hartamu tetap sama, lalu lanjut ke mata uang baru: Nirmala, Adikara, Mahadewa, Jagat, Buana dan seterusnya.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
