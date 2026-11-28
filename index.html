@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v91';
+const GAME_VER='v91.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11633,7 +11633,7 @@ gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{const t0=performanc
 try{NEW82.unshift(['⚡','Kerajaan lebih ringan','Ratusan bangunan kerajaan digabung supaya HP tidak berat.','paspor85']);}catch(e){}
 
 /* ================= v91: HP lebih rapi — app yang jarang dipakai atau dobel dipindah ke folder "Lainnya" ================= */
-const PH91=[['trans','sudah ada di Taksi'],['denah','sudah ada di Kerajaan'],['perang','sudah ada di Markas Militer'],['perang67','sudah ada di Bursa & Militer'],['amal','sudah ada di Yayasan'],['event','sudah ada di Event & Tren'],
+const PH91=[['denah','sudah ada di Kerajaan'],['perang','sudah ada di Markas Militer'],['perang67','sudah ada di Bursa & Militer'],['amal','sudah ada di Yayasan'],['event','sudah ada di Event & Tren'],
   ['paspor','diganti Paspor Wisata'],['emote','pakai tombol 1-4 / Gaya'],['gaya','pakai tombol 1-4, F, M'],['koran','berita sudah ada di chat'],['pajak','otomatis, info saja'],['rekap','muncul sendiri saat keluar'],
   ['hof','rekor pribadi'],['lencana','lencana & gelar'],['musim','liga musiman'],['tukar','butuh room mabar']];
 function ph91(){return PF.ph91=PF.ph91||{show:0};}
@@ -11646,7 +11646,7 @@ XA.xPh91=()=>{const s=ph91();s.show=s.show?0:1;ph91Apply();savePF();try{const ap
 /* PF loads after module code runs, so apply once the game starts and keep it applied */
 setTimeout(function a91(){if(!started){setTimeout(a91,1500);return;}try{ph91Apply();}catch(e){}},500);
 try{ph91Apply();}catch(e){}
-try{NEW82.unshift(['📁','HP lebih rapi','16 app yang jarang dipakai atau dobel dipindah ke folder Lainnya.','lainnya91']);}catch(e){}
+try{NEW82.unshift(['📁','HP lebih rapi','15 app yang jarang dipakai atau dobel dipindah ke folder Lainnya.','lainnya91']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
