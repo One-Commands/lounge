@@ -693,7 +693,9 @@ const $=id=>document.getElementById(id);
 const stage=$('stage'),ov=$('ov');
 if(!window.THREE){stage.insertAdjacentHTML('beforeend','<div class="err">Mesin 3D gagal dimuat. Muat ulang halaman.</div>');return;}
 function BIGU(n){if(!isFinite(n))return '∞';const U=[[1e63,'Vg'],[1e60,'Nd'],[1e57,'Od'],[1e54,'St'],[1e51,'Sd'],[1e48,'Qn'],[1e45,'Qd'],[1e42,'Td'],[1e39,'Dd'],[1e36,'Ud'],[1e33,'Ds'],[1e30,'No'],[1e27,'Ok'],[1e24,'Sp'],[1e21,'Sk'],[1e18,'Kn'],[1e15,'Kd']],A=Math.abs(n);
-  if(A>=1e66){const e=Math.floor(Math.log10(A)),m=n/Math.pow(10,e);return m.toLocaleString('id-ID',{maximumFractionDigits:2})+'e'+e;}
+  if(A>=1e66){const k=Math.floor(Math.log10(A)/3+1e-9),g=k-1,P=['','U','D','T','Qa','Qi','Sx','Sp','O','N'],T=['','Ds','Vg','Tg','Qag','Qig','Sxg','Spg','Og','Ng'];
+    if(g<100){const v=Math.pow(10,k*3);return (n/v).toLocaleString('id-ID',{maximumFractionDigits:n/v>=100?1:2})+' '+P[g%10]+T[Math.floor(g/10)];}
+    if(A<Infinity){const v=1e300;return BIGU(n/v)+' Cn';}}
   for(const [v,u] of U)if(A>=v)return (n/v).toLocaleString('id-ID',{maximumFractionDigits:A/v>=100?1:2})+' '+u;return Math.round(n).toLocaleString('id-ID');}
 const fmt=n=>(typeof n==='number'&&Math.abs(n)>=1e12&&isFinite(n))?zusS(n):n.toLocaleString('id-ID');
 const fmtBig=n=>{n=Math.floor(n);const A=Math.abs(n);if(A<1e9)return fmt(n);if(A<1e12)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';return zusS(n);};
@@ -1925,7 +1927,7 @@ function phoneRender(){
   const titles={home:'',rank:'Ranking',bank:'Bank Merdeka',toko:'Toko Aksesoris',crypto:'Crypto',saham:'Saham',detail:phAsset?phAsset.n:'',jobs:'Kerja sampingan',guide:'Panduan kasino',biz:'Bisnis & Properti',mail:'Inbox',quest:'Quest harian',wallet:'Dompet'};
   let body='';
   if(phView==='home'){
-    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${wlS(Math.round(net))}</b>${Math.abs(net)>=1e12?'<small style="opacity:.7">Ƶ 1 Zus = 1 T koin. Satuan: M miliar · T triliun · Kd kuadriliun (1.000 T) · Kn kuintiliun · Sk sekstiliun · Sp septiliun · Ok oktiliun · No noniliun · Ds desiliun · Ud · Dd · Td … Vg (tiap naik ×1.000). ♛ 1 Kencana = 1 Kn Zus.</small>':''}${nwRows()}</div>
+    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${wlS(Math.round(net))}</b>${Math.abs(net)>=1e12?'<small style="opacity:.7">Ƶ 1 Zus = 1 T koin. Satuan: M miliar · T triliun · Kd kuadriliun (1.000 T) · Kn kuintiliun · Sk sekstiliun · Sp septiliun · Ok oktiliun · No noniliun · Ds desiliun · Ud · Dd … Vg vigintiliun · UVg · DVg … Tg trigintiliun … Ng · Cn sentiliun (tiap naik ×1.000). ♛ 1 Kencana = 1 Kn Zus.</small>':''}${nwRows()}</div>
       <div class="apps">
         <button class="app" data-v="crypto"><i style="background:linear-gradient(135deg,#f7931a,#b25b00)">₿</i>Crypto</button>
         <button class="app" data-v="saham"><i style="background:linear-gradient(135deg,#3ddc84,#137a44)">📈</i>Saham</button>
@@ -3597,7 +3599,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v96.3';
+const GAME_VER='v96.4';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
