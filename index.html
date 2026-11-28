@@ -3604,7 +3604,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v96.6';
+const GAME_VER='v97';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11889,6 +11889,110 @@ netWorth=(f=>function(){const v=f.apply(this,arguments);return fix96(v,S.bal);})
 setInterval(guard96,1000);
 render=(f=>function(){guard96();return f.apply(this,arguments);})(render);
 try{lvS=(f=>function(){const s=f.apply(this,arguments);if(s&&!isFinite(s.xp))s.xp=0;return s;})(lvS);}catch(e){}
+
+/* ================= v97: Kota Permata diperluas — distrik Timur & Barat, taman tepi sungai di utara, jembatan kastil ke kerajaan; jembatan antar kerajaan ================= */
+const CX97={done:0,n:0};
+function cx97Mats(){if(CX97.M)return CX97.M;const fac=(bg,win,lit,rows,cols)=>{const t=canvasTex(128,128,(q,w,h)=>{q.fillStyle=bg;q.fillRect(0,0,w,h);const cw=w/cols,rh=h/rows;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){q.fillStyle=Math.random()<.3?lit:win;q.fillRect(c*cw+cw*.18,r*rh+rh*.2,cw*.64,rh*.55);}});t.wrapS=t.wrapT=THREE.RepeatWrapping;return new THREE.MeshLambertMaterial({map:t});};
+  const M={glass:fac('#3a5a7a','#8fc4ec','#ffe9a8',4,4),beige:fac('#e4d6bc','#5a6a7a','#ffd98a',4,3),brick:fac('#a4583e','#3a3440','#ffd27a',3,3),white:fac('#eef0f2','#6a8aa8','#fff0b8',5,4),mint:fac('#9fd8c4','#2f5a6a','#ffe9a0',4,3)};
+  const L=c=>new THREE.MeshLambertMaterial({color:c});Object.assign(M,{roof:L(0x5a5e68),grass:L(0x4f8a46),park:L(0x5da452),pave:L(0xcfc6b4),water:new THREE.MeshBasicMaterial({color:0x2f8fc8}),stone:L(0xd6c8aa),stoneD:L(0x9a8c74),gold:L(0xd8a648),roofC:L(0x1f2f5a),wood:L(0x7a5232),leaf:L(0x2f8a40),leaf2:L(0x3fa04a),trunk:L(0x6a4a2a),red:L(0xa82838),lamp:new THREE.MeshBasicMaterial({color:0xfff1c0}),pole:L(0x2a2a30),portal:new THREE.MeshBasicMaterial({color:0x9fd8ff,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false})});
+  CX97.M=M;return M;}
+/* box with UVs scaled to its size so windows keep the same size on every building */
+function cx97Box(w,h,d){const g=new THREE.BoxGeometry(w,h,d),uv=g.attributes.uv,S=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];for(let f=0;f<6;f++)for(let i=0;i<4;i++){const k=f*4+i;uv.setXY(k,uv.getX(k)*S[f][0]/7,uv.getY(k)*S[f][1]/7);}uv.needsUpdate=true;return g;}
+function cx97(){if(CX97.done||!cityGrp)return;CX97.done=1;const M=cx97Mats();const groups=[];
+  const grp=()=>{const g=new THREE.Group();cityGrp.add(g);groups.push(g);return g;};
+  const mesh=(g,geo,m,x,y,z,ry)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;g.add(o);return o;};
+  const B=(g,w,h,d,m,x,y,z,ry)=>mesh(g,new THREE.BoxGeometry(w,h,d),m,x,y,z,ry);
+  const C=(g,rt,rb,h,m,x,y,z,seg)=>mesh(g,new THREE.CylinderGeometry(rt,rb,h,seg||12),m,x,y,z);
+  const K=(g,r,h,m,x,y,z,seg)=>mesh(g,new THREE.ConeGeometry(r,h,seg||12),m,x,y,z);
+  const col=(x0,x1,z0,z1,top)=>colliders.push({x0,x1,z0,z1,top:top||40});
+  const tree=(g,x,z,s)=>{s=s||1;C(g,.22*s,.3*s,2.6*s,M.trunk,x,1.3*s,z,6);mesh(g,new THREE.SphereGeometry(1.7*s,6,4),M.leaf,x,3.5*s,z);mesh(g,new THREE.SphereGeometry(1.1*s,5,4),M.leaf2,x+.6*s,4.3*s,z+.3*s);};
+  const lampP=(g,x,z)=>{C(g,.1,.12,5,M.pole,x,2.5,z,6);mesh(g,new THREE.SphereGeometry(.36,6,4),M.lamp,x,5.15,z);};
+  const FAC=[M.glass,M.beige,M.brick,M.white,M.mint];let seed=97;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+  const bld=(g,x,z,w,d,h,m)=>{mesh(g,cx97Box(w,h,d),m,x,h/2,z);B(g,w+.6,.6,d+.6,M.roof,x,h+.3,z);if(h>30&&rnd()<.5){B(g,w*.5,3,d*.5,M.roof,x,h+2,z);C(g,.12,.12,6,M.pole,x,h+6.5,z,4);}col(x-w/2,x+w/2,z-d/2,z+d/2,h);CX97.n++;};
+  /* ---- ground + roads ---- */
+  const G0=grp();
+  gplane(G0,300,380,M.grass,410,-100,.004);gplane(G0,300,380,M.grass,-410,-100,.004);gplane(G0,520,200,M.grass,0,195,.004);
+  const road=(ax,az,bx,bz)=>{try{roadSeg(G0,ax,az,bx,bz,10,false);}catch(e){}};
+  for(const s of [-1,1]){road(s*270,-280,s*270,80);road(s*545,-280,s*545,80);road(s*270,-280,s*545,-280);road(s*270,80,s*545,80);road(s*270,-100,s*545,-100);road(s*408,-280,s*408,80);
+    road(s*270,80,s*270,120);
+    for(const z of [-51,-110]){const xa=Math.min(s*262,s*(s>0?96:172)),xb=Math.max(s*262,s*(s>0?96:172));if(onRoad((xa+xb)/2,z,.1))continue;if(colliders.some(c=>c.top>1&&c.x1>xa&&c.x0<xb&&c.z1>z-6&&c.z0<z+6))continue;road(xa,z,xb,z);}}
+  road(-262,120,262,120);
+  /* ---- district blocks ---- */
+  const blocks=[];for(const s of [-1,1])for(const [xa,xb] of [[275,403],[413,540]])for(const [za,zb] of [[-275,-105],[-95,75]])blocks.push([s>0?xa:-xb,s>0?xb:-xa,za,zb,s]);
+  blocks.forEach((b,i)=>{const [x0,x1,z0,z1,s]=b,g=grp();const park=(i===1||i===6);
+    if(park){/* city park with a pond, paths, trees and benches */gplane(g,x1-x0-4,z1-z0-4,M.park,(x0+x1)/2,(z0+z1)/2,.02);const cx=(x0+x1)/2,cz=(z0+z1)/2;
+      const pond=new THREE.Mesh(new THREE.CircleGeometry(22,28),M.water);pond.rotation.x=-Math.PI/2;pond.position.set(cx,.05,cz);g.add(pond);const rim=new THREE.Mesh(new THREE.RingGeometry(22,23.4,28),M.stone);rim.rotation.x=-Math.PI/2;rim.position.set(cx,.06,cz);g.add(rim);col(cx-16,cx+16,cz-16,cz+16,.5);
+      gplane(g,x1-x0-6,4,M.pave,cx,z0+8,.03);gplane(g,x1-x0-6,4,M.pave,cx,z1-8,.03);gplane(g,4,z1-z0-6,M.pave,x0+8,cz,.03);gplane(g,4,z1-z0-6,M.pave,x1-8,cz,.03);
+      for(let k=0;k<26;k++){const a=k/26*Math.PI*2,r=34+(k%3)*9;tree(g,cx+Math.cos(a)*r*1.1,cz+Math.sin(a)*r*1.25,1+(k%4)*.15);}
+      for(let k=0;k<8;k++){const a=k/8*Math.PI*2;B(g,2,.5,.7,M.wood,cx+Math.cos(a)*27,.55,cz+Math.sin(a)*27,-a);}
+      {const gz=new THREE.Group();gz.position.set(cx+(s>0?30:-30),0,cz-30);g.add(gz);for(const [a,c] of [[-1,-1],[1,-1],[-1,1],[1,1]])B(gz,.4,3.4,.4,M.stone,a*3,1.7,c*3);K(gz,5.2,2.6,M.red,0,4.6,0,8);B(gz,6.6,.3,6.6,M.stone,0,.15,0);}
+      return;}
+    gplane(g,x1-x0-2,z1-z0-2,M.pave,(x0+x1)/2,(z0+z1)/2,.015);
+    /* buildings along the block edges, a courtyard with trees in the middle */
+    const step=26;for(let x=x0+16;x<=x1-16;x+=step)for(const z of [z0+15,z1-15]){const w=16+Math.floor(rnd()*6),d=16+Math.floor(rnd()*6),h=14+Math.floor(rnd()*rnd()*70);bld(g,x,z,w,d,h,FAC[Math.floor(rnd()*FAC.length)]);}
+    for(let z=z0+46;z<=z1-46;z+=26)for(const x of [x0+15,x1-15]){const w=16+Math.floor(rnd()*5),d=18,h=12+Math.floor(rnd()*rnd()*55);bld(g,x,z,w,d,h,FAC[Math.floor(rnd()*FAC.length)]);}
+    const cx=(x0+x1)/2,cz=(z0+z1)/2;gplane(g,40,70,M.park,cx,cz,.025);for(let k=0;k<8;k++)tree(g,cx+(k%2?12:-12),cz-28+Math.floor(k/2)*18,1.1);
+    C(g,3.2,3.4,.8,M.stone,cx,.4,cz,16);C(g,.4,.6,2.4,M.gold,cx,1.4,cz,8);col(cx-3.4,cx+3.4,cz-3.4,cz+3.4,.8);
+    for(let x=x0+6;x<x1;x+=18){lampP(g,x,z0-1);lampP(g,x,z1+1);}});
+  /* ---- north riverside park & promenade ---- */
+  {const g=grp();const river=new THREE.Mesh(new THREE.PlaneGeometry(1200,46),M.water);river.rotation.x=-Math.PI/2;river.position.set(0,.03,300);g.add(river);
+   gplane(g,1200,10,M.pave,0,272,.02);for(let x=-580;x<=580;x+=4)B(g,.25,1,.25,M.stoneD,x,.5,276.6);B(g,1200,.15,.3,M.gold,0,1.05,276.6);col(-600,600,277,330,3);
+   for(let x=-570;x<=570;x+=20){lampP(g,x,268);tree(g,x+10,258,1.1);}
+   for(let x=-240;x<=240;x+=60){B(g,2,.5,.7,M.wood,x,.55,266);}
+   /* a small pier and a boat for looks */B(g,8,.4,22,M.wood,120,.4,288);const boat=B(g,4,1.2,9,M.red,128,.6,300);B(g,3,.8,3,M.wood,128,1.6,300);}
+  /* ---- castle bridge east to the kingdoms ---- */
+  {const g=grp();const Z0=-100,x0=560,x1=760;
+   const river=new THREE.Mesh(new THREE.PlaneGeometry(150,1400),M.water);river.rotation.x=-Math.PI/2;river.position.set(660,.03,-300);g.add(river);
+   col(585,735,-1000,Z0-8,3);col(585,735,Z0+8,400,3);
+   B(g,x1-x0+10,.5,14,M.stone,(x0+x1)/2,.25,Z0);colliders.push({x0:x0-5,x1:x1+5,z0:Z0-7,z1:Z0+7,top:.5});
+   for(const s of [-1,1]){B(g,x1-x0,1.2,.8,M.stone,(x0+x1)/2,1.1,Z0+s*6.6);for(let x=x0;x<=x1;x+=3)B(g,1,.8,.9,M.stone,x,2.1,Z0+s*6.6);col(x0,x1,Z0+s*6.6-.5,Z0+s*6.6+.5,2.5);}
+   for(let x=600;x<=720;x+=40)for(const s of [-1,1])B(g,3,1.6,3,M.stoneD,x,.6,Z0+s*8.6);
+   for(let x=x0+20;x<x1;x+=30)for(const s of [-1,1]){C(g,.12,.12,5,M.pole,x,2.5,Z0+s*6.6,6);mesh(g,new THREE.SphereGeometry(.4,6,4),M.lamp,x,5.2,Z0+s*6.6);const bn=new THREE.Mesh(new THREE.PlaneGeometry(1.2,3),new THREE.MeshBasicMaterial({map:BANNER92,transparent:true,side:THREE.DoubleSide}));bn.position.set(x+.2,3.2,Z0+s*6.6);bn.rotation.y=Math.PI/2;g.add(bn);}
+   /* towers at the city end and the big gatehouse at the far end */
+   const tower=(x,z,r,h)=>{C(g,r,r+.3,h,M.stone,x,h/2,z,14);C(g,r+.5,r+.5,.8,M.stoneD,x,h+.4,z,14);K(g,r+.9,h*.35,M.roofC,x,h+h*.175+.8,z,14);K(g,.2,1.4,M.gold,x,h+h*.35+1.4,z,6);col(x-r,x+r,z-r,z+r,h);};
+   tower(x0-4,Z0-11,3,16);tower(x0-4,Z0+11,3,16);tower(x1+4,Z0-11,4,26);tower(x1+4,Z0+11,4,26);
+   B(g,6,8,6,M.stone,x1+4,17,Z0);B(g,6.4,1,6.4,M.gold,x1+4,21.4,Z0);B(g,2,26,8,M.stone,x1+4,13,Z0-9);B(g,2,26,8,M.stone,x1+4,13,Z0+9);
+   const arch=new THREE.Mesh(new THREE.TorusGeometry(5.2,.7,8,20,Math.PI),M.gold);arch.position.set(x1+4,12,Z0);arch.rotation.y=Math.PI/2;g.add(arch);
+   const pt=new THREE.Mesh(new THREE.PlaneGeometry(10,12),M.portal);pt.position.set(x1+6,6,Z0);pt.rotation.y=Math.PI/2;g.add(pt);CX97.portal=pt;
+   const sign=canvasTex(512,128,(q,w,h)=>{q.fillStyle='#1f2f5a';q.fillRect(0,0,w,h);q.strokeStyle='#d8a648';q.lineWidth=8;q.strokeRect(6,6,w-12,h-12);q.fillStyle='#ffd25f';q.textAlign='center';q.font='bold 46px sans-serif';q.fillText('🏰 GERBANG KERAJAAN',w/2,62);q.fillStyle='#fff';q.font='26px sans-serif';q.fillText('jalan terus menyeberang ke negeri kerajaan',w/2,104);});
+   const sp=new THREE.Mesh(new THREE.PlaneGeometry(14,3.5),new THREE.MeshBasicMaterial({map:sign,side:THREE.DoubleSide}));sp.position.set(x1-1,15.2,Z0);sp.rotation.y=-Math.PI/2;g.add(sp);
+   gplane(g,60,30,M.grass,x1+30,Z0,.004);}
+  groups.forEach(g=>{try{merge90(g);}catch(e){}});try{KCULL.L=null;}catch(e){}}
+/* walking through the city gate or a kingdom bridge gate travels on */
+const BR97={cd:0};
+function gk97Go(kd,side){if(busy||(modal&&modal.busy))return;try{if(!GK.built||GK.kd!==kd){gkDrop();GK.built=gkBuild(kd);GK.kd=kd;}}catch(e){console.error('gk97',e);return;}
+  const K=gpKd(kd);const x=side==='W'?GK.X-GK97.L+10:GK.X+GK97.L-10,yaw=side==='W'?Math.PI/2:-Math.PI/2;
+  travelFxSafe('🌉','Jembatan ke '+K.n,'Menyeberang jembatan kerajaan',()=>{tpTo(x,GK97.Z,yaw);});logLine('sys',null,`🌉 Kamu menyeberang jembatan ke ${K.n}.`);}
+const GK97={L:470,Z:40};
+function kd97(o){const L=KDS.map(k=>k[0]);const i=Math.max(0,L.indexOf(GK.kd));return L[(i+o+L.length)%L.length];}
+setInterval(()=>{try{if(!started||!you||busy||modal||Date.now()<BR97.cd)return;const p=you.pos;
+  if(Math.abs(p.z+100)<6&&p.x>766&&p.x<790&&Math.abs(p.x)<2000){BR97.cd=Date.now()+4000;INT.ret={x:740,z:-100,yaw:-Math.PI/2};let kd='aurelia';try{const k=tkKing();kd=k?k.kd:(GK.kd||'aurelia');}catch(e){}gk97Go(kd,'W');return;}
+  if(GK.built&&Math.abs(p.z-GK.Z-GK97.Z)<6){if(p.x>GK.X+GK97.L+6){BR97.cd=Date.now()+4000;gk97Go(kd97(1),'W');}else if(p.x<GK.X-GK97.L-6){BR97.cd=Date.now()+4000;gk97Go(kd97(-1),'E');}}}catch(e){}},250);
+/* kingdom bridges east and west, to the neighbouring kingdoms */
+gkBuild=(f=>function(kd){const c0=colliders.length;const g=f.apply(this,arguments);try{gk97Bridges(g,kd);}catch(e){console.error('gk97b',e);}try{GK.cols=new Set(colliders.slice(c0));}catch(e){}return g;})(gkBuild);
+function gk97Bridges(g0,kd){const M=cx97Mats();const g=new THREE.Group();g0.add(g);const X=GK.X,Z=GK.Z+GK97.Z,L=GK97.L;
+  const mesh=(geo,m,x,y,z,ry)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;g.add(o);return o;};
+  const B=(w,h,d,m,x,y,z)=>mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);const C=(rt,rb,h,m,x,y,z,s)=>mesh(new THREE.CylinderGeometry(rt,rb,h,s||12),m,x,y,z);
+  /* clear hills and forest standing on the bridge lines */
+  g0.traverse(o=>{if(!o.isInstancedMesh)return;const m4=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3();let ch=0;for(let i=0;i<o.count;i++){o.getMatrixAt(i,m4);m4.decompose(p,q,s);const w=new THREE.Vector3(p.x,p.y,p.z).applyMatrix4(o.matrixWorld);if(Math.abs(w.x-X)>200&&Math.abs(w.z-Z)<(o.geometry.parameters&&o.geometry.parameters.radius>20?70:14)){s.set(0,0,0);m4.compose(p,q,s);o.setMatrixAt(i,m4);ch=1;}}if(ch)o.instanceMatrix.needsUpdate=true;});
+  const KD=KDS.map(k=>k[0]),i=KD.indexOf(kd),nx=KD[(i+1)%KD.length],pv=KD[(i-1+KD.length)%KD.length];
+  for(const s of [-1,1]){const xa=X+s*235,xb=X+s*L,cx=(xa+xb)/2,len=L-235;
+    gplane(g,len+20,30,M.grass,cx,Z,.008);gplane(g,80,90,M.grass,xb+s*30,Z,.009);
+    const w=new THREE.Mesh(new THREE.PlaneGeometry(len-40,300),M.water);w.rotation.x=-Math.PI/2;w.position.set(cx,.02,Z);g.add(w);
+    colliders.push({x0:Math.min(xa,xb)+20,x1:Math.max(xa,xb)-20,z0:Z-150,z1:Z-8,top:3},{x0:Math.min(xa,xb)+20,x1:Math.max(xa,xb)-20,z0:Z+8,z1:Z+150,top:3});
+    B(len,.5,14,M.stone,cx,.25,Z);colliders.push({x0:Math.min(xa,xb),x1:Math.max(xa,xb),z0:Z-7,z1:Z+7,top:.5});
+    for(const t of [-1,1]){B(len,1.2,.8,M.stone,cx,1.1,Z+t*6.6);for(let x=Math.min(xa,xb);x<=Math.max(xa,xb);x+=3)B(1,.8,.9,M.stone,x,2.1,Z+t*6.6);colliders.push({x0:Math.min(xa,xb),x1:Math.max(xa,xb),z0:Z+t*6.6-.5,z1:Z+t*6.6+.5,top:2.5});
+      for(let x=Math.min(xa,xb)+15;x<Math.max(xa,xb);x+=30){C(.12,.12,5,M.pole,x,2.5,Z+t*6.6,6);mesh(new THREE.SphereGeometry(.4,6,4),M.lamp,x,5.2,Z+t*6.6);}}
+    const gx=xb+s*4;for(const t of [-1,1]){C(4,4.3,26,M.stone,gx,13,Z+t*11,14);K97(g,M,gx,Z+t*11);colliders.push({x0:gx-4,x1:gx+4,z0:Z+t*11-4,z1:Z+t*11+4,top:26});B(2,26,8,M.stone,gx,13,Z+t*9);}
+    B(6,8,6,M.stone,gx,17,Z);const ar=new THREE.Mesh(new THREE.TorusGeometry(5.2,.7,8,20,Math.PI),M.gold);ar.position.set(gx,12,Z);ar.rotation.y=Math.PI/2;g.add(ar);
+    const pt=new THREE.Mesh(new THREE.PlaneGeometry(10,12),M.portal);pt.position.set(gx+s*2,6,Z);pt.rotation.y=Math.PI/2;g.add(pt);
+    const dk=gpKd(s>0?nx:pv);const tx=canvasTex(512,128,(q,w,h)=>{q.fillStyle='#1f2f5a';q.fillRect(0,0,w,h);q.strokeStyle='#d8a648';q.lineWidth=8;q.strokeRect(6,6,w-12,h-12);q.fillStyle='#ffd25f';q.textAlign='center';q.font='bold 40px sans-serif';q.fillText('🌉 '+dk.n,w/2,60);q.fillStyle='#fff';q.font='26px sans-serif';q.fillText(s>0?'jembatan ke kerajaan berikutnya →':'← jembatan ke kerajaan sebelumnya',w/2,104);});
+    const sp=new THREE.Mesh(new THREE.PlaneGeometry(14,3.5),new THREE.MeshBasicMaterial({map:tx,side:THREE.DoubleSide}));sp.position.set(gx-s*5,15.2,Z);sp.rotation.y=s>0?-Math.PI/2:Math.PI/2;g.add(sp);}
+  try{merge90(g);}catch(e){}}
+function K97(g,M,x,z){const k=new THREE.Mesh(new THREE.ConeGeometry(4.9,9,14),M.roofC);k.position.set(x,30.5,z);g.add(k);const f=new THREE.Mesh(new THREE.ConeGeometry(.2,1.4,6),M.gold);f.position.set(x,35.7,z);g.add(f);}
+setTimeout(function c97(){if(!started||!cityGrp){setTimeout(c97,1500);return;}setTimeout(()=>{try{cx97();}catch(e){console.error('cx97',e);}},2500);},1500);
+/* the city gate shows up on the travel list as a walkable route */
+try{NEW82.unshift(['🌉','Kota diperluas & jembatan kerajaan','Distrik Timur dan Barat, taman tepi sungai, jembatan kastil di ujung timur kota menuju kerajaan, dan jembatan antar kerajaan.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
