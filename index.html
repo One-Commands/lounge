@@ -1044,6 +1044,10 @@ function makeWheel(d){
 }
 const wheelById=id=>wheels.find(w=>w.id===id);
 const rnd=()=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%37;};
+/* v82.2: duels against NPCs favour the player 70:30 (stev's request). Player-vs-player duels stay 50:50. */
+const DUEL_P=.7;function duelWin(){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296<DUEL_P;}
+function duelPair(){const w=duelWin();for(let k=0;k<400;k++){const y=rnd(),o=rnd();const a=duelVal(y),b=duelVal(o);if(a!==b&&(a>b)===w)return [y,o];}return [rnd(),rnd()];}
+function nd8Fix(id,r,o){const w=duelWin();if(r.v!==o.v&&(r.v>o.v)===w)return r;for(let k=0;k<400;k++){const c=ndRoll(id);if(c.v!==o.v&&(c.v>o.v)===w)return c;}return r;}
 function spinWheel(w,n,dur){
   return new Promise(res=>{
     const i=ORDER.indexOf(n);
@@ -1884,7 +1888,7 @@ async function runDuel(stake){
   S.bal-=stake;duel.stake=stake;duel.stage='roll';duel.y=null;duel.o=null;duel.msg='Memutar...';render();phoneRender();
   const npcE=ents.find(e=>e.name===rv.n);
   let y,o;
-  do{y=rnd();o=rnd();
+  do{[y,o]=duelPair();
     for(let k=0;k<16;k++){const a=$('dY'),b=$('dO');if(a)a.textContent=pick(37);if(b)b.textContent=pick(37);SFX.tick(.5,.4);await wait(70);}
     if(duelVal(y)===duelVal(o)){const m=$('dMsg');if(m)m.textContent=`Seri reme ${reme(y)}! Putar ulang...`;const a=$('dY'),b=$('dO');if(a)a.textContent=y;if(b)b.textContent=o;await wait(900);}
   }while(duelVal(y)===duelVal(o));
@@ -2580,15 +2584,15 @@ async function duelAtTable(){
   pa.position.set(TX-.4,1.15,z+2);pb.position.set(TX-.4,1.15,z-2);scene.add(pa,pb);shotTo(TX-4.5,3.6,z+.01,TX,1.2,z);
   await wait(700);SFX.chip();slideTo(pa,new THREE.Vector3(TX,1.15,z+.25),600);await wait(250);SFX.chip();await slideTo(pb,new THREE.Vector3(TX,1.15,z-.25),600);
   await wait(500);
-  let y,o,round=0;
+  let y,o,round=0;const DP=duelPair();
   do{round++;
     speak(H,round>1?'Seri! Putar ulang, giliran kamu.':'Kamu putar duluan.');await wait(700);
     shotWheel(DUEL.pw);you.arm=1.4;you.yaw=Math.atan2(DUEL.pw.x-you.pos.x,DUEL.pw.z-you.pos.z);SFX.drum(3);
-    y=rnd();await spinWheel(DUEL.pw,y,3000);
+    y=DP[0];await spinWheel(DUEL.pw,y,3000);
     {const L=0;if(L>0&&duelVal(y)<6&&Math.random()<L/100){SFX.stop();showFloat(DUEL.pw,y,1500);await wait(700);luckFx(L);speak(H,'Hoki aktif, putar ulang!');await wait(1000);let best=y;for(let k=0;k<3;k++){const c=rnd();if(duelVal(c)>duelVal(best))best=c;}let g=0;while(duelVal(best)<=duelVal(y)&&g<40){best=rnd();g++;}y=best;you.arm=1.4;shotWheel(DUEL.pw);SFX.drum(2.4);await spinWheel(DUEL.pw,y,2600);}}SFX.stop();flashFx();showFloat(DUEL.pw,y,5000);showResult(`KAMU: ${numSpan(y)} → REME ${reme(y)}`);
     shotTo(TX-6,3.2,z+1.5,TX-1.6,2.6,z+2);await wait(900);
     speak(e,reme(y)===0?'Waduh, reme 0...':`Reme ${reme(y)}? Saya bisa lewati.`,false);await wait(700);
-    shotWheel(DUEL.rw);e.arm=1.4;SFX.drum(3);o=rnd();
+    shotWheel(DUEL.rw);e.arm=1.4;SFX.drum(3);o=DP[1];
     await spinWheel(DUEL.rw,o,3000);SFX.stop();flashFx();showFloat(DUEL.rw,o,5000);showResult(`${esc(rv.n).toUpperCase()}: ${numSpan(o)} → REME ${reme(o)}`);
     await wait(900);
   }while(duelVal(y)===duelVal(o));
@@ -3237,7 +3241,7 @@ async function ndPlay(rv,g,stake,my,op){my=my||{k:'coin',q:stake};op=op||{k:'coi
     <p class="pmsg" id="ndMsg">${g.rule}</p><button class="pbtn" id="ndX" disabled>Tutup</button></div></div>`;
   stage.appendChild(el);modal={el,st:{label:'Duel'},busy:true,refresh(){}};busy=true;myCost=stTake(my);render();
   const roll=async(id,mine)=>{const box=$(id);for(let k=0;k<18;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(65+k*6);}
-    let r=ndRoll(g.id);
+    let r=ndRoll(g.id);if(mine&&ndOpp)r=nd8Fix(g.id,r,ndOpp);
     if(mine){const L=0;const opp=ndOpp;if(L>0&&ndOpp&&r.v<=opp.v&&Math.random()<L/100){box.textContent=r.show;await wait(500);luckFx(L);($('ndMsg')||{}).textContent='🍀 Hoki aktif! Diulang...';await wait(800);
       for(let k=0;k<3;k++){const c=ndRoll(g.id);if(c.v>r.v)r=c;}for(let k=0;k<10;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(70);}}}
     box.textContent=r.show;SFX.chip();return r;};
@@ -3585,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v82.1';
+const GAME_VER='v82.2';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6036,7 +6040,7 @@ function openPakDuel(name){if(modal||busy)return;const R=ranking(),opp=R.find(r=
     const my=val?pakBuild(ms,val,myCash):[],op=val?pakBuild(os,val,opCash):[],mv=pakVal(my),ov=pakVal(op),ok=val>0&&my.length&&op.length;
     const li=L=>L.map(st=>`<div class="pkr"><span>${st.k==='coin'?'🪙 Koin':(assetOf(st.k).t==='saham'?'📈 ':'₿ ')+st.k}</span><span>${st.k==='coin'?fmtBig(st.q):fmtQ(assetOf(st.k),st.q)+(assetOf(st.k).t==='saham'?' lembar':'')}</span><b>${fmtBig(Math.round(stVal(st)))}</b></div>`).join('')||'<p class="muted">Isi nilai taruhan dulu.</p>';
     el.innerHTML=`<div class="panel" role="dialog" aria-label="Duel gabungan"><div class="phead"><h3>⚔️ Duel gabungan vs ${esc(opp.n)}</h3><button class="pclose" aria-label="Tutup">✕</button></div><div class="pbody setb">
-      <section class="setg"><h4>Game</h4><div class="srow">${NDG.filter(x=>x.id!=='reme').map(x=>`<button class="pbtn ${x.id===g.id?'':'ghost'}" data-g="${x.id}">${x.ic} ${x.n}</button>`).join('')}</div><p class="muted">${g.rule} Murni 50:50, tanpa hoki.</p></section>
+      <section class="setg"><h4>Game</h4><div class="srow">${NDG.filter(x=>x.id!=='reme').map(x=>`<button class="pbtn ${x.id===g.id?'':'ghost'}" data-g="${x.id}">${x.ic} ${x.n}</button>`).join('')}</div><p class="muted">${g.rule} Peluang menang 70:30 untukmu, tanpa hoki.</p></section>
       <section class="setg"><h4>Nilai taruhan (masing-masing)</h4><div class="stk"><input id="pkV" class="dotin" inputmode="numeric" placeholder="Contoh 5.000.000.000.000" value="${val?dots(val):''}"></div>
         <div class="pct">${[10,25,50,100].map(p=>`<button data-pv="${p}">${p===100?'Maks':p+'%'}</button>`).join('')}</div><p class="muted">Maks ${fmtBig(cap)} (hartamu yang bisa dipertaruhkan ${fmtBig(Math.round(myMax))}, milik ${esc(opp.n)} ${fmtBig(Math.round(opMax))}).</p></section>
       <section class="setg"><h4>Taruhanmu ≈ ${fmtBig(Math.round(mv))}</h4><div class="srow"><button class="pbtn ${myCash?'':'ghost'}" data-mc="1">Koin dulu</button><button class="pbtn ${myCash?'ghost':''}" data-mc="0">Saham dulu</button></div><div class="pk">${li(my)}</div></section>
@@ -6058,7 +6062,7 @@ async function pakPlay(rv,g,my,op){if(modal)closeGame();closePhone();for(const k
     <div class="ndvs"><div><small>KAMU</small><div class="ndr" id="ndY">?</div></div><div class="ndm">VS<small>${zKC(Math.round(pakVal(my)))}<br>vs ${zKC(Math.round(pakVal(op)))}</small></div><div><small>${esc(rv.n).toUpperCase()}</small><div class="ndr" id="ndO">?</div></div></div>
     <p class="muted" style="text-align:center;margin:2px 0">${pakTxt(my)}<br>vs ${pakTxt(op)}</p><p class="pmsg" id="ndMsg">${g.rule}</p><button class="pbtn" id="ndX" disabled>Tutup</button></div></div>`;
   stage.appendChild(el);modal={el,st:{label:'Duel'},busy:true,refresh(){}};busy=true;const costs=my.map(st=>stTake(st));render();
-  const roll=async id=>{const box=$(id);for(let k=0;k<18;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(65+k*6);}const r=ndRoll(g.id);box.textContent=r.show;SFX.chip();return r;};
+  const roll=async id=>{const box=$(id);for(let k=0;k<18;k++){box.textContent=ndRoll(g.id).show;SFX.tick(.5,.4);await wait(65+k*6);}let r=ndRoll(g.id);if(id==='ndY'&&o)r=nd8Fix(g.id,r,o);box.textContent=r.show;SFX.chip();return r;};
   let o,y,round=0;do{round++;if(round>1){($('ndMsg')||{}).textContent='Seri! Diulang...';await wait(900);}($('ndMsg')||{}).textContent=`${rv.n} giliran duluan...`;o=await roll('ndO');await wait(500);($('ndMsg')||{}).textContent='Giliran kamu...';y=await roll('ndY');await wait(400);}while(y.v===o.v&&round<5);
   const win=y.v>o.v;
   if(win){my.forEach((st,i)=>stGive(st,costs[i]));op.forEach(st=>{stGive(st);npcTake(rv.n,st);});S.wins++;SFX.big();you.cheer=2;$('ndMsg').innerHTML=`<b class="okc">MENANG!</b> +${zKC(Math.round(pakVal(op)))}`;logLine('sys',null,`Duel gabungan ${g.n}: kamu mengalahkan ${rv.n}. +${pakTxt(op)}.`,'win');}
@@ -6528,7 +6532,7 @@ function txApply(){document.body.classList.toggle('txs',SET.tx==='s');document.b
 /* T20: short tutorial for new players */
 setTimeout(function tutBoot(){if(!started||modal||!$('phone').classList.contains('hidden')){setTimeout(tutBoot,3000);return;}if(PF.tut)return;PF.tut=1;savePF();
   xModal('👋 Selamat datang di Lounge Vegas',(body)=>{const card=(ic,t,s)=>`<div class="mocard"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${s}</small></div></div>`;
-    body.innerHTML=`<div class="tutc">${card('🕹️','Jalan dan interaksi','Geser joystick untuk jalan. Dekati meja atau gedung lalu tekan AKSI (atau E).')}${card('📱','HP kamu','Semua app ada di HP: saham, bank, bisnis, ranking, taksi. Pakai kolom cari dan sematkan app favorit.')}${card('🏢','Jadi taipan','Beli properti dan saham, sewa manajer, dan ikuti bab Jalan Taipan di app Profil.')}${card('⚔️','Duel adil','Semua duel murni 50:50. Pertaruhkan koin atau aset gabungan.')}${card('🔋','Hemat baterai','Main lama di HP? Pilih Setting > Grafis > Hemat baterai.')}</div><button class="pbtn" id="tutOk">Ayo mulai</button>`;
+    body.innerHTML=`<div class="tutc">${card('🕹️','Jalan dan interaksi','Geser joystick untuk jalan. Dekati meja atau gedung lalu tekan AKSI (atau E).')}${card('📱','HP kamu','Semua app ada di HP: saham, bank, bisnis, ranking, taksi. Pakai kolom cari dan sematkan app favorit.')}${card('🏢','Jadi taipan','Beli properti dan saham, sewa manajer, dan ikuti bab Jalan Taipan di app Profil.')}${card('⚔️','Duel adil','Duel melawan NPC 70:30 untukmu, antar pemain tetap 50:50. Pertaruhkan koin atau aset gabungan.')}${card('🔋','Hemat baterai','Main lama di HP? Pilih Setting > Grafis > Hemat baterai.')}</div><button class="pbtn" id="tutOk">Ayo mulai</button>`;
     body.querySelector('#tutOk').onclick=()=>closeGame();});},12000);
 
 /* v28 part B: city services (cinema, restaurant, gym, business school, hospital spa) with timed buffs */
@@ -6546,7 +6550,7 @@ XA.xCsv=v=>{const c=CSV.find(x=>x[0]===v);if(!c)return;const cost=csvCost(c);if(
 xView('kota',{t:'Layanan Kota',s:'Kota',ic:'🏙️',bg:'linear-gradient(135deg,#8ef0a8,#2f6fd6)',dot:()=>0,r:()=>{const B=cityB(),now=Date.now();
   return `<div class="wallet"><small>Layanan kota</small><b>Mau ke mana hari ini?</b><div class="row"><span>Buff aktif</span><span>${Object.keys(B).length||'Belum ada'}</span></div></div>`+
   CSV.map(c=>{const on=B[c[0]],left=on?Math.ceil((on-now)/60000):0,cost=csvCost(c);return `<div class="chap ${on?'now':''}"><span style="font-size:26px">${c[1]}</span><div><b>${c[2]}</b><small>${c[3]}${on?` · aktif ${left} menit lagi`:''}</small></div><button class="small p" data-xa="xCsv" data-id="${c[0]}" ${S.bal<cost?'disabled':''}>${on?'Tambah':'Pergi'} · ${zKC(cost)}</button></div>`;}).join('')+
-  '<p class="news">Harga menyesuaikan kekayaanmu. Buff bisa ditumpuk waktunya. Tidak memengaruhi duel, duel tetap 50:50.</p>';}});
+  '<p class="news">Harga menyesuaikan kekayaanmu. Buff bisa ditumpuk waktunya. Tidak memengaruhi duel, duel 70:30 untukmu.</p>';}});
 
 /* ================= v29: bursa pro (order otomatis, pantauan, alarm, analis, deposito) + kasino (turnamen reme, tebak pasar, teka-teki) ================= */
 function mktSell(a,q,why){const have=PF.hold[a.id]||0;q=Math.min(have,q);if(a.t==='saham')q=Math.floor(q);if(q<=0)return 0;
@@ -6771,7 +6775,7 @@ xView('event',{t:'Kalender Event',s:'Event',ic:'📅',bg:'linear-gradient(135deg
   `<div class="thd">Jadwal</div>`+UP.map(e=>`<div class="chap"><span style="font-size:22px">${e[0]}</span><div><b>${e[1]}</b><small>${e[2]}</small></div></div>`).join('');}});
 
 /* ================= v32: pohon keahlian, rekor pribadi, hall of fame, rekap ================= */
-const SKT=[['inv','📈','Investor','Bunga investasi dan dividen +3% per tingkat'],['biz','🏢','Pengusaha','Pemasukan bisnis +3% per tingkat'],['cuan','🎰','Penjudi','Cuan main +3% per tingkat (duel tetap 50:50)'],['job','💼','Pekerja','Gaji kerja +5% per tingkat']];
+const SKT=[['inv','📈','Investor','Bunga investasi dan dividen +3% per tingkat'],['biz','🏢','Pengusaha','Pemasukan bisnis +3% per tingkat'],['cuan','🎰','Penjudi','Cuan main +3% per tingkat (duel 70:30 untukmu)'],['job','💼','Pekerja','Gaji kerja +5% per tingkat']];
 function skS(){PF.sk=PF.sk||{inv:0,biz:0,cuan:0,job:0};return PF.sk;}
 const skPts=()=>{const s=skS();return Math.max(0,(lvS().lv-1)-(s.inv+s.biz+s.cuan+s.job));};
 buffs=(f=>function(){const r=f.apply(this,arguments);try{const s=skS();r.inv=(r.inv||0)+s.inv*3;r.bonus=(r.bonus||0)+s.cuan*3;r.job=(r.job||0)+s.job*5;}catch(e){}return r;})(buffs);
@@ -8177,7 +8181,7 @@ function openSocWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k
   const card=(ic,t,sub,btns)=>`<div class="mocard"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns||''}</div></div>`;
   const B=(xa,v,t,cls,dis)=>`<button class="${cls||'mog'}" data-xa2="${xa}" data-v="${esc(String(v))}" ${dis?'disabled':''}>${t}</button>`;
   const draw=()=>{const s=socS(),sc=el.querySelector('.momain')?el.querySelector('.momain').scrollTop:0;let body='';
-    if(SOCW.tab==='teman'){body=`<p class="muted">Pertemanan naik dengan menyapa, memberi hadiah dan makan malam di rumah. Teman akrab memberi pendapat soal saham, sahabat bisa meminjamkan modal tanpa bunga. Duel tetap 50:50, pertemanan tidak mempengaruhi hasil.</p>`+
+    if(SOCW.tab==='teman'){body=`<p class="muted">Pertemanan naik dengan menyapa, memberi hadiah dan makan malam di rumah. Teman akrab memberi pendapat soal saham, sahabat bisa meminjamkan modal tanpa bunga. Duel 70:30 untukmu, pertemanan tidak mempengaruhi hasil.</p>`+
       frList().map(r=>{const f=frOf(r.n),L=frLv(f.pt),d=s.debt[r.n];return card(L[0],esc(r.n),`${L[1]} · ${Math.round(f.pt)}/100 · ${titleOf(r.w)}${d?` · utang ${zKC(d.a)}`:''}`,
         B('xFrHi',r.n,'👋 Sapa')+B('xFrGift',r.n,'🎁 '+fmtBig(socCost(1)))+B('xFrDine',r.n,'🍽️ Makan malam')+(f.pt>=50?B('xFrTip',r.n,'💡 Tips','mogo'):'')+(f.pt>=80?(d?B('xFrPay',r.n,'✅ Lunasi','mogo'):B('xFrLoan',r.n,'🤝 Pinjam','mogo')):''));}).join('');}
     else if(SOCW.tab==='klub'){const my=s.club&&SCLUBS.find(x=>x[0]===s.club.id);
@@ -8263,7 +8267,7 @@ function openPrWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
         card('🏅','Pencapaian',`${done} dari ${PRM.length} selesai. Tiap pencapaian memberi XP sekali.`,B('xPrTab','ach','Lihat','mogo'))+
         card('✨','Poin perk',`${prPts()} poin belum dipakai. Dapat 1 poin tiap naik level.`,B('xPrTab','perk','Atur','mogo'))+
         card('🎤','Pidato publik harian',p.day===xToday()?'Sudah pidato hari ini. Kembali besok.':`Sekali sehari, +${10+lv} XP.`,B('xPrDaily','','Pidato','mogo',p.day===xToday()))+
-        `<p class="muted">Prestise tidak mengatur ulang hartamu. Perk hanya memengaruhi bisnis, rumah dan pertemanan. Duel tetap murni 50:50.</p>`+
+        `<p class="muted">Prestise tidak mengatur ulang hartamu. Perk hanya memengaruhi bisnis, rumah dan pertemanan. Duel melawan NPC 70:30 untukmu.</p>`+
         `<div class="thd">Gelar prestise</div>`+PR46.T.map((t,i)=>card(i*5+1<=lv?'⭐':'🔒',t,`Prestise ${i*5+1}–${i*5+5}`,'',i===Math.floor((lv-1)/5)?'prme':'')).join('');}
     else if(PRW.tab==='ach'){body=PRM.map(m=>{const g=p.got[m[0]];return card(g?m[1]:'🔒',m[2],g?`Selesai · +${m[3]} XP`:`+${m[3]} XP`,'',g?'prdone':'');}).join('');}
     else if(PRW.tab==='perk'){body=`<p class="muted">Poin tersisa: <b>${prPts()}</b>. Atur ulang kapan saja dengan biaya kecil.</p>`+PR46.PERK.map(P=>{const v=prPk(P[0]);return card(P[1],`${P[2]} · ${v}/${P[4]}`,P[3],B('xPrPerk',P[0],'+1','mogo',prPts()<=0||v>=P[4]));}).join('')+
@@ -8567,7 +8571,7 @@ function openIstana(tab){if(modal)return;closePhone();for(const k in keys)keys[k
     else if(ISW.tab==='gacha'){body=`<div class="prhero"><div class="prlv" style="font-size:22px">🎴</div><div><small>Rekrut pejabat istana</small><b>Gacha Pejabat</b><small>${s.spins} kali spin · jaminan S ke atas dalam ${TK50.PITY-s.pity} spin lagi · SSS dijamin dalam ${TK50.P3-(s.p3||0)} spin</small></div></div>`+
       card('🎴','1 spin',`${zKC(TK50.SPIN)}`,B('xGacha',1,'Spin 1x','mogo',S.bal<TK50.SPIN))+card('🎁','10 spin · diskon 10%',`${zKC(TK50.TEN)} (harga normal ${fmtBig(TK50.SPIN*10)}) · minimal 1 tier A`,B('xGacha',10,'Spin 10x','mogo',S.bal<TK50.TEN))+
       `<div class="thd">Peluang</div><div class="gtier">${TK50.TIERS.map(t=>`<span style="--gc:${t[4]}"><b>${t[0]}</b>${String(t[1]).replace('.',',')}%</span>`).join('')}</div>`+
-      `<p class="muted">Pejabat dengan nama dan tier yang sama naik level (maks Lv 5, +8% stats per level). Pejabat terbaik tiap jabatan otomatis diangkat. Stats tidak memengaruhi duel, duel tetap 50:50.</p>`;}
+      `<p class="muted">Pejabat dengan nama dan tier yang sama naik level (maks Lv 5, +8% stats per level). Pejabat terbaik tiap jabatan otomatis diangkat. Stats tidak memengaruhi duel, duel 70:30 untukmu.</p>`;}
     else if(ISW.tab==='pejabat'){body=TK50.ROLES.map(R=>{const id=s.asg[R[0]],o=s.off.find(x=>x.id===id),L=s.off.filter(x=>x.role===R[0]).sort((a,b)=>offStatOf(b)-offStatOf(a));
       return `<div class="thd">${R[1]} ${R[2]} · ${R[4]}</div>`+(L.length?L.slice(0,6).map(x=>{const t=tierOf(x.tier);return `<div class="mocard ${x.id===id?'prme':''}"><div class="moic"><span class="gbad" style="--gc:${t[4]}">${t[0]}</span></div><div class="mot"><b>${esc(x.n)}</b><small>${R[3]} ${offStatOf(x)}${x.lv>1?` · Lv ${x.lv}`:''}</small></div><div class="mob">${x.id===id?'<b class="up">Menjabat</b>':B('xTkAsg',x.id,'Angkat','mogo')}</div></div>`;}).join('')
         :'<p class="muted">Belum punya. Dapatkan lewat Gacha.</p>');}).join('')+
@@ -8804,7 +8808,7 @@ function openMilWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k
         ML51.ROLES.map(R=>{const L=s.cmd.filter(x=>x.role===R[0]).sort((a,b)=>offStatOf(b)-offStatOf(a));const isSci=R[0]==='sci';
           return `<div class="thd">${R[1]} ${R[2]} · ${R[4]}${R[0]==='tank'&&!s.tech.tank?' (muncul setelah riset Tank)':''}</div>`+(L.length?L.slice(0,isSci?8:5).map(x=>{const t=tierOf(x.tier),on=isSci?s.lab.includes(x.id):s.asg[R[0]]===x.id;
             return `<div class="mocard ${on?'prme':''}"><div class="moic"><span class="gbad" style="--gc:${t[4]}">${t[0]}</span></div><div class="mot"><b>${esc(x.n)}</b><small>${R[3]} ${offStatOf(x)}${x.lv>1?` · Lv ${x.lv}`:''}</small></div><div class="mob">${isSci?B('xMlLab',x.id,on?'Keluarkan dari lab':'Masuk lab',on?'mog':'mogo'):on?'<b class="up">Memimpin</b>':B('xMlAsg',x.id,'Angkat','mogo')}</div></div>`;}).join('')
-            :'<p class="muted">Belum punya. Dapatkan lewat gacha.</p>');}).join('')+`<p class="muted">Komandan dengan nama dan tier sama naik level (maks Lv 5). Komandan terbaik otomatis memimpin. Stats hanya untuk perang kerajaan, duel tetap 50:50.</p>`;}
+            :'<p class="muted">Belum punya. Dapatkan lewat gacha.</p>');}).join('')+`<p class="muted">Komandan dengan nama dan tier sama naik level (maks Lv 5). Komandan terbaik otomatis memimpin. Stats hanya untuk perang kerajaan, duel 70:30 untukmu.</p>`;}
     else if(MLW.tab==='senjata'){const grp=ML51.BR.concat(ML51.EQ);body=`<p class="muted">Harga naik turun tiap 1,5 menit dan lebih mahal saat ada perang. Jual kembali dapat 85% harga pasar. Senjata ditambah ke cabangnya dan ikut dikuatkan komandan cabang itu.</p>`+
       grp.map(g=>{const L=ML51.WP.filter(x=>x[4]===g[0]);if(!L.length)return '';return `<div class="thd">${g[1]} ${g[2]}</div>`+L.map(x=>{const t=tierOf(x[3]),ok=mlHas(x[7]),have=s.wp[x[0]]||0,pr=mlPrice(x[0]),ch=(s.px[x[0]]||1)-1;const rq=ML51.TECH.find(y=>y[0]===x[7]);
         return `<div class="mocard ${have?'prme':''}"><div class="moic"><span class="gbad" style="--gc:${t[4]}">${t[0]}</span></div><div class="mot"><b>${x[1]} ${x[2]}${have?` · punya ${have}`:''}</b><small>⚔️ ${x[5]} · ${zKC(pr)} <span class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'}${Math.abs(pc(ch))}%</span>${ok?'':` · 🔒 riset ${rq?rq[2]:''}`}</small></div><div class="mob">${ok?B('xMlWBuy',x[0]+':1','Beli','mogo',S.bal<pr)+B('xMlWBuy',x[0]+':10','+10','mog',S.bal<pr*10):''}${have?B('xMlWSell',x[0]+':1','Jual','mog'):''}</div></div>`;}).join('');}).join('');}
@@ -9306,7 +9310,7 @@ function openKgWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
     const q=s.q?(()=>{const b=KG55.B.find(x=>x[0]===s.q.id),pc=Math.min(100,(Date.now()-s.q.start)/(s.q.end-s.q.start)*100);return `<div class="mocard prme"><div class="moic">🔨</div><div class="mot"><b>Membangun ${b[2]} → level ${(s.lv[b[0]]||0)+1}</b><div style="height:8px;background:#eadfc4;border-radius:6px;overflow:hidden;margin:4px 0"><i style="display:block;height:100%;width:${pc.toFixed(0)}%;background:linear-gradient(90deg,#f0b43a,#ffd25f)"></i></div><small>Selesai ${Math.max(1,Math.ceil((s.q.end-Date.now())/60000))} menit lagi</small></div><div class="mob">${B('xKgFast','','⚡ Percepat','mogo')}</div></div>`;})():'';
     if(KGW.tab==='ring'){body=`<div class="prhero"><div class="prlv" style="font-size:24px">🏰</div><div><small>${esc(R.name)}${R.kd?'':' · produksi 50% sampai kamu jadi raja'}</small><b>Kastil level ${s.lv.kastil||1}</b><small>Kapasitas gudang ${N(kgCap())} · kekuatan kerajaan +${(s.lv.kastil||1)*3}% · pasukan +${(s.lv.barak||0)*2}%</small></div></div>`+resBar+q+
       `<div class="mocard mocard2 ${s.auto?'prme':''}"><div class="moic">🤖</div><div class="mot"><b>Bangun otomatis ${s.auto?'· aktif':'· mati'}</b><small>Arsitek kerajaan otomatis menaikkan bangunan termurah yang bisa dibayar, kastil diutamakan.</small></div><div class="mob">${B('xKgAuto','',s.auto?'Aktif':'Mati',s.auto?'mogo':'mog')}</div></div>`+
-      `<p class="muted">Terinspirasi game strategi seperti Rise of Kingdoms dan Clash of Kings (level kastil membuka level bangunan lain, tambang menghasilkan sumber daya), Total War (tembok dan pertahanan kota), dan Crusader Kings (kestabilan dan pejabat istana). Perang tetap murni peluang sesuai kekuatan, duel tetap 50:50.</p>`;}
+      `<p class="muted">Terinspirasi game strategi seperti Rise of Kingdoms dan Clash of Kings (level kastil membuka level bangunan lain, tambang menghasilkan sumber daya), Total War (tembok dan pertahanan kota), dan Crusader Kings (kestabilan dan pejabat istana). Perang tetap murni peluang sesuai kekuatan, duel 70:30 untukmu.</p>`;}
     else if(KGW.tab==='bang'){body=resBar+q+KG55.B.map(b=>{const L=s.lv[b[0]]||0,lim=kgLimit(b[0]),c=kgCost(b[0]),can=kgCanPay(c)&&!s.q&&L<lim;
         const cs=KG55.RES.filter(([k])=>c[k]).map(([k,ic])=>`${ic} ${N(c[k])}`).join(' · ');
         return card(b[1],`${b[2]} · Lv ${L}${b[4]?` · +${N(kgProd(b[4]))}/mnt`:''}`,`${b[3]}<br>${L>=lim?(b[0]==='kastil'?'Level maksimal':'Batas: naikkan Kastil dulu'):`Naik ke Lv ${L+1}: ${cs} · ${zKC(c.koin)} · ${Math.ceil(c.ms/60000)} menit`}`,B('xKgUp',b[0],L?'Naikkan':'Bangun','mogo',!can));}).join('');}
@@ -9429,7 +9433,7 @@ function openPlWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
     if(PLW.tab==='kong'){const gs=TYCOONS.filter(plGood),es=TYCOONS.filter(n=>!plGood(n));
       body=`<div class="prhero"><div class="prlv" style="font-size:24px">🎩</div><div><small>Konglomerat ikut bermain politik kerajaan</small><b>${gs.length} baik · ${es.length} jahat</b><small>Perlindungan dari makar ${Math.round(plGuard()*100)}% · ${k?'kamu raja '+esc(kdN(k.kd)):'kamu belum jadi raja'}</small></div></div>`+
         `<div class="thd">😇 Konglomerat baik</div>`+gs.map(row).join('')+`<div class="thd">😈 Konglomerat jahat</div>`+es.map(row).join('')+
-        `<p class="muted">Yang baik mendanai kerajaan, membagi sembako, membongkar skandal, dan membantu kerajaanmu kalau jadi sekutu. Yang jahat menyuap kerajaan supaya perang, menyabotase, menyuap pejabat, dan menghasut rakyatmu. Semua ini hanya mengubah kekuatan dan kestabilan. Perang tetap murni peluang, duel tetap 50:50.</p>`;}
+        `<p class="muted">Yang baik mendanai kerajaan, membagi sembako, membongkar skandal, dan membantu kerajaanmu kalau jadi sekutu. Yang jahat menyuap kerajaan supaya perang, menyabotase, menyuap pejabat, dan menghasut rakyatmu. Semua ini hanya mengubah kekuatan dan kestabilan. Perang tetap murni peluang, duel 70:30 untukmu.</p>`;}
     else if(PLW.tab==='peta'){const w=WS();body=KDS.map(([id,ic,nm])=>{const ps=TYCOONS.filter(n=>s.t[n].kd===id),K=w.k[id]||{pow:0,wil:0};
         return card(ic,`${esc(nm)} · ⚔️ ${Math.round(K.pow)}`,`Wilayah ${K.wil}${atWar(id)?' · <span class="dn">sedang perang</span>':''}<br>${ps.length?ps.map(n=>`${plGood(n)?'😇':'😈'} ${esc(n)}`).join(' · '):'Tidak ada konglomerat di belakangnya'}`,'',k&&k.kd===id?'prme':'');}).join('');}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada kabar politik. Konglomerat bergerak kira-kira tiap 45 detik.</p>';
@@ -9639,7 +9643,7 @@ function openDpWin(tab){if(modal)return;closePhone();for(const k in keys)keys[k]
         const chips=[wed?'💍 ikatan pernikahan':'',al&&!wed?`🤝 sekutu ${Math.ceil((s.ally[id]-Date.now())/60000)} mnt`:'',pa&&!al?`🕊️ pakta ${Math.ceil((s.pact[id]-Date.now())/60000)} mnt`:'',trd?'🐫 jalur dagang':'',war?'<span class="dn">⚔️ perang denganmu</span>':'',s.npc.filter(p=>p[0]===id||p[1]===id).map(p=>'📯 bersekutu dengan '+esc(kdN(p[0]===id?p[1]:p[0]))).join(' ')].filter(Boolean).join(' · ');
         const btn=B('xDpEnvoy',id,'📜 Utusan','mogo')+(my?B('xDpPact',id,'🕊️ Pakta','mog',pa||r<10)+B('xDpAlly',id,'🤝 Aliansi','mog',al||r<40)+B('xDpTrade',id,trd?'🛑 Tutup dagang':'🐫 Dagang','mog',!trd&&r<20)+(s.wed?'':B('xDpWed',id,'💍 Lamar','mog',r<60)):'');
         return card(ic,`${esc(nm)} · hubungan ${r>0?'+':''}${r}`,`${bar}${chips||'Netral'}<br><span class="muted">Pakta ≥10 · dagang ≥20 · aliansi ≥40 · pernikahan ≥60</span>`,btn,al?'prme':'');}).join('')+
-      `<p class="muted">Terinspirasi diplomasi di game strategi seperti Crusader Kings dan Civilization: pakta damai, aliansi, pernikahan kerajaan, dan jalur dagang. Sekutu menambah kekuatanmu saat perang, tapi perang tetap murni peluang sesuai kekuatan dan duel tetap 50:50.</p>`;}
+      `<p class="muted">Terinspirasi diplomasi di game strategi seperti Crusader Kings dan Civilization: pakta damai, aliansi, pernikahan kerajaan, dan jalur dagang. Sekutu menambah kekuatanmu saat perang, tapi perang tetap murni peluang sesuai kekuatan dan duel 70:30 untukmu.</p>`;}
     else if(DPW.tab==='dewan'){body=my?(s.dec.length?s.dec.map(d=>{const C=DP_COUNCIL[d.i];return card(C[0],C[1].replace('{kd}',esc(kdN(d.kd))),`Usulan masuk ${Math.max(1,Math.round((Date.now()-d.at)/60000))} menit lalu${tkAuto().on?' · kalau tidak dipilih, menteri memutuskan otomatis setelah 1,5 menit':''}`,C[2].map((o,i)=>B('xDpDec',d.at+':'+i,o[0],i?'mog':'mogo')).join(''));}).join(''):'<p class="muted">Belum ada usulan. Dewan kerajaan bersidang kira-kira tiap 2,5 menit.</p>'):'<p class="muted">Dewan kerajaan hanya bersidang kalau kamu jadi raja.</p>';
       body+=s.h.filter(x=>x.ic==='🤖'||x.c==='up').slice(0,6).map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join('');}
     else body=s.h.length?s.h.map(x=>card(x.ic,'',`<span class="${x.c}">${x.t}</span>`)).join(''):'<p class="muted">Belum ada catatan diplomasi.</p>';
