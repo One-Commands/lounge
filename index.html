@@ -3604,7 +3604,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v97.1';
+const GAME_VER='v98';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -12009,6 +12009,72 @@ setInterval(()=>{try{ma97Tick();}catch(e){console.error('ma97',e);}},15000);
 /* car buttons hide while a window or the phone is open */
 setInterval(()=>{try{const el=document.getElementById('drv66');if(!el)return;const ph=document.getElementById('phone');const hide=!!modal||!!(ph&&!ph.classList.contains('hidden'));el.style.display=hide?'none':'';}catch(e){}},200);
 try{NEW82.unshift(['🤖','Manajer langsung eksekusi','Manajer langsung beli properti dan saham yang layak, crypto dan jual otomatis ikut skala kekayaanmu.','baru82']);}catch(e){}
+
+/* ================= v98: Meja Depan & Sky Suites — beli per lantai atau semua lantai di apartemen/hotel lewat meja depan, meja depan mall untuk borong unit; detail apartemen mewah (lobi kaca, balkon, infinity pool atap, mahkota LED, sky bridge) ================= */
+const FL98={T:null};
+function isRes98(M){return M&&M.k==='bld'&&/penghuni|tamu/.test(M.u||'')&&M.b&&M.b[1]>=10;}
+function fl98F(M){return Math.max(4,Math.min(60,Math.round(M.b[1]/3.5)));}
+function fl98S(){return PF.fl98=PF.fl98||{};}
+function fl98N(M){const s=megaS(M);if(s.me)return fl98F(M);const n=fl98S()[M.id]||0;return Math.min(n,fl98F(M));}
+function fl98Px(M){return Math.round(megaAsk(M)/fl98F(M));}
+function fl98Fac(M){const h=M.b[1],F=fl98F(M);const L=['🛎️ Lobi hotel dengan concierge 24 jam','🏊 Infinity pool di atap lantai '+F,'🌇 Sky deck & sky lounge','🏋️ Gym dan spa','🚗 Parkir valet basement'];if(h>=55)L.push('🌉 Sky bridge ke menara sebelah');if(M.u==='tamu')L.push('🍽️ Restoran rooftop');return L;}
+function fl98Ctx(st){const M=MEGA.find(m=>m.id===st.mg);if(!M)return '';const s=megaS(M),F=fl98F(M),n=fl98N(M),px=fl98Px(M),left=F-n;
+  const bar=`<div style="height:10px;border-radius:6px;background:#e4dccb;overflow:hidden;margin:6px 0"><div style="height:100%;width:${Math.round(n/F*100)}%;background:linear-gradient(90deg,#d8a648,#ffd25f)"></div></div>`;
+  const head=`<div class="ctx-head"><h3>🛎️ Meja Depan · ${esc(M.n)}</h3><small>${F} lantai · kamu punya ${n} lantai${s.me?' (seluruh gedung)':''} · pemilik utama ${esc(s.o)}</small></div>${bar}<small style="display:block;line-height:1.5">${fl98Fac(M).join(' · ')}</small>`;
+  if(left<=0)return head+`<div class="ctx-row"><small>Semua lantai milikmu. Pemasukan ${M.lab||'sewa'} ±${zKC(Math.round(megaInc(M)*bizInv()*rankMult()))}/hari.</small></div>`;
+  const all=Math.round(left*px*.92),b5=Math.min(5,left);
+  return head+`<div class="ctx-row">${bzB('xFl98',M.id+':1',`Beli 1 lantai · ${zKC(px)}`)}${left>1?bzB('xFl98',M.id+':'+b5,`Beli ${b5} lantai · ${zKC(px*b5)}`):''}${bzB('xFl98',M.id+':all',`Beli semua ${left} lantai (−8%) · ${zKC(all)}`)}</div>`;}
+XA.xFl98=v=>{const [id,q]=String(v).split(':'),M=MEGA.find(m=>m.id===id);if(!M)return;const s=megaS(M),F=fl98F(M),n=fl98N(M),left=F-n;if(left<=0)return;
+  const k=q==='all'?left:Math.min(left,Math.max(1,+q||1)),cost=q==='all'?Math.round(left*fl98Px(M)*.92):fl98Px(M)*k;if(!bizPay(cost))return;
+  const S2=fl98S();S2[M.id]=n+k;SFX.coin();
+  if(S2[M.id]>=F){const prev=s.o;try{oppW({n:prev},cost);}catch(e){}s.o='Kamu';s.me=1;s.off=null;S2[M.id]=0;SFX.big();banner(`🏙️ ${M.n.toUpperCase()}<small>semua ${F} lantai milikmu</small>`,'',2400);bizDone(`🛎️ Kamu memborong semua lantai ${M.n} (${fmK(cost)}). Sekarang seluruh gedung milikmu.`,'win');}
+  else{showResult(`🛎️ Kamu beli ${k} lantai ${esc(M.n)} · sekarang ${S2[M.id]}/${F} lantai`);logLine('sys',null,`🛎️ Beli ${k} lantai ${M.n} seharga ${fmK(cost)} (${S2[M.id]}/${F} lantai).`,'win');}
+  savePF();render();try{ctxKey=null;}catch(e){}};
+/* income and net worth from the floors you own in buildings you don't fully own */
+setInterval(()=>{try{if(!started)return;const S2=fl98S();let tot=0;for(const id in S2){const M=MEGA.find(m=>m.id===id);if(!M)continue;const s=megaS(M),n=S2[id];if(s.me||!n){if(!s.me&&!n)delete S2[id];continue;}tot+=megaInc(M)*n/fl98F(M)*bizInv()*rankMult()/5;}
+  if(tot>0){S.bal+=Math.round(tot);try{const c=CF();if(c.rep.day!==mDay)c.rep={inc:0,sold:0,tax:0,day:mDay};c.rep.inc=(c.rep.inc||0)+tot;}catch(e){}}}catch(e){}},60000);
+netWorth=(f=>function(){let v=f.apply(this,arguments);try{const S2=PF.fl98||{};for(const id in S2){const M=MEGA.find(m=>m.id===id);if(M&&!megaS(M).me)v+=megaS(M).v*S2[id]/fl98F(M)*.9;}}catch(e){}return v;})(netWorth);
+function fl98Tex(){if(FL98.T)return FL98.T;FL98.T=canvasTex(256,64,(q,w,h)=>{q.fillStyle='#1f2f5a';q.fillRect(0,0,w,h);q.strokeStyle='#d8a648';q.lineWidth=5;q.strokeRect(3,3,w-6,h-6);q.fillStyle='#ffd25f';q.textAlign='center';q.font='bold 30px sans-serif';q.fillText('🛎️ MEJA DEPAN',w/2,42);});return FL98.T;}
+/* Sky Suites style details on every apartment and hotel tower + a front desk by the entrance */
+propBld=(f=>function(G,M){const r=f.apply(this,arguments);try{if(isRes98(M)&&MEGA.includes(M))sky98(G,M);}catch(e){console.error('sky98',e);}return r;})(propBld);
+function sky98(G,M){const [w,h,d]=M.b,x=M.x,z=M.z,[fx,fz,ry]=fDir(M.f);const g=new THREE.Group();G.add(g);const MC=sky98.MC||(sky98.MC={});const L=c=>MC[c]||(MC[c]=mat(c)),BB=c=>MC['b'+c]||(MC['b'+c]=new THREE.MeshBasicMaterial({color:c}));
+  const B=(bw,bh,bd,m,bx,by,bz)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(bw,bh,bd),typeof m==='number'?L(m):m);o.position.set(bx,by,bz);g.add(o);return o;};
+  const fw=Math.abs(fx)?d:w,lx=fz?1:0,lz=fx?1:0;/* lateral axis */
+  const fr=(off,lat,y)=>[x+fx*off+lx*lat,y,z+fz*off+lz*lat];
+  /* glass lobby, canopy with gold trim and columns */
+  {const p=fr((Math.abs(fx)?w:d)/2+1.2,0,2.6);B(lz?2.2:fw*.6,5.2,lz?fw*.6:2.2,BB(0x9fd8ff),...p);const c=fr((Math.abs(fx)?w:d)/2+3.4,0,5.6);B(lz?5.4:fw*.7,.4,lz?fw*.7:5.4,0xf2f0ea,...c);const c2=fr((Math.abs(fx)?w:d)/2+3.4,0,5.85);B(lz?5.6:fw*.72,.12,lz?fw*.72:5.6,0xd8a648,...c2);
+   for(const s of [-1,1]){const q=fr((Math.abs(fx)?w:d)/2+5.8,s*fw*.3,2.8);B(.35,5.6,.35,0xf2f0ea,...q);}}
+  /* balconies on every floor band */
+  const step=Math.max(3.5,h/Math.min(14,Math.round(h/3.5)));for(let y=6;y<h-2;y+=step){B(w+1.2,.22,d+1.2,0xeeeae0,x,y,z);B(w+1.25,.6,d+1.25,BB(0xcfe6f6),x,y+.42,z);}
+  /* rooftop: infinity pool, sun deck, cabanas, glass rail, LED crown */
+  B(w-1,.3,d-1,0xd8d0c0,x,h+.75,z);const pool=B(w-4,.25,(d-4)*.55,BB(0x3fc8e8),x,h+1,z-(d-4)*.18);B(w+.4,.9,d+.4,BB(0xcfe6f6),x,h+1.4,z);
+  for(let i=0;i<3;i++)B(1,.3,2,0xffffff,x-w/2+3+i*2.4,h+1.05,z+(d-4)*.3);
+  B(w+1.5,.7,d+1.5,BB([0x7fd4ff,0xff5fa2,0xffd25f,0xb08aff][Math.abs(Math.round(x+z))%4]),x,h-1.4,z);
+  if(h>=55){B(w*.5,4,d*.5,0x3a4252,x,h+3,z+d*.15);B(w*.52,.5,d*.52,BB(0xffd25f),x,h+5.2,z+d*.15);}
+  try{merge90(g);}catch(e){}
+  /* front desk: counter, marble top, bell and sign, beside the entrance */
+  const dk=new THREE.Group();G.add(dk);const dp=fr((Math.abs(fx)?w:d)/2+4.5,fw*.5-2.5,0);dk.position.set(dp[0],0,dp[2]);dk.rotation.y=ry;
+  {const c=new THREE.Mesh(new THREE.BoxGeometry(3.2,1.1,1),L(0x6a4426));c.position.y=.55;dk.add(c);const t=new THREE.Mesh(new THREE.BoxGeometry(3.4,.12,1.2),L(0xf2f0ea));t.position.y=1.16;dk.add(t);
+   const bell=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6,0,Math.PI*2,0,Math.PI/2),L(0xd8a648));bell.position.set(.8,1.22,.1);dk.add(bell);
+   const sg=new THREE.Mesh(new THREE.PlaneGeometry(3,.75),new THREE.MeshBasicMaterial({map:fl98Tex(),side:THREE.DoubleSide}));sg.position.set(0,2.6,0);dk.add(sg);const pl=new THREE.Mesh(new THREE.BoxGeometry(.1,2.2,.1),L(0x30343c));pl.position.set(-1.4,1.6,0);dk.add(pl);const pr=pl.clone();pr.position.x=1.4;dk.add(pr);}
+  colliders.push({x0:dp[0]-1.7,x1:dp[0]+1.7,z0:dp[2]-1.7,z1:dp[2]+1.7,top:1.2});
+  stationAdd('desk98',dp[0]+fx*1.8,dp[2]+fz*1.8,ry,'Meja Depan '+M.n,{useDist:2.8,verb:'Buka',mg:M.id,act:()=>showResult('🛎️ Pilih beli lantai di panel meja depan'),ctx:fl98Ctx,btn:'MEJA'});}
+/* Sky bridges between neighbouring towers in the Apartment District */
+{const _zb=ZB.aptd;if(_zb)ZB.aptd=(G,zc,kk)=>{_zb(G,zc,kk);try{const T=MEGA.filter(M=>/^ap\d$/.test(M.id));const g=new THREE.Group();G.add(g);const gl=new THREE.MeshBasicMaterial({color:0x9fd8ff}),fr=mat(0xd8dce4);
+  for(let i=0;i<T.length;i++)for(let j=i+1;j<T.length;j++){const a=T[i],b=T[j];if(Math.abs(a.z-b.z)>1||Math.abs(a.x-b.x)>34)continue;const y=Math.min(a.b[1],b.b[1])*.72,L=Math.abs(a.x-b.x)-a.b[0]/2-b.b[0]/2;if(L<4)continue;const cx=(a.x+b.x)/2;
+    const br=new THREE.Mesh(new THREE.BoxGeometry(L,3,4),gl);br.position.set(cx,y,a.z);g.add(br);const f1=new THREE.Mesh(new THREE.BoxGeometry(L+.4,.4,4.6),fr);f1.position.set(cx,y-1.7,a.z);g.add(f1);const f2=f1.clone();f2.position.y=y+1.7;g.add(f2);}
+  try{G.add(neon('SKY SUITES',0,30,zc+25,Math.PI,'#ffffff','#7df3ff',18,3));}catch(e){}merge90(g);}catch(e){console.error('sky98 bridge',e);}};}
+/* Mall front desk: buy a whole floor or every unit at once */
+function mall98Ctx(){const b=bizS();const fl=[0,1,2,3].map(k=>{const L=MUNITS.filter(u=>u.k===k&&!b.m[u.id]);return {k,L,c:Math.round(L.reduce((s,u)=>s+u.p,0)*.95)};});const all=MUNITS.filter(u=>!b.m[u.id]),ca=Math.round(all.reduce((s,u)=>s+u.p,0)*.9);
+  const nm=['Fashion','Elektronik','Kuliner','Hiburan'];
+  return `<div class="ctx-head"><h3>🛎️ Meja Depan Grand Plaza Mall</h3><small>Kamu punya ${MUNITS.length-all.length}/${MUNITS.length} unit · borong per lantai −5%, semua unit −10%</small></div><div class="ctx-row">${fl.map(f=>f.L.length?bzB('xMall98',''+f.k,`Lantai ${f.k+1} ${nm[f.k]||''} · ${f.L.length} unit · ${zKC(f.c)}`):'').join('')}${all.length?bzB('xMall98','all',`Borong semua ${all.length} unit · ${zKC(ca)}`):'<small>Semua unit mall milikmu.</small>'}</div>`;}
+XA.xMall98=v=>{const b=bizS();const L=MUNITS.filter(u=>!b.m[u.id]&&(v==='all'||u.k===+v));if(!L.length)return;const c=Math.round(L.reduce((s,u)=>s+u.p,0)*(v==='all'?.9:.95));if(!bizPay(c))return;L.forEach(u=>b.m[u.id]=1);SFX.big();
+  bizDone(`🛎️ Kamu memborong ${L.length} unit mall ${v==='all'?'(semua lantai)':'di lantai '+(+v+1)} seharga ${fmK(c)}.`,'win');savePF();render();try{ctxKey=null;}catch(e){}};
+setTimeout(function m98(){if(!started){setTimeout(m98,1500);return;}try{const g=new THREE.Group();cityGrp.add(g);const x=157,z=60;g.position.set(x,0,z);g.rotation.y=-Math.PI/2;
+  const L=c=>mat(c);const c=new THREE.Mesh(new THREE.BoxGeometry(3.2,1.1,1),L(0x6a4426));c.position.y=.55;g.add(c);const t=new THREE.Mesh(new THREE.BoxGeometry(3.4,.12,1.2),L(0xf2f0ea));t.position.y=1.16;g.add(t);
+  const sg=new THREE.Mesh(new THREE.PlaneGeometry(3,.75),new THREE.MeshBasicMaterial({map:fl98Tex(),side:THREE.DoubleSide}));sg.position.set(0,2.6,0);g.add(sg);
+  colliders.push({x0:x-.7,x1:x+.7,z0:z-1.8,z1:z+1.8,top:1.2});stationAdd('desk98m',x-2,z,-Math.PI/2,'Meja Depan Mall',{useDist:2.8,verb:'Buka',act:()=>showResult('🛎️ Pilih lantai mall di panel meja depan'),ctx:mall98Ctx,btn:'MEJA'});}catch(e){console.error('mall98',e);}},1800);
+try{NEW82.unshift(['🛎️','Meja Depan & Sky Suites','Beli per lantai atau semua lantai apartemen/hotel lewat meja depan, borong unit mall per lantai; apartemen dapat lobi kaca, balkon, infinity pool atap dan sky bridge.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
