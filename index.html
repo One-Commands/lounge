@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v91.1';
+const GAME_VER='v92';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11647,6 +11647,79 @@ XA.xPh91=()=>{const s=ph91();s.show=s.show?0:1;ph91Apply();savePF();try{const ap
 setTimeout(function a91(){if(!started){setTimeout(a91,1500);return;}try{ph91Apply();}catch(e){}},500);
 try{ph91Apply();}catch(e){}
 try{NEW82.unshift(['📁','HP lebih rapi','15 app yang jarang dipakai atau dobel dipindah ke folder Lainnya.','lainnya91']);}catch(e){}
+
+/* ================= v92: Kasino jadi Kastil Megah (luar: menara, benteng, gerbang, keep; dalam: arkade batu, kaca patri, kolom batu, rusuk kubah, panji) ================= */
+const STONE92=canvasTex(256,256,(q,w,h)=>{q.fillStyle='#8f8676';q.fillRect(0,0,w,h);for(let y=0;y<8;y++)for(let x=0;x<4;x++){const l=48+Math.random()*14;q.fillStyle=`hsl(34,10%,${l}%)`;q.fillRect(x*64+(y%2)*32+2,y*32+2,60,28);}
+  q.fillStyle='rgba(0,0,0,.08)';for(let i=0;i<300;i++)q.fillRect(Math.random()*w,Math.random()*h,2,2);});
+STONE92.wrapS=STONE92.wrapT=THREE.RepeatWrapping;
+function stoneM92(rx,ry,tint){const t=STONE92.clone();t.needsUpdate=true;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);return new THREE.MeshLambertMaterial({map:t,color:tint||0xffffff});}
+const GLASS92=canvasTex(128,256,(q,w,h)=>{q.fillStyle='#1a1430';q.fillRect(0,0,w,h);const C=['#d8435b','#2f6fe0','#ffd25f','#3ddc84','#9a5aff','#ff8a3a'];
+  for(let y=0;y<16;y++)for(let x=0;x<8;x++){q.fillStyle=C[(x*3+y*5)%C.length];q.globalAlpha=.75+.25*Math.random();q.fillRect(x*16+1,y*16+1,14,14);}q.globalAlpha=1;
+  q.fillStyle='#ffe6a0';q.beginPath();q.arc(64,96,30,0,Math.PI*2);q.fill();q.fillStyle='#d8435b';q.beginPath();q.arc(64,96,20,0,Math.PI*2);q.fill();q.fillStyle='#ffd25f';q.font='bold 26px serif';q.textAlign='center';q.fillText('♛',64,106);
+  q.strokeStyle='#2a1a10';q.lineWidth=4;q.strokeRect(2,2,w-4,h-4);for(let y=0;y<h;y+=32){q.beginPath();q.moveTo(0,y);q.lineTo(w,y);q.stroke();}q.beginPath();q.moveTo(w/2,0);q.lineTo(w/2,h);q.stroke();});
+const BANNER92=canvasTex(64,192,(q,w,h)=>{q.fillStyle='#8a1424';q.fillRect(0,0,w,h-24);q.beginPath();q.moveTo(0,h-24);q.lineTo(w/2,h);q.lineTo(w,h-24);q.fill();q.fillStyle='#d8a648';q.fillRect(0,0,w,8);q.fillRect(4,8,4,h-32);q.fillRect(w-8,8,4,h-32);
+  q.fillStyle='#ffd25f';q.font='bold 40px serif';q.textAlign='center';q.fillText('♛',w/2,80);q.font='bold 14px serif';q.fillText('LV',w/2,112);});
+function castle92(){const G=new THREE.Group();scene.add(G);const MC={};const M=c=>MC[c]||(MC[c]=mat(c)),MB=c=>MC['b'+c]||(MC['b'+c]=new THREE.MeshBasicMaterial({color:c}));
+  const B=(w,h,d,m,x,y,z,ry)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='number'?M(m):m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;G.add(o);return o;};
+  const C=(rt,rb,h,m,x,y,z,seg)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||16),typeof m==='number'?M(m):m);o.position.set(x,y,z);G.add(o);return o;};
+  const K=(r,h,m,x,y,z,seg)=>{const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg||16),typeof m==='number'?M(m):m);o.position.set(x,y,z);G.add(o);return o;};
+  const R=ROOM+.35,H=13,sw=stoneM92(1,1),gold=0xd8a648,roofC=0x1f2f5a;
+  /* ---- exterior: stone cladding over the dark shell ---- */
+  const clad=(w,h,x,y,z,ry)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),stoneM92(w/8,h/4));p.position.set(x,y,z);p.rotation.y=ry;G.add(p);};
+  clad(ROOM*2+1,H,0,H/2,-(R+.29),Math.PI);clad(ROOM*2+1,H,-(R+.29),H/2,0,-Math.PI/2);clad(ROOM*2+1,H,R+.29,H/2,0,Math.PI/2);
+  clad(ROOM-3,H,-(ROOM+3)/2,H/2,R+.3,0);clad(ROOM-3,H,(ROOM+3)/2,H/2,R+.3,0);clad(6,H-5.6,0,5.6+(H-5.6)/2,R+.3,0);
+  /* crenellations along the roof edge */
+  const cr=[];for(let x=-ROOM;x<=ROOM;x+=2.4){cr.push([x,R]);cr.push([x,-R]);}for(let z=-ROOM;z<=ROOM;z+=2.4){cr.push([R,z]);cr.push([-R,z]);}
+  {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,1.4,1.3),sw,cr.length),o=new THREE.Object3D();cr.forEach((p,i)=>{o.position.set(p[0],H+1.3,p[1]);o.updateMatrix();im.setMatrixAt(i,o.matrix);});G.add(im);}
+  B(ROOM*2+2,.6,1.6,sw,0,H+.3,R);B(ROOM*2+2,.6,1.6,sw,0,H+.3,-R);B(1.6,.6,ROOM*2+2,sw,R,H+.3,0);B(1.6,.6,ROOM*2+2,sw,-R,H+.3,0);
+  /* corner towers with conical roofs and pennants */
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const x=a*44.6,z=b*44.6,r=3.6,h=24;C(r,r+.3,h,stoneM92(3,6),x,h/2,z,20);C(r+.6,r+.6,1,sw,x,h+.5,z,20);
+    for(let k=0;k<10;k++){const t=k/10*Math.PI*2;B(.8,1.1,.8,sw,x+Math.cos(t)*(r+.3),h+1.5,z+Math.sin(t)*(r+.3));}K(r+.9,9,roofC,x,h+5.6,z,20);K(.25,1.6,gold,x,h+10.9,z,6);
+    const fl=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.3),new THREE.MeshBasicMaterial({color:0xd8435b,side:THREE.DoubleSide}));fl.position.set(x+1.2,h+11.4,z);G.add(fl);
+    for(let k=0;k<3;k++){const wnd=new THREE.Mesh(new THREE.PlaneGeometry(.9,1.8),MB(0xffd58a));const t=Math.atan2(-z,-x);wnd.position.set(x+Math.cos(t)*(r+.32),8+k*5,z+Math.sin(t)*(r+.32));wnd.rotation.y=-t+Math.PI/2;G.add(wnd);}
+    colliders.push({x0:x-r,x1:x+r,z0:z-r,z1:z+r,top:h});});
+  /* gatehouse: twin towers, pointed arch, portcullis frame, drawbridge planks */
+  for(const s of [-1,1]){const x=s*12.2,z=R+2.4,r=2.8,h=20;C(r,r+.2,h,stoneM92(2,5),x,h/2,z,18);C(r+.5,r+.5,.8,sw,x,h+.4,z,18);for(let k=0;k<8;k++){const t=k/8*Math.PI*2;B(.7,1,.7,sw,x+Math.cos(t)*(r+.2),h+1.3,z+Math.sin(t)*(r+.2));}
+    K(r+.7,7,roofC,x,h+4.3,z,18);K(.2,1.4,gold,x,h+8.5,z,6);const bn=new THREE.Mesh(new THREE.PlaneGeometry(1.8,5.4),new THREE.MeshBasicMaterial({map:BANNER92,transparent:true,side:THREE.DoubleSide}));bn.position.set(x,9,z+r+.05);G.add(bn);
+    colliders.push({x0:x-r,x1:x+r,z0:z-r,z1:z+r,top:h});}
+  {const a=new THREE.Mesh(new THREE.TorusGeometry(3.6,.35,8,24,Math.PI),M(gold));a.position.set(0,5.6,R+.75);G.add(a);const a2=new THREE.Mesh(new THREE.TorusGeometry(4.3,.5,8,24,Math.PI),sw);a2.position.set(0,5.4,R+.7);G.add(a2);
+   B(18,2.2,1.2,sw,0,H-1,R+.8);const cm=[];for(let x=-8.5;x<=8.5;x+=1.7)B(.9,1,1.2,sw,x,H+.6,R+.8);
+   for(let k=-2;k<=2;k++)B(.12,1.6,.12,gold,k*1.3,8.2,R+.9);B(6.4,.12,.12,gold,0,8.9,R+.9);B(6.4,.12,.12,gold,0,7.5,R+.9);
+   const pl=new THREE.Mesh(new THREE.PlaneGeometry(6,4),new THREE.MeshLambertMaterial({color:0x6a4a2a}));pl.rotation.x=-Math.PI/2;pl.position.set(0,.025,R+2.6);G.add(pl);for(let k=0;k<6;k++)B(6,.04,.08,0x3a2a1a,0,.04,R+1+k*.7);}
+  /* arched tops and banners on the facade windows */
+  for(let x=-40;x<=40;x+=8){if(Math.abs(x)<16)continue;const ar=new THREE.Mesh(new THREE.CircleGeometry(1.5,16,0,Math.PI),MB(0xffd58a));ar.position.set(x,6.5,R+.33);G.add(ar);B(3.6,.3,.3,sw,x,2.35,R+.45);
+    if(Math.abs(x)===24||Math.abs(x)===40){const bn=new THREE.Mesh(new THREE.PlaneGeometry(1.6,4.6),new THREE.MeshBasicMaterial({map:BANNER92,transparent:true,side:THREE.DoubleSide}));bn.position.set(x+(x>0?4:-4),8,R+.4);G.add(bn);}}
+  /* central keep on the roof with turrets and the royal flag */
+  {const kx=0,kz=-6,w=18,h=14,y0=H+.6;B(w,h,w,stoneM92(3,3),kx,y0+h/2,kz);const kc=[];for(let i=-w/2;i<=w/2;i+=2){kc.push([i,w/2]);kc.push([i,-w/2]);kc.push([w/2,i]);kc.push([-w/2,i]);}
+   kc.forEach(([a,b])=>B(1,1.1,1,sw,kx+a,y0+h+.55,kz+b));[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const x=kx+a*w/2,z=kz+b*w/2;C(2,2,h+6,stoneM92(2,4),x,y0+(h+6)/2,z,14);K(2.6,6,roofC,x,y0+h+9,z,14);});
+   for(const [nx,nz,ry] of [[0,w/2+.02,0],[0,-w/2-.02,Math.PI],[w/2+.02,0,Math.PI/2],[-w/2-.02,0,-Math.PI/2]]){for(let k=-1;k<=1;k++){const wd=new THREE.Mesh(new THREE.PlaneGeometry(1.4,3),new THREE.MeshBasicMaterial({map:GLASS92}));const lx=ry===0||ry===Math.PI?k*5:0,lz=ry===0||ry===Math.PI?0:k*5;wd.position.set(kx+nx+lx,y0+h*.6,kz+nz+lz);wd.rotation.y=ry;G.add(wd);}}
+   C(.18,.18,10,0xdddddd,kx,y0+h+5,kz,6);const fl=new THREE.Mesh(new THREE.PlaneGeometry(5,3),new THREE.MeshBasicMaterial({map:BANNER92,side:THREE.DoubleSide}));fl.rotation.z=Math.PI/2;fl.position.set(kx+2.5,y0+h+8.5,kz);G.add(fl);
+   try{const n=neon('LOUNGE VEGAS',kx,y0+h*.35,kz+w/2+.1,0,'#ffd25f','#ff9f1c',14,2);G.add(n);}catch(e){}}
+  /* ---- interior: stone arcade on the walls, stained glass, torches ---- */
+  const IW=ROOM-.05,pil=stoneM92(.4,3,0xf0dcc0),archM=stoneM92(2,.3,0xf0dcc0),glassM=new THREE.MeshBasicMaterial({map:GLASS92});
+  const flames=[];
+  const bay=(x,z,ry,len,glass)=>{/* x,z = wall point, ry faces into room, len along the wall */const ax=Math.cos(ry),az=-Math.sin(ry);
+    for(const s of [-1,1]){const px=x+ax*s*len/2,pz=z+az*s*len/2;B(.9,9,.5,pil,px,4.5,pz,ry);flames.push([px+Math.sin(ry)*.5,5.6,pz+Math.cos(ry)*.5]);}
+    const a=new THREE.Mesh(new THREE.TorusGeometry(len/2,.28,6,20,Math.PI),archM);a.position.set(x+Math.sin(ry)*.2,9-len/2,z+Math.cos(ry)*.2);a.rotation.y=ry;G.add(a);
+    if(glass){const gw=new THREE.Mesh(new THREE.PlaneGeometry(len*.42,3.6),glassM);gw.position.set(x+Math.sin(ry)*.04,6.4,z+Math.cos(ry)*.04);gw.rotation.y=ry;G.add(gw);const top=new THREE.Mesh(new THREE.CircleGeometry(len*.21,14,0,Math.PI),glassM);top.position.set(x+Math.sin(ry)*.04,8.2,z+Math.cos(ry)*.04);top.rotation.y=ry;G.add(top);}};
+  for(let z=-40;z<=40;z+=8){const busyL=Math.abs(z)<6||Math.abs(Math.abs(z)-22)<6;bay(-IW,z,Math.PI/2,8,!busyL);bay(IW,z,-Math.PI/2,8,Math.abs(z)>4);}
+  for(let x=-40;x<=40;x+=8){const busyB=(x>-12&&x<18)||Math.abs(x+18.5)<5||Math.abs(x-26)<5;bay(x,-IW,0,8,!busyB);}
+  /* stone columns wrapped around the old wood pillars */
+  const colM=stoneM92(.6,3,0xf4e4c8);const cols=[];scene.children.forEach(o=>{const p=o.geometry&&o.geometry.parameters;if(o.isMesh&&p&&o.geometry.type==='BoxGeometry'&&p.width===.9&&p.height===9&&p.depth===.9&&Math.abs(o.position.x)<ROOM&&Math.abs(o.position.z)<ROOM)cols.push([o.position.x,o.position.z]);});
+  cols.forEach(([x,z])=>{C(.62,.7,8.4,colM,x,4.3,z,14);C(.95,.75,.5,gold,x,8.7,z,14);C(.8,.9,.4,gold,x,.2,z,14);});
+  /* ceiling ribs: gold-trimmed stone ribs in a grid with diagonal crossings */
+  for(let z=-40;z<=40;z+=16)B(ROOM*2,.35,.45,archM,0,8.8,z);for(let x=-40;x<=40;x+=16)B(.45,.35,ROOM*2,archM,x,8.82,0);
+  for(let x=-40;x<40;x+=16)for(let z=-40;z<40;z+=16){const d=Math.hypot(16,16);for(const s of [-1,1]){const r=B(d,.22,.25,gold,x+8,8.78,z+8);r.rotation.y=s*Math.PI/4;}const bs=new THREE.Mesh(new THREE.SphereGeometry(.45,10,8),M(gold));bs.position.set(x+8,8.6,z+8);G.add(bs);}
+  /* heraldic banners hanging along the main walkway */
+  for(let z=-36;z<=36;z+=12)for(const s of [-1,1]){const bn=new THREE.Mesh(new THREE.PlaneGeometry(1.4,3.6),new THREE.MeshBasicMaterial({map:BANNER92,transparent:true,side:THREE.DoubleSide}));bn.position.set(s*4.6,6.8,z);bn.rotation.y=Math.PI/2;G.add(bn);B(.08,.08,1.8,gold,s*4.6,8.65,z);}
+  /* torch flames on the pilasters: one glowing Points cloud */
+  {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(flames.flat(),3));const tex=typeof GLOW86!=='undefined'?GLOW86:null;
+   const pts=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffa040,size:1.6,map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));G.add(pts);
+   const tor=new THREE.InstancedMesh(new THREE.ConeGeometry(.16,.5,6),MB(0xffc860),flames.length),o=new THREE.Object3D();flames.forEach((p,i)=>{o.position.set(p[0],p[1]-.25,p[2]);o.updateMatrix();tor.setMatrixAt(i,o.matrix);});G.add(tor);}
+  try{G.userData.m=merge90(G);}catch(e){console.error("m92",e);}
+  G.userData.c92=1;return G;}
+buildWorld=(f=>function(){const r=f.apply(this,arguments);try{castle92();}catch(e){console.error('castle92',e);}return r;})(buildWorld);
+try{NEW82.unshift(['🏰','Kasino jadi kastil','Menara, benteng, gerbang, keep di atap; di dalam arkade batu, kaca patri, obor dan panji.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
