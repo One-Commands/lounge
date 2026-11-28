@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v89';
+const GAME_VER='v90';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -10921,7 +10921,7 @@ const NEW82=[['🏎️','Sirkuit Permata','Balapan 3 putaran melawan 4 pembalap.
   ['🎡','Pasar Malam','Lempar gelang, pancing bebek, tembak balon, bianglala.','pasar78'],['📒','Album Koleksi','6 set × 8 stiker. Set lengkap memberi buff permanen.','album79'],
   ['🧭','Ekspedisi Kerajaan','Kirim tim dipimpin pejabatmu mencari harta & artefak.','ekspedisi80'],['✈️','Maskapai Milikmu','Beli pesawat, buka rute, panen koin tiap menit.','maskapai81']];
 function openNew82(){if(modal)return;closePhone();const el=document.createElement('div');el.className='modal';stage.appendChild(el);
-  const draw=()=>{const s=set75();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Yang Baru"><div class="mohead"><b>🆕 Yang Baru · v76–v82</b><span class="mobal">${GAME_VER}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
+  const draw=()=>{const s=set75();el.innerHTML=`<div class="panel moff" role="dialog" aria-label="Yang Baru"><div class="mohead"><b>🆕 Yang Baru</b><span class="mobal">${GAME_VER}</span><button class="moclose" aria-label="Tutup">✕</button></div><div class="momain">
     <p class="muted">Ringkasan fitur terbaru. Tekan "Buka" untuk langsung mencoba.</p>
     ${NEW82.map(n=>`<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)"><span><b>${n[0]} ${n[1]}</b><br><small>${n[2]}</small></span><button class="pbtn" data-go="${n[3]}">Buka</button></div>`).join('')}
     <p class="sec-t">Performa</p><div class="wallet"><div class="row"><span>FPS sekarang</span><span>${DR82.fps||'…'}</span></div><div class="row"><span>Skala resolusi</span><span>${Math.round(DR82.f*100)}%</span></div></div>
@@ -11613,6 +11613,24 @@ XA.xTr87S=(f=>function(arg){const [kd,id]=String(arg).split(':');const I=tr87().
 vlOcc=(f=>function(kd){return Math.min(.99,f.apply(this,arguments)+mrBonus(kd));})(vlOcc);
 xView('misi89',{t:'Misi Raja',s:'Reputasi & gelar',ic:'📜',bg:'linear-gradient(135deg,#7a3a9a,#ffd25f)',r:()=>{const s=mr89();return `<p class="muted">Temui raja di ruang takhta tiap kerajaan (tombol 📜 di samping takhta) untuk minta misi.</p>${tr87Kds().map(k=>{const t=mrTitle(k),m=s.m[k];return `<div class="row"><span>${esc(gpKd(k).n)}${m?' · 📜 '+m.t:''}</span><span>${t?t[1]:''} ⭐ ${Math.round(mrRep(k))}</span></div>`;}).join('')}`;}});
 try{NEW82.unshift(['📜','Audiensi & Misi Raja','Minta misi dari raja NPC, kumpulkan reputasi dan gelar kehormatan.','misi89']);}catch(e){}
+
+/* ================= v90: Polish & performa — gabungkan mesh statis kompleks kerajaan supaya draw call turun ================= */
+function merge90(g){const skip=new Set();try{(GK.spin||[]).forEach(s=>skip.add(s.o));if(KW86.glow)skip.add(KW86.glow);(KW86.aur||[]).forEach(o=>skip.add(o));}catch(e){}
+  const bins=new Map();g.updateMatrixWorld(true);
+  g.children.forEach(o=>{if(!o.isMesh||o.isInstancedMesh||!o.visible||skip.has(o)||o.children.length)return;const m=o.material;if(!m||Array.isArray(m)||m.transparent||!(m.isMeshLambertMaterial||m.isMeshBasicMaterial))return;
+    const ge=o.geometry;if(!ge||!ge.attributes||!ge.attributes.position||!ge.attributes.normal||!ge.attributes.uv)return;
+    const key=m.type+'|'+m.color.getHex()+'|'+(m.map?m.map.uuid:'')+'|'+m.side+'|'+(m.vertexColors?1:0);let b=bins.get(key);if(!b){b={m,list:[]};bins.set(key,b);}b.list.push(o);});
+  let before=0,after=0;
+  bins.forEach(b=>{if(b.list.length<3)return;before+=b.list.length;let nv=0,ni=0;b.list.forEach(o=>{const ge=o.geometry;nv+=ge.attributes.position.count;ni+=ge.index?ge.index.count:ge.attributes.position.count;});
+    const P=new Float32Array(nv*3),N=new Float32Array(nv*3),U=new Float32Array(nv*2),I=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let vo=0,io=0;const v=new THREE.Vector3(),nm=new THREE.Matrix3();
+    b.list.forEach(o=>{const ge=o.geometry,p=ge.attributes.position,n=ge.attributes.normal,u=ge.attributes.uv,mw=o.matrixWorld;nm.getNormalMatrix(mw);
+      for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(mw);P[(vo+i)*3]=v.x;P[(vo+i)*3+1]=v.y;P[(vo+i)*3+2]=v.z;v.fromBufferAttribute(n,i).applyMatrix3(nm).normalize();N[(vo+i)*3]=v.x;N[(vo+i)*3+1]=v.y;N[(vo+i)*3+2]=v.z;U[(vo+i)*2]=u.getX(i);U[(vo+i)*2+1]=u.getY(i);}
+      if(ge.index){const a=ge.index.array;for(let i=0;i<a.length;i++)I[io+i]=a[i]+vo;io+=a.length;}else{for(let i=0;i<p.count;i++)I[io+i]=vo+i;io+=p.count;}vo+=p.count;});
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('normal',new THREE.BufferAttribute(N,3));geo.setAttribute('uv',new THREE.BufferAttribute(U,2));geo.setIndex(new THREE.BufferAttribute(I,1));geo.computeBoundingSphere();
+    const mm=new THREE.Mesh(geo,b.m);mm.matrixAutoUpdate=false;b.list.forEach(o=>{g.remove(o);o.geometry.dispose();});g.add(mm);after++;});
+  return [before,after];}
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{const t0=performance.now(),r=merge90(g);GK.m90=[r[0],r[1],Math.round(performance.now()-t0)];}catch(e){console.error('merge90',e);}return g;})(gkBuild);
+try{NEW82.unshift(['⚡','Kerajaan lebih ringan','Ratusan bangunan kerajaan digabung supaya HP tidak berat.','paspor85']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
