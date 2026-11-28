@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v85';
+const GAME_VER='v86';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11399,6 +11399,50 @@ function openPp85(){if(modal)return;try{closePhone();}catch(e){}const el=documen
 XA.xPpWin85=()=>openPp85();
 xView('paspor85',{t:'Paspor Wisata',s:'Stempel 10 kerajaan',ic:'🛂',bg:'linear-gradient(135deg,#2f6fe0,#3ddc84)',r:()=>{setTimeout(()=>{if(phView==='paspor85'){phView='home';closePhone();openPp85();}},20);return '<p class="muted">Membuka...</p>';}});
 try{NEW82.unshift(['🛂','Paspor Wisata & Kuliner','Stempel 2 tempat wisata tiap kerajaan + makanan khas (buff 15 mnt).','paspor85'],['🏰','Istana & kota bertema','Raja di takhta, istana, fasad dan kota sekitar beda tiap kerajaan.','paspor85']);}catch(e){}
+
+/* ================= v86: Cuaca khas & malam di tiap kerajaan ================= */
+const KW86={W:{cerah:WX[0],awan:WX[1],hujan:WX[2],badai:WX[3],salju:{id:'salju',ic:'❄️',n:'Salju',b:'awan'},pasir:{id:'pasir',ic:'🌪️',n:'Badai pasir',b:'awan'},kabut:{id:'kabut',ic:'🌫️',n:'Berkabut',b:'awan'},bunga:{id:'bunga',ic:'🌸',n:'Hujan bunga',b:'cerah'}},
+  T:{jawa:{cerah:5,awan:2,hujan:2.5,badai:.5},tropis:{cerah:4.5,hujan:4,badai:1.5},gotik:{cerah:4,awan:3.5,kabut:1.5,hujan:1},gurun:{cerah:7,pasir:3},modern:{cerah:5,awan:2,bunga:2,hujan:1},
+    bahari:{cerah:5,awan:2,hujan:2,badai:1},naga:{cerah:4,bunga:2.5,kabut:1.5,hujan:2},sabana:{cerah:7,awan:1,badai:2},andes:{cerah:4,kabut:3.5,salju:2.5},salju:{salju:6,cerah:2.5,kabut:1.5}},
+  cur:null,kd:null,until:0,pts:null,ptsK:null,fog0:null,glow:null,aur:[],night:false};
+const inKd86=()=>!!(GK.built&&you&&Math.abs(you.pos.x-GK.X)<400&&(!window.__camO||window.__kw86t));
+function kw86Roll(kd,say){const th=pp85Th(kd),T=KW86.T[th]||{cerah:1};let tot=0;for(const k in T)tot+=T[k];let r=Math.random()*tot,id='cerah';for(const k in T){r-=T[k];if(r<=0){id=k;break;}}
+  KW86.cur=KW86.W[id];KW86.kd=kd;KW86.until=Date.now()+300000+Math.random()*240000;
+  if(say&&id!=='cerah'&&id!=='awan'){const K=gpKd(kd),msg={salju:'❄️ Salju turun di',pasir:'🌪️ Badai pasir menyapu',kabut:'🌫️ Kabut tebal menyelimuti',bunga:'🌸 Kelopak bunga berguguran di',hujan:'🌧️ Hujan tropis mengguyur',badai:'⛈️ Badai petir di'}[id];if(msg)logLine('sys',null,`${msg} ${K.n}.`);}}
+/* particles for snow, sand and petals: one Points object, rebuilt when the kind changes */
+function kw86Pts(kind){if(KW86.ptsK===kind)return KW86.pts;if(KW86.pts){scene.remove(KW86.pts);KW86.pts.geometry.dispose();KW86.pts.material.dispose();KW86.pts=null;}KW86.ptsK=kind;if(!kind)return null;
+  const n=kind==='pasir'?1400:kind==='bunga'?500:1600,g=new THREE.BufferGeometry(),a=new Float32Array(n*3);for(let i=0;i<n;i++){a[i*3]=(Math.random()-.5)*70;a[i*3+1]=Math.random()*30;a[i*3+2]=(Math.random()-.5)*70;}g.setAttribute('position',new THREE.BufferAttribute(a,3));
+  const col={salju:0xffffff,pasir:0xd8a060,bunga:0xffa8d0}[kind],sz={salju:.32,pasir:.22,bunga:.45}[kind];
+  const p=new THREE.Points(g,new THREE.PointsMaterial({color:col,size:sz*1.8,map:GLOW86,transparent:true,opacity:kind==='pasir'?.6:.9,depthWrite:false}));p.frustumCulled=false;scene.add(p);KW86.pts=p;return p;}
+envTick=(f=>function(dt){if(!inKd86()){kw86Pts(null);if(KW86.fog0){scene.fog.near=KW86.fog0[0];scene.fog.far=KW86.fog0[1];KW86.fog0=null;}return f.apply(this,arguments);}
+  if(KW86.kd!==GK.kd||Date.now()>KW86.until)kw86Roll(GK.kd,true);
+  const sw=wx,su=wxUntil,cw=KW86.cur;wx=cw.b?KW86.W[cw.b]:cw;wxUntil=Infinity;let r;try{r=f.apply(this,arguments);}finally{wx=sw;wxUntil=su;}
+  try{const id=cw.id,c=gameClock();KW86.night=c.night||c.t<.24||c.t>.76;
+    if(!KW86.fog0)KW86.fog0=[scene.fog.near,scene.fog.far];const F={pasir:[0xd8a060,.55,12,95],kabut:[0xc8ccd4,.6,8,70],salju:[0xe8eef6,.35,30,150]}[id];
+    if(F){scene.fog.color.lerp(new THREE.Color(F[0]),F[1]);scene.background.lerp(new THREE.Color(F[0]),F[1]*.8);scene.fog.near=F[2];scene.fog.far=F[3];}else{scene.fog.near=KW86.fog0[0];scene.fog.far=KW86.fog0[1];}
+    const p=kw86Pts(id==='salju'||id==='pasir'||id==='bunga'?id:null);
+    if(p){p.position.set(camera.position.x,0,camera.position.z);const a=p.geometry.attributes.position.array,t=performance.now()/1000;
+      for(let i=0;i<a.length;i+=3){if(id==='pasir'){a[i]+=28*dt;a[i+1]-=2*dt;if(a[i]>35)a[i]-=70;}else{a[i+1]-=(id==='salju'?3.2:1.6)*dt;a[i]+=Math.sin(t+i)*dt*(id==='bunga'?1.4:.6);}if(a[i+1]<0)a[i+1]+=30;}p.geometry.attributes.position.needsUpdate=true;}
+    if(KW86.glow){KW86.glow.visible=KW86.night;if(KW86.night)KW86.glow.material.size=KW86.glowS*(1+Math.sin(performance.now()/180)*.06);}
+    KW86.aur.forEach(m=>m.visible=KW86.night);}catch(e){console.error('kw86',e);}return r;})(envTick);
+/* HUD shows the kingdom weather while inside a kingdom */
+xHud=(f=>function(){if(inKd86()&&KW86.cur){const sw=wx;wx=KW86.cur;try{return f.apply(this,arguments);}finally{wx=sw;}}return f.apply(this,arguments);})(xHud);
+/* night lights: torches, lanterns, neon or string lights as one glowing Points cloud per kingdom */
+const GLOW86=canvasTex(64,64,(q,w,h)=>{const g=q.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=g;q.fillRect(0,0,w,h);});
+gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{const th=pp85Th(kd),{X,Z,W,D}=GK,pts=[],cols=[],C=new THREE.Color();
+    const pal={jawa:[0xffa040],tropis:[0xffd25f,0xff7ab0,0x7fe0ff],gotik:[0xffb050],gurun:[0xffa040,0xffd890],modern:[0x7fd4ff,0xff5fa2,0xb08aff],bahari:[0xffe6a0,0x7fd4ff],naga:[0xff4030,0xffc83a],sabana:[0xff8a30],andes:[0xffa040],salju:[0xffd890,0x9fffd0]}[th]||[0xffe6a0];
+    const add=(x,y,z)=>{pts.push(X+x,y,Z+z);C.setHex(pal[(pts.length/3)%pal.length|0]);cols.push(C.r,C.g,C.b);};
+    for(let z=130;z<=226;z+=12)for(const s of [-1,1])add(s*9,5.2,z);
+    for(let z=-6;z<=98;z+=16)for(const s of [-1,1])add(s*9,5.2,z);
+    for(let x=-W/2+10;x<W/2;x+=20){add(x,15.5,D/2+2.6);add(x,15.5,-D/2-2.6);}for(let z=-D/2+10;z<D/2;z+=20){add(-W/2-2.6,15.5,z);add(W/2+2.6,15.5,z);}
+    for(let x=-150;x<=150;x+=10)if(Math.abs(x)>30)add(x,4,146);
+    if(th==='naga'||th==='tropis'||th==='bahari')for(let x=-60;x<=60;x+=4)add(x,6+Math.sin(x/8)*.6,128);
+    if(th==='modern')for(let i=0;i<30;i++)add(-140+i*10,16+((i*7)%10),138+(i%2)*18);
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+    const gp=new THREE.Points(geo,new THREE.PointsMaterial({size:3.2,map:GLOW86,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));gp.visible=false;g.add(gp);KW86.glow=gp;KW86.glowS=3.2;
+    KW86.aur=g.children.filter(o=>o.isMesh&&o.material&&o.material.blending===THREE.AdditiveBlending&&o.geometry.type==='PlaneGeometry'&&o.geometry.parameters.width===240);
+    kw86Roll(kd,false);}catch(e){console.error('glow86',e);}return g;})(gkBuild);
+gkDrop=(f=>function(){KW86.glow=null;KW86.aur=[];return f.apply(this,arguments);})(gkDrop);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
