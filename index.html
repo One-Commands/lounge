@@ -3604,7 +3604,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v97';
+const GAME_VER='v97.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -6331,14 +6331,14 @@ setInterval(()=>{window.__quiet=1;setTimeout(()=>{window.__quiet=0;},0);if(!star
 let moTab='prop';
 advRender=function(){let el=$('mgrAdv');const w=WS(),show=started;if(!show){if(el)el.remove();return;}
   if(!el||el._mode!=='pill'){if(el)el.remove();el=document.createElement('div');el.id='mgrAdv';el._mode='pill';stage.appendChild(el);el.addEventListener('click',e=>{e.stopPropagation();SFX.pop();openMgrOffice(anyMgr()?null:'war');});['pointerdown','touchstart'].forEach(ev=>el.addEventListener(ev,e=>e.stopPropagation(),{passive:true}));}
-  const n=(anyMgr()?ADV.list.length+stkIdeas().length:0)+w.wars.length;el.className='mgrAdv pill';el.innerHTML=`<button>👔 Kantor Manajer${n?` <i>${n}</i>`:''}</button>`;};
+  const n=(anyMgr()?(ma97Auto('prop97')?0:ADV.list.length)+(ma97Auto('stk97')?0:stkIdeas().length):0)+w.wars.length;el.className='mgrAdv pill';el.innerHTML=`<button>👔 Kantor Manajer${n?` <i>${n}</i>`:''}</button>`;};
 function openMgrOffice(tab){if(modal)return;closePhone();for(const k in keys)keys[k]=false;if(tab)moTab=tab;if(!anyMgr()&&moTab!=='war'&&moTab!=='hire')moTab='hire';
   const el=document.createElement('div');el.className='modal';stage.appendChild(el);modal={el,st:{label:'Kantor Manajer'},busy:false,refresh(){draw();}};
   const tabs=anyMgr()?[['prop','🏙️','Beli properti'],['stk','📈','Saran saham'],['sell','💹','Jual otomatis'],['auto','🤖','Otomatis'],['rep','📋','Laporan'],['set','⚙️','Pengaturan'],['hire','👔','Rekrut'],['war','⚔️','Perang']]:[['hire','👔','Rekrut manajer'],['war','⚔️','Perang']];
   const card=(ic,t,sub,btns)=>`<div class="mocard"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div><div class="mob">${btns}</div></div>`;
   const draw=()=>{const s=mgrSet(),st=mgrStk(),c=CF(),rep=c.rep||{};let body='';
-    if(moTab==='prop'){if(!ADV.list.length)ADV.list=advPick();body=mbuyUI()+ADV.list.map(x=>card(x.M.ic||'🏬',esc(x.M.n),`"Pak, harga ${zKC(x.ask)}, pemasukan ±${fmtBig(Math.round(x.inc))}/hari, balik modal ±${Math.round(x.roi)} hari."${x.ok?'':' Koin belum cukup.'}`,`<button class="mogo" data-mo="buy:${x.M.id}" ${x.ok?'':'disabled'}>Beli</button><button class="mog" data-mo="skip:${x.M.id}">Lewati</button>`)).join('')||'<p class="muted">Belum ada saran.</p>';body+=`<button class="mog wide" data-mo="newp">🔄 Saran lain</button>`;}
-    if(moTab==='stk'){const L=stkIdeas();body=L.map(x=>{const a=x.a,q1=Math.floor(Math.min(freeFloat(a),a.sh*.01)),q5=Math.floor(Math.min(freeFloat(a),a.sh*.05));
+    if(moTab==='prop'){if(!ADV.list.length)ADV.list=advPick();body=ma97Note('prop97')+mbuyUI()+ADV.list.map(x=>card(x.M.ic||'🏬',esc(x.M.n),`"Pak, harga ${zKC(x.ask)}, pemasukan ±${fmtBig(Math.round(x.inc))}/hari, balik modal ±${Math.round(x.roi)} hari."${x.ok?'':' Koin belum cukup.'}`,`<button class="mogo" data-mo="buy:${x.M.id}" ${x.ok?'':'disabled'}>Beli</button><button class="mog" data-mo="skip:${x.M.id}">Lewati</button>`)).join('')||'<p class="muted">Belum ada saran.</p>';body+=`<button class="mog wide" data-mo="newp">🔄 Saran lain</button>`;}
+    if(moTab==='stk'){const L=stkIdeas();body=ma97Note('stk97')+L.map(x=>{const a=x.a,q1=Math.floor(Math.min(freeFloat(a),a.sh*.01)),q5=Math.floor(Math.min(freeFloat(a),a.sh*.05));
       return card('📈',`${a.id} · ${esc(a.n)}`,`"Pak, ${x.disc>.03?`harganya ${Math.round(x.disc*100)}% di bawah nilai wajar`:'saham beredarnya tinggal sedikit'}${x.sc>.6?', saham publik langka jadi harga cenderung naik':''}. Harga sekarang ${fmt(Math.round(a.p*100)/100)}."`,
         `${q1>0?`<button class="mogo" data-mo="sb:${a.id}:${q1}">1% · ${fmtBig(Math.round(q1*blkPx(a,q1)))}</button>`:''}${q5>q1?`<button class="mog" data-mo="sb:${a.id}:${q5}">5% · ${fmtBig(Math.round(q5*blkPx(a,q5)))}</button>`:''}`);}).join('')||'<p class="muted">Belum ada saham yang menarik. Manajer pantau terus.</p>';}
     if(moTab==='sell'){const B=(on,mo,t)=>`<button class="${on?'mogo':'mog'}" data-mo="${mo}">${t}</button>`,O=(l,b)=>`<div class="moopt"><span>${l}</span><div>${b}</div></div>`,C2=(ic,t,sub,rows)=>`<div class="mocard mocard2"><div class="mohd"><div class="moic">${ic}</div><div class="mot"><b>${t}</b><small>${sub}</small></div></div>${rows}</div>`;
@@ -11993,6 +11993,22 @@ function K97(g,M,x,z){const k=new THREE.Mesh(new THREE.ConeGeometry(4.9,9,14),M.
 setTimeout(function c97(){if(!started||!cityGrp){setTimeout(c97,1500);return;}setTimeout(()=>{try{cx97();}catch(e){console.error('cx97',e);}},2500);},1500);
 /* the city gate shows up on the travel list as a walkable route */
 try{NEW82.unshift(['🌉','Kota diperluas & jembatan kerajaan','Distrik Timur dan Barat, taman tepi sungai, jembatan kastil di ujung timur kota menuju kerajaan, dan jembatan antar kerajaan.','baru82']);}catch(e){}
+
+/* ================= v97.1: Manajer langsung eksekusi — beli properti & saham yang layak, crypto & jual otomatis aktif dan skalanya ikut kekayaan; tombol nyetir tidak menimpa jendela ================= */
+try{MA83.push(['prop97','🏙️','Beli properti layak','Manajer langsung beli properti yang ia sarankan kalau balik modalnya wajar.'],['stk97','📈','Beli saham murah','Manajer langsung beli 1% saham yang di bawah nilai wajar atau langka.'],['cry97','₿','Crypto otomatis','Jual untung, cut loss dan beli saat turun, besarnya ikut kekayaanmu.'],['sell97','💹','Jual otomatis','Jual properti saat tawaran untung dan ambil untung saham.']);}catch(e){}
+function ma97Auto(k){try{return typeof anyMgr==='function'&&anyMgr()&&ma83().on[k];}catch(e){return false;}}
+function ma97Note(k){return ma97Auto(k)?`<p class="muted">🤖 Mode otomatis aktif: manajer langsung ${k==='prop97'?'membeli properti yang layak':'membeli saham yang murah'}. Matikan di tab Otomatis kalau mau pilih sendiri.</p>`:'';}
+const MA97={t:{}};
+function ma97Tick(){if(!started||typeof anyMgr!=='function'||!anyMgr())return;const s=ma83(),O=s.on;window.__quiet=1;
+  if(O.prop97&&maReady('prop97',45000))try{if(!ADV.list.length)ADV.list=advPick();let n=0;for(const x of ADV.list.slice()){if(n>=3)break;if(!x.ok||!(x.ask<S.bal*.25)||!(x.roi<400))continue;const M=x.M,was=megaS(M).me;bizDo('gBuy',M.id);if(megaS(M).me&&!was){n++;ADV.list=ADV.list.filter(y=>y.M.id!==M.id);maLog('🏙️',`Beli ${M.n} seharga ${zKC(x.ask)} (balik modal ±${Math.round(x.roi)} hari).`);}}if(!ADV.list.length)ADV.list=advPick();}catch(e){console.error('ma97 prop',e);}
+  if(O.stk97&&maReady('stk97',60000))try{let n=0;const now=Date.now();for(const x of stkIdeas()){if(n>=3)break;const a=x.a;if(now-(MA97.t[a.id]||0)<600000)continue;const q=Math.floor(Math.min(freeFloat(a),a.sh*.01));if(q<1)continue;const c=q*blkPx(a,q);if(!(c<S.bal*.05))continue;if(blockBuy(a,q)!==false){MA97.t[a.id]=now;n++;maLog('📈',`Beli ${fmt(q)} lembar ${a.id} (1%) seharga ${zKC(Math.round(c))}.`);}}}catch(e){console.error('ma97 stk',e);}
+  if(O.cry97)try{const m=mcry();m.on=1;m.buy=1;const amt=Math.min(1e15,Math.max(1e10,Math.round(S.bal*.002)));if(m.amt<amt*.5||m.amt>amt*2){m.amt=amt;m.max=amt*50;m.spent=0;}}catch(e){}
+  if(O.sell97)try{const st=mgrSet();if(!st.auto)st.auto=15;const k=mgrStk();k.on=1;}catch(e){}
+  window.__quiet=0;}
+setInterval(()=>{try{ma97Tick();}catch(e){console.error('ma97',e);}},15000);
+/* car buttons hide while a window or the phone is open */
+setInterval(()=>{try{const el=document.getElementById('drv66');if(!el)return;const ph=document.getElementById('phone');const hide=!!modal||!!(ph&&!ph.classList.contains('hidden'));el.style.display=hide?'none':'';}catch(e){}},200);
+try{NEW82.unshift(['🤖','Manajer langsung eksekusi','Manajer langsung beli properti dan saham yang layak, crypto dan jual otomatis ikut skala kekayaanmu.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
