@@ -701,15 +701,20 @@ const fmt=n=>(typeof n==='number'&&Math.abs(n)>=1e12&&isFinite(n))?zusS(n):n.toL
 const fmtBig=n=>{n=Math.floor(n);const A=Math.abs(n);if(A<1e9)return fmt(n);if(A<1e12)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';return zusS(n);};
 /* v60.7: mata uang besar Zus. 1 Zus = 1 T koin (1e12). Amounts from 1 T koin up are shown in Zus. */
 const ZUS=1e12;function zNum(z){const A=Math.abs(z);if(A>=1e6&&A<1e9)return (z/1e6).toLocaleString('id-ID',{maximumFractionDigits:2})+' jt';if(A<1e9)return z.toLocaleString('id-ID',{maximumFractionDigits:A>=100?0:2});if(A<1e12)return (z/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A<1e15)return (z/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';return BIGU(z);}
-function zusS(n){return zNum(n/ZUS)+' Zus';}
-function zKC(n){n=+n||0;return Math.abs(n)>=ZUS&&isFinite(n)?'Ƶ '+zusS(n):'🪙 '+fmtBig(n);}
+function zusS(n){if(Math.abs(n)>=1e30&&isFinite(n))return tierS(n);return zNum(n/ZUS)+' Zus';}
+function zKC(n){n=+n||0;if(Math.abs(n)>=1e30&&isFinite(n))return wlS(n);return Math.abs(n)>=ZUS&&isFinite(n)?'Ƶ '+zusS(n):'🪙 '+fmtBig(n);}
 function fmK(n){n=+n||0;return Math.abs(n)>=ZUS&&isFinite(n)?zusS(n):fmtBig(n)+' koin';}
-function zKF(n){n=+n||0;return Math.abs(n)>=ZUS&&isFinite(n)?'Ƶ '+zusS(n):'🪙 '+fmt(n);}
+function zKF(n){n=+n||0;if(Math.abs(n)>=1e30&&isFinite(n))return wlS(n);return Math.abs(n)>=ZUS&&isFinite(n)?'Ƶ '+zusS(n):'🪙 '+fmt(n);}
 /* v96.2: mata uang Kencana ♛ untuk kekayaan raksasa. 1 Kencana = 1 Kn Zus (1e18 Zus = 1e30 koin). Pendapatan tetap pakai Zus. */
 const KCN=1e30;function kcnN(v){const A=Math.abs(v);if(A<1e6)return v.toLocaleString('id-ID',{maximumFractionDigits:A>=100?0:2});if(A<1e9)return (v/1e6).toLocaleString('id-ID',{maximumFractionDigits:2})+' jt';if(A<1e12)return (v/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A<1e15)return (v/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';return BIGU(v);}
-function kcnS(n){return kcnN(n/KCN)+' Kencana';}
-function wlS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?'♛ '+kcnS(n):zKC(n);}
-function balS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?kcnN(n/KCN):fmtBig(n);}
+/* v96.5: tangga mata uang. Tiap tingkat = 1 Kn (1e18) tingkat sebelumnya, jadi angka selalu muat di satuan jt/M/T/Kd. */
+const KTIER=[[1e30,'Kencana','♛'],[1e48,'Permata','💎'],[1e66,'Mahkota','👑'],[1e84,'Bintang','⭐'],[1e102,'Galaksi','🌌'],[1e120,'Semesta','🪐'],[1e138,'Nebula','🌠'],[1e156,'Kuasar','✨'],[1e174,'Pulsar','💫'],[1e192,'Supernova','☄️'],[1e210,'Kosmos','🔭'],[1e228,'Dimensi','🌀'],[1e246,'Abadi','♾️'],[1e264,'Ilahi','🔱'],[1e282,'Tak Terhingga','🌟']];
+function kTierOf(n){const A=Math.abs(n);let r=KTIER[0];for(const x of KTIER)if(A>=x[0])r=x;return r;}
+function tierS(n){const T=kTierOf(n);return kcnN(n/T[0])+' '+T[1];}
+function tierI(n){return kTierOf(n)[2];}
+function kcnS(n){return tierS(n);}
+function wlS(n){n=+n||0;if(!(Math.abs(n)>=KCN&&isFinite(n)))return zKC(n);return tierI(n)+' '+tierS(n);}
+function balS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?kcnN(n/kTierOf(n)[0])+' '+kTierOf(n)[1]:fmtBig(n);}
 const HOST="Bang Rio";
 
 /* ---------- state ---------- */
@@ -1498,7 +1503,7 @@ function crowdCheer(pos){npcs.forEach(n=>{if(n.pos.distanceTo(pos)<12&&Math.rand
 
 /* ---------- UI ---------- */
 function render(){
-  $('bal').textContent=balS(S.bal);try{const ci=document.querySelector('#money .coin');if(ci)ci.textContent=Math.abs(S.bal)>=KCN?'♛':Math.abs(S.bal)>=ZUS?'Ƶ':'K';}catch(e){}$('wins').textContent=S.wins;$('losses').textContent=S.losses;
+  $('bal').textContent=balS(S.bal);try{const ci=document.querySelector('#money .coin');if(ci)ci.textContent=Math.abs(S.bal)>=KCN?tierI(S.bal):Math.abs(S.bal)>=ZUS?'Ƶ':'K';}catch(e){}$('wins').textContent=S.wins;$('losses').textContent=S.losses;
   if(render.last!==undefined&&render.last!==S.bal){const m=$('money');m.classList.remove('flash');void m.offsetWidth;m.classList.add('flash');}
   render.last=S.bal;
   if(typeof modal!=='undefined'&&modal)modal.refresh();
@@ -1927,7 +1932,7 @@ function phoneRender(){
   const titles={home:'',rank:'Ranking',bank:'Bank Merdeka',toko:'Toko Aksesoris',crypto:'Crypto',saham:'Saham',detail:phAsset?phAsset.n:'',jobs:'Kerja sampingan',guide:'Panduan kasino',biz:'Bisnis & Properti',mail:'Inbox',quest:'Quest harian',wallet:'Dompet'};
   let body='';
   if(phView==='home'){
-    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${wlS(Math.round(net))}</b>${Math.abs(net)>=1e12?'<small style="opacity:.7">Ƶ 1 Zus = 1 T koin. Satuan: M miliar · T triliun · Kd kuadriliun (1.000 T) · Kn kuintiliun · Sk sekstiliun · Sp septiliun · Ok oktiliun · No noniliun · Ds desiliun · Ud · Dd … Vg vigintiliun · UVg · DVg … Tg trigintiliun … Ng · Cn sentiliun (tiap naik ×1.000). ♛ 1 Kencana = 1 Kn Zus.</small>':''}${nwRows()}</div>
+    body=`<div class="wallet nw"><small>Kekayaan bersih</small><b>${wlS(Math.round(net))}</b>${Math.abs(net)>=1e12?'<small style="opacity:.7">Ƶ 1 Zus = 1 T koin. Satuan: M miliar · T triliun · Kd kuadriliun (1.000 T) · Kn kuintiliun · Sk sekstiliun · Sp septiliun · Ok oktiliun · No noniliun · Ds desiliun · Ud · Dd … Vg vigintiliun · UVg · DVg … Tg trigintiliun … Ng · Cn sentiliun (tiap naik ×1.000). Mata uang besar, tiap tingkat = 1 Kn tingkat sebelumnya: ♛ Kencana (1 Kn Zus) → 💎 Permata → 👑 Mahkota → ⭐ Bintang → 🌌 Galaksi → 🪐 Semesta → dst.</small>':''}${nwRows()}</div>
       <div class="apps">
         <button class="app" data-v="crypto"><i style="background:linear-gradient(135deg,#f7931a,#b25b00)">₿</i>Crypto</button>
         <button class="app" data-v="saham"><i style="background:linear-gradient(135deg,#3ddc84,#137a44)">📈</i>Saham</button>
@@ -3599,7 +3604,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v96.4';
+const GAME_VER='v96.5';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -7065,7 +7070,7 @@ bizVal=(f=>function(){return f.apply(this,arguments)+fxVal();})(bizVal);
 setInterval(()=>{if(!started)return;const F=fxS();if(F.d!==mDay){F.d=mDay;FXC.forEach(([c])=>F.o[c]=F.r[c]);}
   const g=(Math.random()-.5)*.0012;FXC.forEach(([c,,,u])=>{const base=FX_BASE*u,r=F.r[c];let nr=r*(1+g*(c==='USD'?1:.6)+(Math.random()-.5)*.003);nr+= (base-nr)*.004;F.r[c]=Math.max(base*.6,Math.min(base*1.6,nr));});
   if(Math.random()<.03){const [c,fl,n]=FXC[pick(FXC.length)],up=Math.random()<.5,m=.01+Math.random()*.025;F.r[c]*=up?1+m:1-m;const t=`💱 ${fl} ${n} ${up?'menguat':'melemah'} ${(m*100).toFixed(1)}% terhadap koin.`;news.unshift(t);news=news.slice(0,6);logLine('sys',null,t,up?'win':'lose');}},10000);
-const fmtUSD=n=>{const A=Math.abs(n);const f=(v,s)=>'US$ '+v.toLocaleString('id-ID',{maximumFractionDigits:2})+s;if(A>=1e15)return 'US$ '+BIGU(n);if(A>=1e12)return f(n/1e12,' T');if(A>=1e9)return f(n/1e9,' M');if(A>=1e6)return f(n/1e6,' jt');return 'US$ '+Math.round(n).toLocaleString('id-ID');};
+const fmtUSD=n=>{const A=Math.abs(n);if(A>=1e30&&isFinite(n))return 'US$ '+tierS(n);const f=(v,s)=>'US$ '+v.toLocaleString('id-ID',{maximumFractionDigits:2})+s;if(A>=1e15)return 'US$ '+BIGU(n);if(A>=1e12)return f(n/1e12,' T');if(A>=1e9)return f(n/1e9,' M');if(A>=1e6)return f(n/1e6,' jt');return 'US$ '+Math.round(n).toLocaleString('id-ID');};
 const toUSD=n=>n/usdRate();
 
 const fxOfK=k=>(FXC.find(x=>x[4]===k)||[])[0];
@@ -7200,7 +7205,7 @@ togglePhone=(f=>function(){if(S.usdS&&!(S.bet>0)&&!busy)usdEnd();return f.apply(
 betExtras=(f=>function(cur,on,label){const box=f.apply(this,arguments);try{const b=document.createElement('button');b.className='usdTg'+(SET.betUSD?' on':'');const up=()=>{b.textContent=SET.betUSD?`💵 USD (US$ ${fmtUSDs(S.usdS?S.bal/S.usdS.r:usdHave())})`:'🪙 Koin';b.classList.toggle('on',!!SET.betUSD);};up();
   b.onclick=e=>{e.stopPropagation();if(S.bet>0||busy){SFX.error();showResult('Selesaikan taruhan dulu sebelum ganti mata uang');return;}if(!SET.betUSD&&usdHave()<=0){SFX.error();showResult('Belum punya USD. Beli dulu di app 💱 Valas');return;}SET.betUSD=!SET.betUSD;if(SET.betUSD)usdStart();else usdEnd();up();SFX.pop();};
   box.insertBefore(b,box.firstChild);setInterval(()=>{if(b.isConnected)up();},1000);}catch(e){}return box;})(betExtras);
-const fmtUSDs=n=>{const A=Math.abs(n);if(A>=1e15&&isFinite(n))return BIGU(n);if(A>=1e12)return (n/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';if(A>=1e9)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A>=1e6)return (n/1e6).toLocaleString('id-ID',{maximumFractionDigits:2})+' jt';return Math.floor(n).toLocaleString('id-ID');};
+const fmtUSDs=n=>{const A=Math.abs(n);if(A>=1e30&&isFinite(n))return tierS(n);if(A>=1e15&&isFinite(n))return BIGU(n);if(A>=1e12)return (n/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';if(A>=1e9)return (n/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A>=1e6)return (n/1e6).toLocaleString('id-ID',{maximumFractionDigits:2})+' jt';return Math.floor(n).toLocaleString('id-ID');};
 /* HUD: USD line under the coin box */
 render=(f=>function(){const r=f.apply(this,arguments);try{let u=$('balUsd');if(!u){u=document.createElement('div');u.id='balUsd';const m=$('money');m.parentNode.insertBefore(u,m.nextSibling);}
   if(S.usdS){u.innerHTML=`💵 <b>Mode USD</b> · taruhan US$ ${fmtUSDs(S.bal/S.usdS.r)}`;u.className='usdOn';}
