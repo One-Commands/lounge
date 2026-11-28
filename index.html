@@ -3604,7 +3604,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v100.1';
+const GAME_VER='v101';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -8700,7 +8700,7 @@ function mcryUI(){const m=mcry(),B=(on,v,t)=>`<button class="${on?'mogo':'mog'}"
   return C2('₿','Jual crypto otomatis',m.on?`Saat crypto naik ≥${m.gain}% dari harga beli, manajer jual ${m.pct}% (maks 5 menit sekali per koin).${m.loss?` Cut loss −${m.loss}%: jual semua.`:''}`:'Mati.',
       O('Status',B(m.on,'on',m.on?'Aktif':'Mati'))+O('Jual per kali',[10,25,50].map(v=>B(m.pct===v,'pct:'+v,v+'%')).join(''))+O('Saat untung',[10,20,50,100].map(v=>B(m.gain===v,'gain:'+v,'≥'+v+'%')).join(''))+O('Cut loss',[0,10,20,30].map(v=>B(m.loss===v,'loss:'+v,v?'−'+v+'%':'Mati')).join('')))
     +C2('🛒','Beli crypto otomatis',m.buy?`Saat harga turun ≥${m.dip}% dari puncak terakhir, manajer beli ${zKC(m.amt)} per kali. Sudah terpakai ${zKC(m.spent)} dari batas ${zKC(m.max)}.`:'Mati.',
-      O('Status',B(m.buy,'buy',m.buy?'Aktif':'Mati'))+O('Beli saat turun',[5,10,20,30].map(v=>B(m.dip===v,'dip:'+v,'−'+v+'%')).join(''))+O('Per kali beli',[[1e9,'1 M'],[1e10,'10 M'],[1e11,'100 M'],[1e12,'1 T']].map(([v,l])=>B(m.amt===v,'amt:'+v,l)).join(''))+O('Batas total',[[1e11,'100 M'],[1e12,'1 T'],[1e13,'10 T'],[1e14,'100 T']].map(([v,l])=>B(m.max===v,'max:'+v,l)).join('')));}
+      O('Status',B(m.buy,'buy',m.buy?'Aktif':'Mati'))+O('Beli saat turun',[5,10,20,30].map(v=>B(m.dip===v,'dip:'+v,'−'+v+'%')).join(''))+O('Per kali beli',bud101([.001,.01,.05,.1]).map(([v,l])=>B(on101(m.amt,v),'amt:'+v,l)).join(''))+O('Batas total',bud101([.01,.1,.5,1]).map(([v,l])=>B(on101(m.max,v),'max:'+v,l)).join('')));}
 setInterval(()=>{try{if(!started||!anyMgr())return;const m=mcry();if(!m.on&&!m.buy)return;window.__quiet=1;const now=Date.now();
   MK.forEach(a=>{if(a.t!=='crypto')return;const have=PF.hold[a.id]||0,last=m.t[a.id]||0;if(now-last<300000)return;
     if(m.on&&have>0){const avg=(PF.cost[a.id]||0)/have;if(avg>0){if(m.loss&&a.p<=avg*(1-m.loss/100)){mktSell(a,have,'👔 Manajer cut loss crypto');m.t[a.id]=now;return;}
@@ -8987,7 +8987,7 @@ function mbuyUI(){const m=mbuy(),left=Math.max(0,m.bud-m.spent),B=(on,v,t)=>`<bu
   const L=mbuyCands().filter(x=>!m.roi||x.roi<=m.roi);
   return `<div class="mocard mocard2 ${m.on?'prme':''}"><div class="mohd"><div class="moic">🤖</div><div class="mot"><b>Beli properti otomatis${m.on?' · aktif':''}</b><small>${m.on?`Manajer membeli properti dengan balik modal tercepat${m.roi?` (maks ${m.roi} hari)`:''} sampai budget habis. Terpakai ${zKC(m.spent)} dari ${zKC(m.bud)} · sisa ${zKC(left)} · ${m.n} properti dibeli.`:`Kasih budget, manajer beli sendiri tiap 30 detik. ${L.length} properti cocok sekarang.`}</small></div></div>`+
     O('Status',B(m.on,'on',m.on?'Aktif':'Mati'))+
-    O('Budget',[[1e14,'100 T'],[1e15,'1.000 T'],[1e16,'10.000 T'],[1e17,'100.000 T']].map(([v,l])=>B(m.bud===v,'bud:'+v,l)).join(''))+
+    O('Budget',bud101([.01,.1,.5,1]).map(([v,l])=>B(on101(m.bud,v),'bud:'+v,l)).join(''))+
     `<div class="moopt"><span>Budget bebas</span><div><input id="mbuyIn" placeholder="contoh 2500 T" inputmode="text" style="width:130px;padding:6px 8px;border-radius:10px;border:2px solid #e2d3b0;font:inherit"><button class="mogo" data-xa="xMbuyIn" data-id="">Pakai</button></div></div>`+
     O('Balik modal maks',[[10,'10 hari'],[30,'30 hari'],[100,'100 hari'],[0,'Semua']].map(([v,l])=>B(m.roi===v,'roi:'+v,l)).join(''))+
     O('Hitung ulang terpakai',B(0,'reset','Reset'))+`</div>`;}
@@ -12002,7 +12002,7 @@ const MA97={t:{}};
 function ma97Tick(){if(!started||typeof anyMgr!=='function'||!anyMgr())return;const s=ma83(),O=s.on;window.__quiet=1;
   if(O.prop97&&maReady('prop97',45000))try{if(!ADV.list.length)ADV.list=advPick();let n=0;for(const x of ADV.list.slice()){if(n>=3)break;if(!x.ok||!(x.ask<S.bal*.25)||!(x.roi<400))continue;const M=x.M,was=megaS(M).me;bizDo('gBuy',M.id);if(megaS(M).me&&!was){n++;ADV.list=ADV.list.filter(y=>y.M.id!==M.id);maLog('🏙️',`Beli ${M.n} seharga ${zKC(x.ask)} (balik modal ±${Math.round(x.roi)} hari).`);}}if(!ADV.list.length)ADV.list=advPick();}catch(e){console.error('ma97 prop',e);}
   if(O.stk97&&maReady('stk97',60000))try{let n=0;const now=Date.now();for(const x of stkIdeas()){if(n>=3)break;const a=x.a;if(now-(MA97.t[a.id]||0)<600000)continue;const q=Math.floor(Math.min(freeFloat(a),a.sh*.01));if(q<1)continue;const c=q*blkPx(a,q);if(!(c<S.bal*.05))continue;if(blockBuy(a,q)!==false){MA97.t[a.id]=now;n++;maLog('📈',`Beli ${fmt(q)} lembar ${a.id} (1%) seharga ${zKC(Math.round(c))}.`);}}}catch(e){console.error('ma97 stk',e);}
-  if(O.cry97)try{const m=mcry();m.on=1;m.buy=1;const amt=Math.min(1e15,Math.max(1e10,Math.round(S.bal*.002)));if(m.amt<amt*.5||m.amt>amt*2){m.amt=amt;m.max=amt*50;m.spent=0;}}catch(e){}
+  if(O.cry97)try{const m=mcry();m.on=1;m.buy=1;const amt=Math.max(1e10,Number((S.bal*.002).toPrecision(2)));if(m.amt<amt*.5||m.amt>amt*2){m.amt=amt;m.max=amt*50;m.spent=0;}}catch(e){}
   if(O.sell97)try{const st=mgrSet();if(!st.auto)st.auto=15;const k=mgrStk();k.on=1;}catch(e){}
   window.__quiet=0;}
 setInterval(()=>{try{ma97Tick();}catch(e){console.error('ma97',e);}},15000);
@@ -12221,6 +12221,44 @@ guard96=(f=>function(){try{if(bad100(S.bal)){const g=G100.good!=null?G100.good:(
   if(PF.bank){if(bad100(PF.bank.save))PF.bank.save=0;if(PF.bank.loan&&(!isFinite(PF.bank.loan)||Math.abs(PF.bank.loan)>=1e290))PF.bank.loan=0;}}catch(e){}return f.apply(this,arguments);})(guard96);
 setInterval(()=>{try{guard96();if(G100.bad)render();}catch(e){}},700);setInterval(()=>{try{if(G100.good!=null)PF.g100=G100.good;}catch(e){}},5000);
 setTimeout(function g100(){if(!started){setTimeout(g100,1000);return;}guard96();},500);
+
+/* ================= v101: Kantor Manajer tetap bisa discroll, saldo tidak bisa jadi ∞, budget manajer ikut kekayaan, properti & crypto menyesuaikan inflasi ================= */
+/* --- 1. manager office keeps its scroll position across live refreshes and does not redraw under a finger --- */
+openMgrOffice=(f=>function(){const r=f.apply(this,arguments);try{const m=modal,el=m&&m.el||document.querySelector('.modal .moff')&&document.querySelector('.modal .moff').parentNode;if(!el||el.__s101)return r;el.__s101=1;
+  const st={tab:moTab,sc:0,touch:0,pend:0};
+  el.addEventListener('scroll',e=>{if(e.target&&e.target.classList&&e.target.classList.contains('momain')){st.sc=e.target.scrollTop;st.tab=moTab;}},true);
+  new MutationObserver(()=>{const mm=el.querySelector('.momain');if(!mm)return;if(moTab===st.tab){if(Math.abs(mm.scrollTop-st.sc)>2)mm.scrollTop=st.sc;}else{st.tab=moTab;st.sc=0;}}).observe(el,{childList:true,subtree:true});
+  el.addEventListener('touchstart',()=>{st.touch=1;},{passive:true,capture:true});
+  const up=()=>{st.touch=0;if(st.pend){st.pend=0;setTimeout(()=>{try{if(modal===m&&m.refresh)m.__r101();}catch(e){}},350);}};el.addEventListener('touchend',up,{passive:true,capture:true});el.addEventListener('touchcancel',up,{passive:true,capture:true});
+  if(m&&m.refresh&&!m.__r101){m.__r101=m.refresh;m.refresh=function(){if(st.touch){st.pend=1;return;}return m.__r101.apply(this,arguments);};}}catch(e){console.error('mo101',e);}return r;})(openMgrOffice);
+/* --- 2. the balance can never become Infinity/NaN: a transaction that would overflow is refused --- */
+const B101={rej:0,last:''};
+function bal101(){try{const d=Object.getOwnPropertyDescriptor(S,'bal');if(d&&d.set&&d.set.__b101)return;let v=S.bal;if(typeof v!=='number'||!isFinite(v)||v<=-1e290)v=(G100&&G100.good!=null)?G100.good:0;
+  const set=function(x){if(typeof x!=='number'||!isFinite(x)||Math.abs(x)>=1e295){B101.rej++;try{B101.last=String(x)+' '+(new Error().stack||'').split('\n').slice(2,5).join(' / ');console.warn('bal101 refused',B101.last);}catch(e){}return;}v=x;};set.__b101=1;
+  Object.defineProperty(S,'bal',{get(){return v;},set,enumerable:true,configurable:true});}catch(e){console.error('bal101',e);}}
+setTimeout(function b101(){if(!started){setTimeout(b101,800);return;}bal101();},1500);setInterval(()=>{try{if(started)bal101();}catch(e){}},5000);
+incAdd=(f=>function(k,d,txt){if(typeof d!=='number'||!isFinite(d)||Math.abs(d)>=1e295)return;return f.apply(this,arguments);})(incAdd);
+function inc101Clean(){try{const I=incS();for(const k in I.tot){const t=I.tot[k];if(Array.isArray(t))for(let i=0;i<2;i++)if(!isFinite(t[i]))t[i]=0;}I.h=(I.h||[]).filter(x=>isFinite(x.d));
+  if(INC41.ss)for(const k in INC41.ss){const t=INC41.ss[k];for(let i=0;i<2;i++)if(!isFinite(t[i]))t[i]=0;}for(const k in INC41)if(typeof INC41[k]==='number'&&!isFinite(INC41[k]))INC41[k]=S.bal;}catch(e){}}
+setInterval(inc101Clean,3000);setTimeout(inc101Clean,2500);
+BIGU=(f=>function(n){if(!isFinite(n))return n<0?'−maks':'maks';return f.apply(this,arguments);})(BIGU);
+/* --- 3. manager budgets follow your fortune --- */
+function bud101(fr){const b=Math.max(S.bal,1e12);return fr.map(x=>{const v=Number((b*x).toPrecision(2));return [v,zKC(v)];});}
+function on101(a,v){return a>0&&Math.abs(a/v-1)<.03;}
+/* --- 4. property and crypto prices follow inflation of fortunes --- */
+function cxFix(){const X=PF.cx101||1;MK.forEach(a=>{if(a.t!=='crypto'||a.__cx===X)return;const r=X/(a.__cx||1);if(r!==1){const fromPx=!!(PF.px&&PF.px[a.id]&&a.__cx===undefined&&Math.abs(PF.px[a.id]-a.p)<1e-6*Math.max(1,a.p));
+  ['p0','b0'].forEach(k=>{if(a[k])a[k]*=r;});if(a.liq)a.liq*=r;if(!fromPx){['p','open'].forEach(k=>{if(a[k])a[k]*=r;});if(Array.isArray(a.h))a.h=a.h.map(v=>v*r);if(a.f)a.f*=r;}else{if(a.f&&Math.abs(a.f-a.p)>1e-6*a.p)a.f*=r;if(Array.isArray(a.h))a.h=a.h.map(v=>v<a.p/(r*.5)?v*r:v);}}a.__cx=X;});}
+savePF=(f=>function(){try{cxFix();}catch(e){}return f.apply(this,arguments);})(savePF);
+function cxRescale(r){if(!(r>1.0001)||!isFinite(r))return;cxFix();PF.cx101=(PF.cx101||1)*r;
+  MK.forEach(a=>{if(a.t!=='crypto')return;['p','p0','b0','f','open'].forEach(k=>{if(a[k])a[k]*=r;});if(a.liq)a.liq*=r;if(Array.isArray(a.h))a.h=a.h.map(v=>v*r);a.__cx=PF.cx101;if(PF.cost&&PF.cost[a.id])PF.cost[a.id]*=r;if(PF.px&&PF.px[a.id])PF.px[a.id]=a.p;});
+  (PF.lim||[]).forEach(o=>{const a=MK.find(x=>x.id===o.id);if(a&&a.t==='crypto'&&o.px)o.px*=r;});(PF.ord||[]).forEach(o=>{const a=MK.find(x=>x.id===o.id);if(a&&a.t==='crypto'&&o.px)o.px*=r;});
+  for(const k in PF.ohlc||{}){const a=MK.find(x=>x.id===k);if(a&&a.t==='crypto')(PF.ohlc[k]||[]).forEach(row=>{if(Array.isArray(row))for(let i=0;i<4;i++)if(typeof row[i]==='number')row[i]*=r;});}}
+function eco101(){if(!started)return;const base=mkBase();if(!(base>1e15)||!isFinite(base))return;const msg=[];
+  try{const avgH=PRX0.h.reduce((a,b)=>a+b,0)/PRX0.h.length,X=base*.001/avgH;if(isFinite(X)&&X>(PF.prx||1)*1000){const b0=bizVal();PF.prx=X;prxApply();msg.push(`properti (bisnismu ${zKC(b0)} → ${zKC(bizVal())})`);}}catch(e){console.error('eco101 prx',e);}
+  try{cxFix();const C=MK.filter(a=>a.t==='crypto');const top=Math.max(...C.map(a=>a.p));const r=base*1e-6/top;if(isFinite(r)&&r>1000){const b0=C.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);cxRescale(r);const b1=C.reduce((s,a)=>s+(PF.hold[a.id]||0)*a.p,0);msg.push(`crypto (punyamu ${zKC(b0)} → ${zKC(b1)})`);}}catch(e){console.error('eco101 cx',e);}
+  if(msg.length){const t=`📈 Inflasi: harga ${msg.join(' dan ')} mengikuti kekayaan zaman.`;logLine('sys',null,t,'win');try{news.unshift(t);news=news.slice(0,6);}catch(e){}savePF();save();try{phoneRender();}catch(e){}}}
+setTimeout(function e101(){if(!started){setTimeout(e101,2000);return;}try{cxFix();eco101();}catch(e){console.error('eco101',e);}setInterval(()=>{try{cxFix();eco101();}catch(e){}},180000);},8000);
+try{NEW82.unshift(['📈','Inflasi aset & angka aman','Properti dan crypto ikut naik sesuai kekayaan zaman, budget manajer ikut kekayaanmu, saldo tidak bisa jebol jadi tak terhingga, Kantor Manajer bisa discroll.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
