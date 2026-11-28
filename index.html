@@ -3604,7 +3604,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v98';
+const GAME_VER='v99';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11967,7 +11967,7 @@ const GK97={L:470,Z:40};
 function kd97(o){const L=KDS.map(k=>k[0]);const i=Math.max(0,L.indexOf(GK.kd));return L[(i+o+L.length)%L.length];}
 setInterval(()=>{try{if(!started||!you||busy||modal||Date.now()<BR97.cd)return;const p=you.pos;
   if(Math.abs(p.z+100)<6&&p.x>766&&p.x<790&&Math.abs(p.x)<2000){BR97.cd=Date.now()+4000;INT.ret={x:740,z:-100,yaw:-Math.PI/2};let kd='aurelia';try{const k=tkKing();kd=k?k.kd:(GK.kd||'aurelia');}catch(e){}gk97Go(kd,'W');return;}
-  if(GK.built&&Math.abs(p.z-GK.Z-GK97.Z)<6){if(p.x>GK.X+GK97.L+6){BR97.cd=Date.now()+4000;gk97Go(kd97(1),'W');}else if(p.x<GK.X-GK97.L-6){BR97.cd=Date.now()+4000;gk97Go(kd97(-1),'E');}}}catch(e){}},250);
+  if(GK.built&&Math.abs(p.z-GK.Z-GK97.Z)<6&&Math.abs(p.x-GK.X)<GK97.L+60){if(p.x>GK.X+GK97.L+6){BR97.cd=Date.now()+4000;gk97Go(kd97(1),'W');}else if(p.x<GK.X-GK97.L-6){BR97.cd=Date.now()+4000;gk97Go(kd97(-1),'E');}}}catch(e){}},250);
 /* kingdom bridges east and west, to the neighbouring kingdoms */
 gkBuild=(f=>function(kd){const c0=colliders.length;const g=f.apply(this,arguments);try{gk97Bridges(g,kd);}catch(e){console.error('gk97b',e);}try{GK.cols=new Set(colliders.slice(c0));}catch(e){}return g;})(gkBuild);
 function gk97Bridges(g0,kd){const M=cx97Mats();const g=new THREE.Group();g0.add(g);const X=GK.X,Z=GK.Z+GK97.Z,L=GK97.L;
@@ -12075,6 +12075,57 @@ setTimeout(function m98(){if(!started){setTimeout(m98,1500);return;}try{const g=
   const sg=new THREE.Mesh(new THREE.PlaneGeometry(3,.75),new THREE.MeshBasicMaterial({map:fl98Tex(),side:THREE.DoubleSide}));sg.position.set(0,2.6,0);g.add(sg);
   colliders.push({x0:x-.7,x1:x+.7,z0:z-1.8,z1:z+1.8,top:1.2});stationAdd('desk98m',x-2,z,-Math.PI/2,'Meja Depan Mall',{useDist:2.8,verb:'Buka',act:()=>showResult('🛎️ Pilih lantai mall di panel meja depan'),ctx:mall98Ctx,btn:'MEJA'});}catch(e){console.error('mall98',e);}},1800);
 try{NEW82.unshift(['🛎️','Meja Depan & Sky Suites','Beli per lantai atau semua lantai apartemen/hotel lewat meja depan, borong unit mall per lantai; apartemen dapat lobi kaca, balkon, infinity pool atap dan sky bridge.','baru82']);}catch(e){}
+
+/* ================= v99: Jalan Raya Lintas Permata — semua kota/zona tersambung lewat darat: jalan raya di sisi timur dengan jembatan di antara pulau-pulau zona, jalan masuk ke tiap kota; distrik baru & jembatan kerajaan bisa dijalani ================= */
+const HW99={X:236,W:40,z0:-290,z1:null};
+/* walkable areas: expanded city, highway corridor and connectors, kingdom bridges */
+inWorld=(f=>function(x,z){if(f.apply(this,arguments))return true;
+  const inCas=Math.abs(x)<ROOM+2&&Math.abs(z)<ROOM+2;
+  if(!inCas&&x>-560&&x<800&&z>-300&&z<272)return true;
+  if(x>98&&x<HW99.X+HW99.W/2+30&&z<-270&&z>(HW99.z1||-9300))return true;
+  try{if(GK.built&&Math.abs(x-GK.X)<GK97.L+40&&Math.abs(z-GK.Z-GK97.Z)<(Math.abs(x-GK.X)>GK97.L-30?45:7))return true;}catch(e){}
+  return false;})(inWorld);
+drvCan=(f=>function(){if(f.apply(this,arguments))return true;try{const p=you.pos;return started&&p.x>98&&p.x<HW99.X+HW99.W/2+30&&p.z<-270;}catch(e){return false;}})(drvCan);
+setInterval(()=>{try{if(!DRV66.on)return;if(DRV66.kb==null||DRV66.kn!==DRV66.kind){DRV66.kb=DRV66.k;DRV66.kn=DRV66.kind;}const p=you.pos,on=p.x>HW99.X-HW99.W/2-4&&p.x<HW99.X+HW99.W/2+4&&p.z<-280;DRV66.k=on?DRV66.kb*2.5:DRV66.kb;}catch(e){}},300);
+function hw99(){if(HW99.done)return;HW99.done=1;const X=HW99.X,W=HW99.W;const last=ZN.length-1;const zEnd=zoneZ(last)-130;HW99.z1=zEnd;
+  const g=new THREE.Group();scene.add(g);HW99.g=g;
+  const roadT=canvasTex(256,128,(q,w,h)=>{q.fillStyle='#2b2b33';q.fillRect(0,0,w,h);for(let i=1;i<10;i++){if(i===5)continue;q.fillStyle='#f2f2f2';q.fillRect(i*w/10-1,0,2,h*.5);}q.fillStyle='#ffd25f';q.fillRect(w/2-4,0,3,h);q.fillRect(w/2+1,0,3,h);q.fillStyle='#e8e0d0';q.fillRect(0,0,4,h);q.fillRect(w-4,0,4,h);});roadT.wrapS=roadT.wrapT=THREE.RepeatWrapping;
+  const L=c=>new THREE.MeshLambertMaterial({color:c});const grass=L(0x4f8a46),sand=L(0xd8c89a),stone=L(0xd6c8aa),stoneD=L(0x9a8c74),water=new THREE.MeshBasicMaterial({color:0x2f8fc8}),pole=L(0x2a2a30),lampM=new THREE.MeshBasicMaterial({color:0xfff1c0});
+  const white99=L(0xf2f0ea),gold99=L(0xd8a648),cable99=L(0xe8e8ee);const plane=(w,d,m,x,z,y)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m);p.rotation.x=-Math.PI/2;p.position.set(x,y||.004,z);g.add(p);return p;};
+  const road=(x,z,len,vert,y)=>{const t=roadT.clone();t.needsUpdate=true;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,len/30);const p=new THREE.Mesh(new THREE.PlaneGeometry(W,len),new THREE.MeshLambertMaterial({map:t}));p.rotation.x=-Math.PI/2;if(!vert)p.rotation.z=Math.PI/2;p.position.set(x,y||.06,z);g.add(p);return p;};
+  const box=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);g.add(o);return o;};
+  /* island spans along the line: city, each zone; the rest are straits with bridges */
+  const isl=[[-1150,-270,'Kota Permata']];ZN.forEach((zn,k)=>{const zc=zoneZ(k);isl.push([zc-100,zc+100,zn.n,k,zn.under]);});
+  isl.sort((a,b)=>b[1]-a[1]);
+  /* continuous road */
+  const z0=HW99.z0,len=z0-zEnd;road(X,(z0+zEnd)/2,len,true);
+  /* land along the road for every island, water + bridge between islands */
+  let prevBot=z0+20;const lampPos=[];
+  isl.forEach(([a,b,n,k,under],i)=>{const top=Math.min(b,prevBot),bot=a;
+    if(prevBot>top+1){/* strait between islands */const sl=prevBot-top,cz=(prevBot+top)/2;plane(X*2+60,sl,water,X/2-25,cz,.002);
+      box(W+4,.5,sl+4,stone,X,.25,cz);road(X,cz,sl+4,true,.52);for(const s of [-1,1]){box(.8,1.4,sl+4,stone,X+s*(W/2+1.6),1,cz);colliders.push({x0:X+s*(W/2+1.6)-.4,x1:X+s*(W/2+1.6)+.4,z0:top-2,z1:prevBot+2,top:2});}
+      colliders.push({x0:X-W/2-2,x1:X+W/2+2,z0:top-2,z1:prevBot+2,top:.5});colliders.push({x0:-130,x1:X-W/2-2.2,z0:top,z1:prevBot,top:3},{x0:X+W/2+2.2,x1:X+60,z0:top,z1:prevBot,top:3});
+      for(let z=top+8;z<prevBot-4;z+=24)for(const s of [-1,1])box(3,1.8,3,stoneD,X+s*(W/2+3.6),.2,z);
+      /* twin pylons with stay cables and a name plate */const PH=46;for(const s of [-1,1]){const px=X+s*(W/2+3);box(2.4,PH,2.4,white99,px,PH/2,cz);box(2.8,1.2,2.8,gold99,px,PH-2,cz);
+        for(let c=1;c<=4;c++)for(const d of [-1,1]){const dz=d*Math.min(sl/2-2,c*sl/10+4),y1=PH-4-c*2.2,y0=1.2,L=Math.hypot(y1-y0,dz),o=box(.18,L,.18,cable99,px,(y0+y1)/2,cz+dz/2);o.rotation.x=Math.atan2(dz,y1-y0)*-1;}}
+      box(W+8,1.6,1.6,white99,X,PH-6,cz);}
+    plane(W+60,top-bot,grass,X,(top+bot)/2,.003);
+    for(let z=bot+10;z<top;z+=50)lampPos.push([X-W/2-2,z],[X+W/2+2,z+25],[X,z+12]);
+    if(k!=null&&!under){/* connector road into the zone and a sign */const zc=zoneZ(k),cz=zc+92,x0=104,len2=X-W/2-x0;road(x0+len2/2,cz,len2+2,false,.05);plane(len2+4,24,grass,x0+len2/2,cz,.003);
+      const tx=canvasTex(512,128,(q,w,h)=>{q.fillStyle='#1f6a3a';q.fillRect(0,0,w,h);q.strokeStyle='#fff';q.lineWidth=6;q.strokeRect(5,5,w-10,h-10);q.fillStyle='#fff';q.textAlign='center';q.font='bold 40px sans-serif';q.fillText(String(n).slice(0,24),w/2,60);q.font='26px sans-serif';q.fillText('← belok masuk',w/2,104);});
+      const sp=new THREE.Mesh(new THREE.PlaneGeometry(9,2.25),new THREE.MeshBasicMaterial({map:tx,side:THREE.DoubleSide}));sp.position.set(X+W/2+3,5,cz+14);g.add(sp);box(.2,5,.2,pole,X+W/2+3,2.5,cz+14-1.2);
+      sp.rotation.y=0;}
+    prevBot=bot;});
+  /* city link: from the south-east ring road corner to the highway */
+  road((X+270)/2,z0,Math.abs(270-X)+W,false,.05);plane(270-X+30,24,grass,(X+270)/2,z0,.003);
+  {const tx=canvasTex(512,128,(q,w,h)=>{q.fillStyle='#2f6fd6';q.fillRect(0,0,w,h);q.strokeStyle='#fff';q.lineWidth=6;q.strokeRect(5,5,w-10,h-10);q.fillStyle='#fff';q.textAlign='center';q.font='bold 40px sans-serif';q.fillText('JALAN RAYA LINTAS PERMATA',w/2,60);q.font='26px sans-serif';q.fillText('ke semua kota & kerajaan ↓',w/2,104);});
+   const sp=new THREE.Mesh(new THREE.PlaneGeometry(14,3.5),new THREE.MeshBasicMaterial({map:tx,side:THREE.DoubleSide}));sp.position.set(X,7,z0-6);g.add(sp);for(const s of [-1,1])box(.3,7,.3,pole,X+s*7,3.5,z0-6);}
+  /* lamps as two instanced meshes */
+  {const pg=new THREE.CylinderGeometry(.1,.12,5,6),hg=new THREE.SphereGeometry(.38,6,4),P=new THREE.InstancedMesh(pg,pole,lampPos.length),H=new THREE.InstancedMesh(hg,lampM,lampPos.length),o=new THREE.Object3D();
+   lampPos.forEach(([x,z],i)=>{o.position.set(x,2.5,z);o.updateMatrix();P.setMatrixAt(i,o.matrix);o.position.set(x,5.15,z);o.updateMatrix();H.setMatrixAt(i,o.matrix);});g.add(P);g.add(H);}
+  try{merge90(g);}catch(e){}}
+setTimeout(function h99(){if(!started){setTimeout(h99,1500);return;}setTimeout(()=>{try{hw99();}catch(e){console.error('hw99',e);}},3000);},1500);
+try{NEW82.unshift(['🛣️','Jalan Raya Lintas Permata','Semua kota dan kerajaan tersambung lewat darat dan jembatan. Bisa disetir dari ujung tenggara kota.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
