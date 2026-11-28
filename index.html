@@ -707,7 +707,7 @@ function zKF(n){n=+n||0;return Math.abs(n)>=ZUS&&isFinite(n)?'Ƶ '+zusS(n):'🪙
 const KCN=1e30;function kcnN(v){const A=Math.abs(v);if(A<1e6)return v.toLocaleString('id-ID',{maximumFractionDigits:A>=100?0:2});if(A<1e9)return (v/1e6).toLocaleString('id-ID',{maximumFractionDigits:2})+' jt';if(A<1e12)return (v/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M';if(A<1e15)return (v/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';return BIGU(v);}
 function kcnS(n){return kcnN(n/KCN)+' Kencana';}
 function wlS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?'♛ '+kcnS(n):zKC(n);}
-function balS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?kcnS(n):fmtBig(n);}
+function balS(n){n=+n||0;return Math.abs(n)>=KCN&&isFinite(n)?kcnN(n/KCN):fmtBig(n);}
 const HOST="Bang Rio";
 
 /* ---------- state ---------- */
@@ -3597,7 +3597,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v96.2';
+const GAME_VER='v96.3';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11711,8 +11711,13 @@ function castle92(){const G=new THREE.Group();scene.add(G);const MC={};const M=c
   /* ---- interior: stone arcade on the walls, stained glass, torches ---- */
   const IW=ROOM-.05,pil=stoneM92(.4,3,0xf0dcc0),archM=stoneM92(2,.3,0xf0dcc0),glassM=new THREE.MeshBasicMaterial({map:GLASS92});
   const flames=[];
+  /* v96.3: things standing against the walls (neon signs, game machines) so pilasters don't cut through them */
+  const wallIt=[];{const bx=new THREE.Box3();scene.children.forEach(o=>{if(o===G||!o.visible&&!o.isGroup)return;const q=o.position;if(Math.abs(q.x)>ROOM+1||Math.abs(q.z)>ROOM+1)return;bx.setFromObject(o);if(bx.isEmpty()||bx.min.y>12||bx.max.y<.3)return;
+    const sx=bx.max.x-bx.min.x,sz=bx.max.z-bx.min.z;if(sx>30||sz>30)return;if(bx.max.y-bx.min.y>12)return;
+    if(bx.min.x<-ROOM+3.2||bx.max.x>ROOM-3.2||bx.min.z<-ROOM+3.2||bx.max.z>ROOM-3.2)wallIt.push([bx.min.x,bx.max.x,bx.min.z,bx.max.z,bx.max.y]);});}
+  const obst=(px,pz)=>{let top=0;for(const [x0,x1,z0,z1,y1] of wallIt)if(px>x0-.9&&px<x1+.9&&pz>z0-.9&&pz<z1+.9)top=Math.max(top,y1);return top;};
   const bay=(x,z,ry,len,glass)=>{/* x,z = wall point, ry faces into room, len along the wall */const ax=Math.cos(ry),az=-Math.sin(ry);
-    for(const s of [-1,1]){const px=x+ax*s*len/2,pz=z+az*s*len/2;B(.9,CH,.5,pil,px,CH/2,pz,ry);flames.push([px+Math.sin(ry)*.5,5.6,pz+Math.cos(ry)*.5]);}
+    for(const s of [-1,1]){const px=x+ax*s*len/2,pz=z+az*s*len/2,o=obst(px+Math.sin(ry)*.4,pz+Math.cos(ry)*.4),b0=o>0?Math.min(CH-4,o+.4):0;B(.9,CH-b0,.5,pil,px,b0+(CH-b0)/2,pz,ry);if(b0)B(1.1,.4,.7,archM,px,b0+.2,pz,ry);else flames.push([px+Math.sin(ry)*.5,5.6,pz+Math.cos(ry)*.5]);}
     const a=new THREE.Mesh(new THREE.TorusGeometry(len/2,.28,6,20,Math.PI),archM);a.position.set(x+Math.sin(ry)*.2,CH-len/2,z+Math.cos(ry)*.2);a.rotation.y=ry;G.add(a);
     if(glass){const gw=new THREE.Mesh(new THREE.PlaneGeometry(len*.42,11),glassM);gw.position.set(x+Math.sin(ry)*.04,CH-10.6,z+Math.cos(ry)*.04);gw.rotation.y=ry;G.add(gw);const top=new THREE.Mesh(new THREE.CircleGeometry(len*.21,14,0,Math.PI),glassM);top.position.set(x+Math.sin(ry)*.04,CH-5.1,z+Math.cos(ry)*.04);top.rotation.y=ry;G.add(top);}};
   for(let z=-40;z<=40;z+=8){const busyL=Math.abs(z)<6||Math.abs(Math.abs(z)-22)<6;bay(-IW,z,Math.PI/2,8,!busyL);bay(IW,z,-Math.PI/2,8,Math.abs(z)>4);}
