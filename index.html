@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v84';
+const GAME_VER='v84.1';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11165,6 +11165,185 @@ function gk84Front(g,kd){const st=gkStyle(kd),th=st.th;if(!th||th==='gotik')retu
     for(const s of [-1,1]){const b=B(1.4,32,1.4,0x3a2a1a,s*10,30,FZ+2);b.rotation.z=s*.75;const hd=B(2,2,4,0x3a2a1a,s*22,42,FZ+2);hd.rotation.y=s*.3;}
     roof4(30,10,0x3a2a1a,0,30,fz-2,1.2,.6);roof4(30.5,1.6,0xffffff,0,35.2,fz-2,1.05,.55);}}
 gkBuild=(f=>function(kd){const g=f.apply(this,arguments);try{gk84Front(g,kd);}catch(e){console.error('gk84f',e);}return g;})(gkBuild);
+
+/* ================= v84.1: kota di sekitar istana bertema per kerajaan (rumah, atap, tanah, bukit, distrik khas) ================= */
+function gk85Town(g,kd){const st=gkStyle(kd),th=st.th;if(!th)return;const {X,Z}=GK,MC={};const M=c=>MC[c]||(MC[c]=mat(c)),MB=c=>MC['b'+c]||(MC['b'+c]=new THREE.MeshBasicMaterial({color:c}));
+  const B=(w,h,d,c,x,y,z,col)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof c==='number'?M(c):c);m.position.set(X+x,y,Z+z);g.add(m);if(col)colliders.push({x0:X+x-w/2,x1:X+x+w/2,z0:Z+z-d/2,z1:Z+z+d/2,top:y+h/2});return m;};
+  const C=(rt,rb,h,c,x,y,z,seg,col)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||12),typeof c==='number'?M(c):c);m.position.set(X+x,y,Z+z);g.add(m);if(col)colliders.push({x0:X+x-rb,x1:X+x+rb,z0:Z+z-rb,z1:Z+z+rb,top:y+h/2});return m;};
+  const K=(r,h,c,x,y,z,seg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg||12),typeof c==='number'?M(c):c);m.position.set(X+x,y,Z+z);g.add(m);return m;};
+  const S=(r,c,x,y,z,sy)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),typeof c==='number'?M(c):c);m.position.set(X+x,y,Z+z);if(sy)m.scale.y=sy;g.add(m);return m;};
+  const P=(w,d,c,x,z,y)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),typeof c==='number'?M(c):c);p.rotation.x=-Math.PI/2;p.position.set(X+x,y||.03,Z+z);g.add(p);return p;};
+  const inst=(geo,m,pts)=>{const im=new THREE.InstancedMesh(geo,typeof m==='number'?M(m):m,pts.length),o=new THREE.Object3D();pts.forEach((p,i)=>{o.position.set(X+p[0],p[1],Z+p[2]);o.rotation.set(0,p[3]||0,0);o.scale.set(p[4]||1,p[5]||p[4]||1,p[6]||p[4]||1);o.updateMatrix();im.setMatrixAt(i,o.matrix);});g.add(im);return im;};
+  const lbl=(t,s,x,y,z,k)=>{try{const l=labelPlane(t,s,'#ffd25f');l.scale.setScalar(k||1);l.position.set(X+x,y,Z+z);g.add(l);}catch(e){}};
+  const prm=o=>(o.geometry&&o.geometry.parameters)||{},ty=o=>o.geometry&&o.geometry.type;
+  const find=(t,f)=>g.children.filter(o=>ty(o)===t&&f(prm(o)));
+  const walls=find('BoxGeometry',p=>p.width===5&&p.height===5&&p.depth===5).filter(o=>o.isInstancedMesh)[0];
+  const roofs=find('ConeGeometry',p=>p.radius===4.4&&p.height===3.2&&p.radialSegments===4).filter(o=>o.isInstancedMesh)[0];
+  const crops=find('BoxGeometry',p=>p.width===2.4&&p.height===.9&&p.depth===10)[0];
+  const fields=find('PlaneGeometry',p=>p.width===26&&p.height===22);
+  const townG=find('PlaneGeometry',p=>p.width===470&&p.height===400)[0],outG=find('PlaneGeometry',p=>p.width===900&&p.height===800)[0];
+  const roads=find('PlaneGeometry',p=>(p.width===16&&p.height===110)||(p.width===330&&p.height===12)||(p.width===12&&p.height===230));
+  const hills=find('ConeGeometry',p=>p.radius===60&&p.height===45)[0],forest=find('ConeGeometry',p=>p.radius===3.4&&p.height===9)[0];
+  const mills=find('CylinderGeometry',p=>p.radiusTop===2&&p.radiusBottom===3&&p.height===14).concat(find('ConeGeometry',p=>p.radius===2.6&&p.height===3));
+  const hubs=(GK.spin||[]).filter(s=>s.ax==='z');
+  const hay=find('CylinderGeometry',p=>p.radiusTop===1.2&&p.height===1.8)[0];
+  /* house positions read back from the instanced walls */
+  const H=[];if(walls){const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3(),e=new THREE.Euler();for(let i=0;i<walls.count;i++){walls.getMatrixAt(i,m);m.decompose(p,q,s);e.setFromQuaternion(q);H.push({x:p.x-X,z:p.z-Z,ry:e.y,s:s.x});}}
+  const recol=(o,c)=>{if(o){o.material=M(c);}};
+  const newRoof=(geo,c,yf,rot)=>{if(roofs)roofs.visible=false;return inst(geo,c,H.map(h=>[h.x,yf*h.s,h.z,h.ry+(rot||0),h.s]));};
+  const hideMills=()=>{mills.forEach(o=>o.visible=false);hubs.forEach(s=>s.o.visible=false);};
+  const ring=(n,r0,r1,f)=>{const out=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2+(i%3)*.03,r=r0+((i*53)%(r1-r0));out.push(f?f(Math.cos(a)*r,40+Math.sin(a)*r*.9,i):[Math.cos(a)*r,0,40+Math.sin(a)*r*.9]);}return out;};
+  /* model walker: the patrol code bobs direct children, so the model sits in one inner group */
+  const walker=(build,path,sp)=>{const grp=new THREE.Group(),inner=new THREE.Group();build(inner);grp.add(inner);grp.position.set(X+path[0][0],0,Z+path[0][1]);g.add(grp);GK.pat.push({grp,path,i:1,sp:sp||1.2,t:Math.random()*6});return grp;};
+  const bx=(grp,w,h,d,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);grp.add(m);return m;};
+  const palm=(x,z,h)=>{h=h||9;for(let i=0;i<4;i++)C(.32,.42,h/4,0x8a6a3a,x+i*.2,h/8+i*h/4,z,6);for(let i=0;i<6;i++){const a=i/6*Math.PI*2,l=new THREE.Mesh(new THREE.BoxGeometry(3.6,.1,.8),M(0x2f9a4a));l.position.set(X+x+.8+Math.cos(a)*1.6,h+.1,Z+z+Math.sin(a)*1.6);l.rotation.set(0,-a,-.35);g.add(l);}};
+  const L=[-90,198],R=[102,198];
+  const T={jawa:{gr:null,out:0x4f8a3a,hill:0x3f7a46,wall:0xf2e2c4,road:0x9a7a5a},
+    tropis:{gr:0x8fbf5a,out:0x7fb04a,hill:0x2f8a4a,wall:0xd8b880,road:0xe8d4a0},
+    gotik:{gr:null,out:0x5a8a4a,hill:0x4a6a52,wall:0xf4efe4,road:0x8a8a8a},
+    gurun:{gr:0xe0bf86,out:0xe8c88a,hill:0xdcae6a,wall:0xd8a46a,road:0xc8a070},
+    modern:{gr:0x7aa86a,out:0x6a9a5a,hill:0x5a7a6a,wall:0xe8eef6,road:0x3a3e48},
+    bahari:{gr:null,out:0x5a8a4a,hill:0x4a7a5a,wall:0xffffff,road:0xcfc2a8},
+    naga:{gr:0x6a9a4a,out:0x5a8a42,hill:0x3a6a4a,wall:0xa8a8a4,road:0x8a8278},
+    sabana:{gr:0xc8a462,out:0xc89a5a,hill:0xb87a4a,wall:0xb8744a,road:0xb8845a},
+    andes:{gr:0x7a9a5a,out:0x6a8a52,hill:0x7a7a72,wall:0x9a9282,road:0x8a7a62},
+    salju:{gr:0xf2f6fa,out:0xeef4fa,hill:0xe8eef6,wall:0x6a4a2a,road:0xd8dee6}}[th];
+  if(T.gr&&townG)recol(townG,T.gr);if(outG)recol(outG,T.out);if(hills)recol(hills,T.hill);roads.forEach(o=>recol(o,T.road));if(walls&&th!=='bahari')recol(walls,T.wall);
+
+  if(th==='jawa'){/* Kraton-style: alun-alun with twin fenced banyans, gamelan pendopo, flooded rice terraces, joglo roofs */
+    newRoof(new THREE.ConeGeometry(4.8,1.6,4),0x4a2a1a,5.6,Math.PI/4);inst(new THREE.ConeGeometry(2.6,2.8,4),0x5a3a20,H.map(h=>[h.x,7.6*h.s,h.z,h.ry+Math.PI/4,h.s]));
+    P(70,44,0xd8c8a0,L[0],L[1]);for(const s of [-1,1]){const x=L[0]+s*16,z=L[1];C(1.4,2,8,0x5a4030,x,4,z,10,true);S(7,0x2f6a32,x,11,z,.55);S(5,0x3a7a3a,x+3,13,z+2,.6);S(5,0x2a5a2e,x-3,12.5,z-2,.6);
+      for(let i=0;i<4;i++){const a=i*Math.PI/2;B(i%2?.3:9,1.4,i%2?9:.3,0xf0e8dc,x+Math.sin(a)*4.5,.7,z+Math.cos(a)*4.5);}for(let i=0;i<12;i++){const a=i/12*Math.PI*2;C(.12,.15,6,0x6a5040,x+Math.cos(a)*5,3,z+Math.sin(a)*5,5).rotation.z=Math.cos(a)*.35;}}
+    {const x=L[0],z=L[1]+14;for(const a of [-4,4])for(const b of [-3,3])C(.35,.35,4,0x7a4a2a,x+a,2,z+b,8);B(12,.5,9,0x8a5a3a,x,.25,z);K(7.6,2.4,0x4a2a1a,x,5.2,z,4).rotation.y=Math.PI/4;K(3.6,3,0x5a3a20,x,7.8,z,4).rotation.y=Math.PI/4;
+      for(let i=0;i<5;i++){const gn=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,.12,16),M(0xd8a648));gn.rotation.x=Math.PI/2;gn.position.set(X+x-4+i*2,1.6,Z+z-1);g.add(gn);B(.1,1.4,.1,0x5a3a20,x-4+i*2,1,z-1);}
+      for(let i=0;i<4;i++)miniPerson(g,X+x-3+i*2,Z+z+1.5,Math.PI,[0x2a2a5a,0x5a2a2a,0x2a4a2a,0x4a3a2a][i]);}
+    lbl('Alun-alun & Pendopo','Waringin kembar · gamelan',L[0],12,L[1]+20);
+    for(let i=0;i<5;i++){const w=60-i*6,z=R[1]-18+i*8;B(w,1+i*.8,7,0x6a5a3a,R[0],(1+i*.8)/2,z);P(w-1,6,0x7fc0b0,R[0],z,1+i*.8+.02);const rp=[];for(let k=0;k<Math.floor(w/3);k++)rp.push([R[0]-w/2+2+k*3,1.25+i*.8,z]);inst(new THREE.BoxGeometry(.6,.5,5),0x8ad84a,rp);}
+    {const x=R[0]+24,z=R[1]+18;for(const a of [-1.4,1.4])for(const b of [-1.4,1.4])C(.12,.12,2.4,0x6a4a2a,x+a,1.2,z+b,5);K(2.6,1.6,0xb89a5a,x,3.2,z,4).rotation.y=Math.PI/4;}
+    lbl('Sawah Terasering','Padi kerajaan',R[0],10,R[1]+22);
+    if(crops)recol(crops,0x9ad85a);fields.forEach(f=>recol(f,0x6ab0a0));}
+
+  if(th==='tropis'){/* island village: thatched roofs, lagoon jetty with outriggers, coconut grove */
+    newRoof(new THREE.ConeGeometry(4.6,4.4,4),0xb89a5a,7.1,Math.PI/4);
+    {const w=new THREE.Mesh(new THREE.PlaneGeometry(70,40),MB(0x3fc8d8));w.rotation.x=-Math.PI/2;w.position.set(X+L[0],.05,Z+L[1]+4);g.add(w);P(76,8,0xf0dca8,L[0],L[1]-18);
+      B(4,.4,30,0x8a6a3a,L[0],.9,L[1]+2);const pl=[];for(let i=0;i<8;i++)for(const s of [-1,1])pl.push([L[0]+s*1.8,.5,L[1]-12+i*4]);inst(new THREE.CylinderGeometry(.2,.2,1.4,6),0x6a4a2a,pl);
+      for(let i=0;i<4;i++){const x=L[0]+(i%2?-10:10)+(i>1?(i%2?-12:12):0),z=L[1]+(i>1?12:-2);const h=B(1.6,.8,7,0xc85a2a,x,.4,z);const o=B(.3,.3,6,0xf0e8dc,x+2.2,.25,z);for(const k of [-2,2])B(2.4,.15,.15,0x6a4a2a,x+1.1,.6,z+k);C(.08,.08,5,0x6a4a2a,x,3,z,5);const sl=new THREE.Mesh(new THREE.PlaneGeometry(3,4),new THREE.MeshLambertMaterial({color:[0xffd25f,0xd8435b,0x3ddc84,0xf0e8dc][i],side:THREE.DoubleSide}));sl.position.set(X+x,3.4,Z+z);sl.rotation.y=Math.PI/2;g.add(sl);}}
+    lbl('Laguna & Dermaga','Perahu cadik nelayan',L[0],8,L[1]-20);
+    for(let i=0;i<14;i++)palm(R[0]-28+(i%5)*13,R[1]-16+Math.floor(i/5)*14+(i%2)*3,7+(i%3)*1.5);
+    {const x=R[0],z=R[1]+3;B(4,.2,1.6,0xe8d8b0,x,1.4,z);lbl('Kebun Kelapa','Santai di hammock',R[0],12,R[1]+22);}
+    if(forest)forest.material=M(0x2f9a4a);if(crops)recol(crops,0x5aa83a);fields.forEach(f=>recol(f,0x9a7a4a));}
+
+  if(th==='gotik'){/* old-town: half-timber bands, steep roofs, town hall clock tower, vineyard hill */
+    newRoof(new THREE.ConeGeometry(4,6,4),0x8a3a2a,7.8,Math.PI/4);
+    inst(new THREE.BoxGeometry(5.1,.35,5.1),0x4a2a1a,H.map(h=>[h.x,2.6*h.s,h.z,h.ry,h.s,1,h.s]));{const bm=[];H.forEach(h=>{const fx=Math.sin(h.ry)*2.56*h.s,fz=Math.cos(h.ry)*2.56*h.s,lx=Math.cos(h.ry),lz=-Math.sin(h.ry);for(const k of [-2.2,2.2])bm.push([h.x+fx+lx*k*h.s,2.5*h.s,h.z+fz+lz*k*h.s,h.ry,h.s]);});inst(new THREE.BoxGeometry(.4,5,.12),0x4a2a1a,bm);}
+    {const x=L[0],z=L[1];P(56,40,0x9a9690,x,z);B(22,12,12,0xf4efe4,x,6,z,true);const r=new THREE.Mesh(new THREE.CylinderGeometry(0,13,6,4),M(0x8a3a2a));r.rotation.y=Math.PI/4;r.scale.set(1,1,.6);r.position.set(X+x,15,Z+z);g.add(r);
+      B(6,30,6,0xe8e0d0,x,15,z,true);K(4.4,10,0x2f4f6e,x,35,z,4).rotation.y=Math.PI/4;
+      const clk=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#f8f0d8';q.beginPath();q.arc(64,64,60,0,7);q.fill();q.strokeStyle='#2a2a2a';q.lineWidth=6;q.stroke();q.lineWidth=3;for(let i=0;i<12;i++){const a=i/12*Math.PI*2;q.beginPath();q.moveTo(64+Math.cos(a)*48,64+Math.sin(a)*48);q.lineTo(64+Math.cos(a)*56,64+Math.sin(a)*56);q.stroke();}q.lineWidth=6;q.beginPath();q.moveTo(64,64);q.lineTo(64,24);q.moveTo(64,64);q.lineTo(92,70);q.stroke();});
+      const cp=new THREE.Mesh(new THREE.CircleGeometry(2.4,24),new THREE.MeshBasicMaterial({map:clk}));cp.position.set(X+x,24,Z+z+3.05);g.add(cp);
+      C(2.4,2.6,1,0xb8b0a0,x,.5,z+14,16);C(.4,.6,3,0x8a8a8a,x,2,z+14,8);S(.8,0xd8b45a,x,4,z+14);}
+    lbl('Balai Kota','Menara jam tua',L[0],18,L[1]+8);
+    {const vp=[],gr=[];for(let r=0;r<7;r++)for(let c=0;c<10;c++){const x=R[0]-27+c*6,z=R[1]-18+r*6;vp.push([x,.9,z]);gr.push([x,1.3,z+.6]);}inst(new THREE.BoxGeometry(5,1.8,.6),0x3a7a2a,vp);inst(new THREE.SphereGeometry(.35,6,5),0x6a2a6a,gr);
+      const ps=[];for(let r=0;r<7;r++)for(let c=0;c<=10;c++)ps.push([R[0]-30+c*6,1,R[1]-18+r*6]);inst(new THREE.CylinderGeometry(.08,.08,2,5),0x6a4a2a,ps);}
+    lbl('Kebun Anggur','Anggur Aurelia',R[0],8,R[1]+24);
+    if(crops)recol(crops,0xd8c85a);}
+
+  if(th==='gurun'){/* adobe kasbah: flat roofs with parapets, souk tents, camel caravan, date grove */
+    if(roofs)roofs.visible=false;inst(new THREE.BoxGeometry(5.5,.7,5.5),0xc8945a,H.map(h=>[h.x,5.2*h.s,h.z,h.ry,h.s,1,h.s]));
+    if(forest)forest.visible=false;if(crops)crops.visible=false;fields.forEach(f=>recol(f,0xd8b47a));hideMills();if(hay)hay.visible=false;
+    if(hills){const o=new THREE.Object3D(),m=new THREE.Matrix4();for(let i=0;i<hills.count;i++){hills.getMatrixAt(i,m);o.position.setFromMatrixPosition(m);o.position.y=6;o.scale.set(1.4,.35,1.1);o.rotation.set(0,i,0);o.updateMatrix();hills.setMatrixAt(i,o.matrix);}hills.instanceMatrix.needsUpdate=true;}
+    {const tc=[0xd8435b,0x2f6fe0,0xffd25f,0x9a5aff,0x3ddc84,0xff8a3a];for(let i=0;i<8;i++){const x=L[0]-24+(i%4)*16,z=L[1]-8+Math.floor(i/4)*16;B(5,.8,4,0x8a5a2a,x,.4,z);const t=K(5,4,tc[i%6],x,3.2,z,4);t.rotation.y=Math.PI/4;
+      for(const a of [-1,1])for(const b of [-1,1])C(.1,.1,2.4,0x6a4a2a,x+a*2.6,1.2,z+b*2.6,4);const rug=P(3,2,tc[(i+2)%6],x,z+3.6,.06);miniPerson(g,X+x,Z+z+2.4,0,[0xf0e8dc,0x5a3a20][i%2]);}}
+    lbl('Souk Zahran','Pasar karpet & rempah',L[0],9,L[1]+20);
+    const camel=grp=>{bx(grp,1.1,1,2.6,0xc8a06a,0,1.9,0);bx(grp,.9,.8,1,0xb88a5a,0,2.7,-.1);bx(grp,.4,1.4,.4,0xc8a06a,0,2.6,1.4);bx(grp,.5,.5,.9,0xc8a06a,0,3.3,1.7);[[-.4,-1],[.4,-1],[-.4,1],[.4,1]].forEach(([a,b])=>bx(grp,.25,1.5,.25,0xb88a5a,a,.75,b));bx(grp,1.2,.2,1.4,0xd8435b,0,2.45,0);};
+    for(let i=0;i<4;i++)walker(camel,[[-200+i*5,190],[-60+i*5,190],[-60+i*5,214],[-200+i*5,214]],1.1);
+    for(let i=0;i<12;i++)palm(R[0]-25+(i%4)*16,R[1]-14+Math.floor(i/4)*14,9+(i%3));
+    {const x=R[0],z=R[1]+4;C(3,3,4,0xf0dcb0,x,2,z,16,true);const d=new THREE.Mesh(new THREE.SphereGeometry(3,16,10,0,Math.PI*2,0,Math.PI/2),M(0xffffff));d.position.set(X+x,4,Z+z);g.add(d);}
+    lbl('Kebun Kurma & Qubba','Oase rakyat',R[0],12,R[1]+22);}
+
+  if(th==='modern'){/* smart city: houses become apartment blocks, rooftop solar, wind turbines, solar farm, monorail */
+    if(walls){const o=new THREE.Object3D();H.forEach((h,i)=>{o.position.set(X+h.x,7.5*h.s,Z+h.z);o.rotation.set(0,h.ry,0);o.scale.set(h.s,h.s*3,h.s);o.updateMatrix();walls.setMatrixAt(i,o.matrix);});walls.instanceMatrix.needsUpdate=true;}
+    if(roofs)roofs.visible=false;inst(new THREE.BoxGeometry(4,.2,3),0x2a4a8a,H.map(h=>[h.x,15.2*h.s,h.z,h.ry,h.s]));
+    {const st2=[];H.forEach(h=>{for(let k=0;k<3;k++)st2.push([h.x+Math.sin(h.ry)*2.55*h.s,(4+k*4)*h.s,h.z+Math.cos(h.ry)*2.55*h.s,h.ry,h.s]);});inst(new THREE.BoxGeometry(4.2,1,.1),MB(0x9fd8ff),st2);}
+    hideMills();for(const s of [-1,1])for(let k=0;k<3;k++){const x=s*(190+k*18),z=118+k*6;C(.5,.9,26,0xf4f6fa,x,13,z,10,true);B(1.4,1.4,3,0xf4f6fa,x,26,z);const hub=new THREE.Group();hub.position.set(X+x,26,Z+z+1.8);for(let j=0;j<3;j++){const a=new THREE.Group();a.rotation.z=j*Math.PI*2/3;const b=new THREE.Mesh(new THREE.BoxGeometry(.6,11,.15),M(0xffffff));b.position.y=5.5;a.add(b);hub.add(a);}g.add(hub);GK.spin.push({o:hub,ax:'z',sp:1.2});}
+    if(crops)crops.visible=false;fields.forEach(f=>recol(f,0x6a7a6a));{const sp=[];for(const s of [-1,1])for(let r=0;r<10;r++)for(let c=0;c<6;c++)sp.push([s*(196+c*4),1,-90+r*12]);const im=inst(new THREE.BoxGeometry(3.4,.12,8),0x1f3a7a,sp);
+      const o=new THREE.Object3D();sp.forEach((p,i)=>{o.position.set(X+p[0],1,Z+p[2]);o.rotation.set(0,0,.5);o.scale.set(1,1,1);o.updateMatrix();im.setMatrixAt(i,o.matrix);});im.instanceMatrix.needsUpdate=true;}
+    {const x=L[0],z=L[1];P(60,40,0xd8dce4,x,z);for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.TorusKnotGeometry(3,.7,64,8),M([0xff5fa2,0x7aa8ff,0x3ddc84][i]));t.position.set(X+x-16+i*16,7,Z+z);g.add(t);GK.spin.push({o:t,ax:'y',sp:.6+i*.2});C(1.4,1.6,2,0x30343c,x-16+i*16,1,z,12,true);}}
+    lbl('Taman Seni Digital','Patung kinetik',L[0],15,L[1]+14);
+    {const pz=226;const pl=[];for(let x=-200;x<=200;x+=20)pl.push([x,4,pz]);inst(new THREE.CylinderGeometry(.6,.8,8,8),0xc8ccd4,pl);B(410,.8,2.4,0xe8ecf2,0,8.4,pz);
+      walker(grp=>{for(let k=0;k<3;k++){bx(grp,2.6,2.4,7,0xf4f6fa,0,10,k*7.4-7.4);bx(grp,2.7,.8,6.6,0x2f6fe0,0,10.4,k*7.4-7.4);}},[[-196,pz],[196,pz]],9);}
+    lbl('Monorel Hanseo','Kereta layang kota',R[0],14,224);}
+
+  if(th==='bahari'){/* harbour town: pastel houses, terracotta roofs, harbour with boats, canal with gondolas */
+    if(walls){try{const pal=[0xffd0d8,0xffe6a0,0xbfe6ff,0xc8f0d0,0xf0d8ff,0xffffff,0xffc8a0];walls.material=new THREE.MeshLambertMaterial({color:0xffffff});const c=new THREE.Color();for(let i=0;i<walls.count;i++){c.setHex(pal[i%pal.length]);walls.setColorAt(i,c);}if(walls.instanceColor)walls.instanceColor.needsUpdate=true;}catch(e){}}
+    newRoof(new THREE.ConeGeometry(4.2,2,4),0xc8643a,6.1,Math.PI/4);
+    {const x=L[0],z=L[1];const w=new THREE.Mesh(new THREE.PlaneGeometry(72,40),MB(0x2f7fc8));w.rotation.x=-Math.PI/2;w.position.set(X+x,.05,Z+z+4);g.add(w);B(72,1,4,0xb8ae9a,x,.5,z-17,true);
+      for(let i=0;i<3;i++)B(3,.6,20,0x8a6a3a,x-20+i*20,.6,z+2);const cr=[];for(let i=0;i<10;i++)cr.push([x-30+i*6.5,1.6,z-17]);inst(new THREE.BoxGeometry(1.4,1.4,1.4),0x9a6a3a,cr);
+      for(let i=0;i<4;i++){const bx0=x-30+i*20,bz=z+(i%2?6:14);B(3,1.4,8,[0xd8435b,0xf0e8dc,0x2f6fd6,0xffd25f][i],bx0+(i%2?3:-3),.7,bz);C(.12,.12,7,0x5a3a20,bx0+(i%2?3:-3),4.4,bz,5);}
+      const net=new THREE.Mesh(new THREE.PlaneGeometry(6,3),new THREE.MeshLambertMaterial({color:0x6a8a6a,transparent:true,opacity:.6,side:THREE.DoubleSide}));net.position.set(X+x+28,2,Z+z-15);g.add(net);}
+    lbl('Pelabuhan Nelayan','Kapal & peti dagang',L[0],8,L[1]-20);
+    {const x=R[0],z=R[1];const w=new THREE.Mesh(new THREE.PlaneGeometry(10,52),MB(0x3a8ac8));w.rotation.x=-Math.PI/2;w.position.set(X+x,.05,Z+z);g.add(w);for(const s of [-1,1])B(.6,1,52,0xd8cfc0,x+s*5.3,.5,z);
+      const br=new THREE.Mesh(new THREE.TorusGeometry(5.5,.6,8,16,Math.PI),M(0xe8e0d0));br.position.set(X+x,0,Z+z);br.rotation.y=Math.PI/2;g.add(br);
+      for(let k=0;k<2;k++)walker(grp=>{bx(grp,1.2,.4,6,0x1a1a1a,0,.3,0);bx(grp,.8,.5,.8,0xd8435b,0,.7,1);const pr=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,3,4),M(0x6a4a2a));pr.position.set(.4,1.6,-2.2);grp.add(pr);},k?[[x,z+24],[x,z-24]]:[[x,z-22],[x,z+22]],1.6);
+      for(let i=0;i<6;i++)C(.15,.15,3,i%2?0xd8435b:0xffffff,x+(i<3?-6.4:6.4),1.5,z-20+(i%3)*20,6);}
+    lbl('Kanal Gondola','Jembatan lengkung',R[0],10,R[1]+28);}
+
+  if(th==='naga'){/* hutong roofs, lantern strings, lotus pond with zigzag bridge and moon gate, tea terraces, stone lions */
+    newRoof(new THREE.ConeGeometry(5,2.2,4),0x2a2a2a,6.2,Math.PI/4);inst(new THREE.BoxGeometry(5.4,.3,.5),0xffc83a,H.map(h=>[h.x,7.3*h.s,h.z,h.ry,h.s]));
+    {const lp=[];for(let z=130;z<=224;z+=4)for(const s of [-1,1])lp.push([s*7,6.2,z]);inst(new THREE.SphereGeometry(.45,8,6),MB(0xe8302a),lp.map(p=>[p[0],p[1],p[2],0,1,1.3,1]));for(let z=130;z<=224;z+=24)B(14,.1,.1,0x2a2a2a,0,7,z);}
+    for(const s of [-1,1]){B(2,1.4,3,0x9a9a94,s*6,.7,124);S(1,0x9a9a94,s*6,2.2,124.4);S(.8,0x9a9a94,s*6,3.2,125.2);}
+    {const x=L[0],z=L[1];const w=new THREE.Mesh(new THREE.PlaneGeometry(64,36),MB(0x3a8a8a));w.rotation.x=-Math.PI/2;w.position.set(X+x,.05,Z+z);g.add(w);
+      const lo=[];for(let i=0;i<30;i++)lo.push([x-28+((i*17)%56),.1,z-15+((i*11)%30)]);inst(new THREE.CylinderGeometry(.9,.9,.08,10),0x3aa84a,lo);inst(new THREE.SphereGeometry(.35,6,5),0xff9ad0,lo.filter((p,i)=>i%2).map(p=>[p[0],.4,p[2]]));
+      for(let i=0;i<6;i++){const seg=B(3,.4,8,0xb8302a,x-25+i*5+((i%2)?.6:-.6),.6,z+(i%2?4:-4));seg.rotation.y=(i%2?.6:-.6);}
+      const mg=new THREE.Mesh(new THREE.TorusGeometry(5,1.4,8,24),M(0xf0e8dc));mg.position.set(X+x+28,5,Z+z);mg.rotation.y=Math.PI/2;g.add(mg);B(1.8,1.2,12,0x2a2a2a,x+28,10.4,z);}
+    lbl('Kolam Teratai','Jembatan zigzag · gerbang bulan',L[0],9,L[1]+20);
+    for(let i=0;i<6;i++){const w=56-i*7,z=R[1]-18+i*7;B(w,1+i,6,0x6a5a3a,R[0],(1+i)/2,z);const tb=[];for(let k=0;k<Math.floor(w/2.4);k++)tb.push([R[0]-w/2+1.2+k*2.4,1.5+i,z]);inst(new THREE.SphereGeometry(1,8,6),0x2f7a3a,tb.map(p=>[p[0],p[1],p[2],0,1,.6,1]));}
+    lbl('Kebun Teh','Teh naga emas',R[0],12,R[1]+24);
+    if(crops)recol(crops,0x3a8a3a);}
+
+  if(th==='sabana'){/* round mud huts with thatch, acacias, millet, drum circle, wildlife */
+    if(walls)walls.visible=false;if(roofs)roofs.visible=false;
+    inst(new THREE.CylinderGeometry(2.6,2.8,4,14),0xb8744a,H.map(h=>[h.x,2*h.s,h.z,0,h.s]));inst(new THREE.ConeGeometry(3.6,3.6,14),0xc8a45a,H.map(h=>[h.x,5.6*h.s,h.z,0,h.s]));
+    if(forest){forest.geometry=new THREE.CylinderGeometry(4.6,3.6,1.2,9);forest.material=M(0x5a7a2a);const o=new THREE.Object3D(),m=new THREE.Matrix4(),tr=[];for(let i=0;i<forest.count;i++){forest.getMatrixAt(i,m);o.position.setFromMatrixPosition(m);tr.push([o.position.x-X,3,o.position.z-Z]);o.position.y=6.4;o.scale.set(1,1,1);o.rotation.set(0,i,0);o.updateMatrix();forest.setMatrixAt(i,o.matrix);}forest.instanceMatrix.needsUpdate=true;inst(new THREE.CylinderGeometry(.3,.5,6,6),0x6a4a2a,tr);}
+    if(crops)recol(crops,0xd8b45a);fields.forEach(f=>recol(f,0xa8784a));
+    {const x=L[0],z=L[1];P(40,40,0xa86a3a,x,z);for(let i=0;i<10;i++){const a=i/10*Math.PI*2;C(.7,.5,1.4,0x6a3a1a,x+Math.cos(a)*7,.7,z+Math.sin(a)*7,10);miniPerson(g,X+x+Math.cos(a)*8.6,Z+z+Math.sin(a)*8.6,-a-Math.PI/2,[0xd8435b,0xffd25f,0x3ddc84,0x2f6fe0][i%4]);}
+      C(1.2,1.4,.4,0x3a2a1a,x,.2,z,10);const fire=K(1,2.4,MB(0xff8a2a),x,1.4,z,8);GK.spin.push({o:fire,ax:'y',sp:3});
+      const pots=[];for(let i=0;i<14;i++)pots.push([x-24+(i%7)*2.2,.6,z+16+Math.floor(i/7)*2.2]);inst(new THREE.SphereGeometry(.7,8,6),0xa8583a,pots);}
+    lbl('Lingkar Gendang','Pasar gerabah',L[0],8,L[1]+22);
+    const giraffe=grp=>{bx(grp,1,1.2,2.4,0xe8b44a,0,3,0);[[-.35,-.9],[.35,-.9],[-.35,.9],[.35,.9]].forEach(([a,b])=>bx(grp,.2,2.4,.2,0xd8a43a,a,1.2,b));const n=bx(grp,.35,3,.35,0xe8b44a,0,4.8,1.1);n.rotation.x=.25;bx(grp,.5,.5,1,0xe8b44a,0,6.3,1.7);};
+    const elephant=grp=>{bx(grp,2.4,2.2,3.6,0x8a8a8a,0,2.4,0);[[-.8,-1.2],[.8,-1.2],[-.8,1.2],[.8,1.2]].forEach(([a,b])=>bx(grp,.7,1.4,.7,0x7a7a7a,a,.7,b));bx(grp,1.6,1.6,1.2,0x8a8a8a,0,3,2.2);bx(grp,.4,1.8,.4,0x7a7a7a,0,1.8,2.9);for(const s of [-1,1])bx(grp,.15,1.4,1.2,0x9a9a9a,s*1,3.1,2);};
+    walker(giraffe,[[R[0]-20,R[1]-10],[R[0]+20,R[1]-10],[R[0]+20,R[1]+14]],.8);walker(giraffe,[[R[0]+14,R[1]+10],[R[0]-16,R[1]+12],[R[0]-10,R[1]-14]],.7);walker(elephant,[[R[0]-24,R[1]+18],[R[0]+26,R[1]+4]],.6);
+    lbl('Padang Satwa','Jerapah & gajah',R[0],12,R[1]+26);}
+
+  if(th==='andes'){/* stone houses with thatch, tall snowy mountains, circular Moray terraces, llamas, stone ruins */
+    newRoof(new THREE.ConeGeometry(4.2,4.4,4),0xa88a4a,7.2,Math.PI/4);
+    if(hills){const o=new THREE.Object3D(),m=new THREE.Matrix4(),caps=[];for(let i=0;i<hills.count;i++){hills.getMatrixAt(i,m);o.position.setFromMatrixPosition(m);const sy=2.4+(i%4)*.5;o.position.y=22*sy;o.scale.set(1,sy,1);o.rotation.set(0,i,0);o.updateMatrix();hills.setMatrixAt(i,o.matrix);caps.push([o.position.x-X,22*sy+45*sy/2-45*sy*.18/2,o.position.z-Z,i,.18,sy*.18,.18]);}hills.instanceMatrix.needsUpdate=true;
+      inst(new THREE.ConeGeometry(60,45,7),0xffffff,caps.map(c=>[c[0],c[1]-1,c[2],c[3],c[4]*1.05,c[5],c[6]*1.05]));}
+    {const x=L[0],z=L[1];for(let i=0;i<5;i++){C(18-i*3.2,18.4-i*3.2,1.4,i%2?0x7a9a4a:0x8aaa52,x,.7+i*1.4,z,24);C(18.2-i*3.2,18.2-i*3.2,.3,0x8a826e,x,1.45+i*1.4,z,24);}}
+    lbl('Teras Melingkar','Ladang bertingkat',L[0],9,L[1]+20);
+    {const x=R[0],z=R[1];for(let i=0;i<6;i++){const wx=x-24+i*9.6;B(8,3.4+(i%3),.9,0x8a826e,wx,1.7+(i%3)/2,z-10,true);B(.9,3.4,8,0x8a826e,wx-4,1.7,z-6);}B(4,1,4,0x9a927e,x,.5,z+6);B(1,2.4,1,0x9a927e,x,2.2,z+6);
+      lbl('Reruntuhan Batu','Batu penambat matahari',R[0],9,R[1]+16);}
+    const llama=grp=>{bx(grp,.9,.9,1.8,0xf0e8dc,0,1.5,0);[[-.3,-.6],[.3,-.6],[-.3,.6],[.3,.6]].forEach(([a,b])=>bx(grp,.18,1.1,.18,0xd8c8b0,a,.55,b));bx(grp,.35,1.4,.35,0xf0e8dc,0,2.4,.8);bx(grp,.4,.4,.7,0xf0e8dc,0,3.1,1);bx(grp,1,.15,1,0xd8435b,0,2,0);};
+    for(let i=0;i<5;i++)walker(llama,[[-60-i*3,214],[-130-i*3,180],[-60-i*3,176]],.9);
+    if(crops)recol(crops,0xb8433a);}
+
+  if(th==='salju'){/* snowy fjord village: snow roofs, frozen lake with skaters, longship, stave church, reindeer, aurora */
+    newRoof(new THREE.ConeGeometry(4.6,4,4),0xf4f8fc,7.0,Math.PI/4);if(forest)forest.material=M(0x1f4a3a);if(crops)recol(crops,0xe8eef4);fields.forEach(f=>recol(f,0xdfe8f0));if(hay)recol(hay,0xf4f8fc);
+    {const x=L[0],z=L[1];const ice=new THREE.Mesh(new THREE.CircleGeometry(24,32),new THREE.MeshLambertMaterial({color:0xbfe6ff}));ice.rotation.x=-Math.PI/2;ice.position.set(X+x,.05,Z+z);g.add(ice);
+      for(let k=0;k<4;k++){const r=8+k*3;walker(grp=>{miniPerson(grp,0,0,0,[0xd8435b,0x2f6fe0,0xffd25f,0x3ddc84][k]);},[[x+r,z],[x,z+r],[x-r,z],[x,z-r]],2+k*.3);}
+      const sh=new THREE.Group();const hl=new THREE.Mesh(new THREE.BoxGeometry(4,1.6,16),M(0x5a3a20));sh.add(hl);for(const s of [-1,1]){const pr=new THREE.Mesh(new THREE.BoxGeometry(.6,4,.6),M(0x5a3a20));pr.position.set(0,1.8,s*8.2);pr.rotation.x=s*-.4;sh.add(pr);}
+      const sail=new THREE.Mesh(new THREE.PlaneGeometry(7,6),new THREE.MeshLambertMaterial({color:0xd8435b,side:THREE.DoubleSide}));sail.position.set(0,6,0);sail.rotation.y=Math.PI/2;sh.add(sail);const ms=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,10,6),M(0x3a2a1a));ms.position.y=5;sh.add(ms);
+      for(let i=0;i<5;i++)for(const s of [-1,1]){const sd=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,.2,12),M([0xd8435b,0xffd25f][i%2]));sd.rotation.z=Math.PI/2;sd.position.set(s*2.1,.4,-5+i*2.5);sh.add(sd);}sh.position.set(X+x+30,.8,Z+z);g.add(sh);}
+    lbl('Danau Beku','Main seluncur es',L[0],7,L[1]+26);
+    {const x=R[0],z=R[1];B(10,6,12,0x3a2a1a,x,3,z,true);for(let i=0;i<3;i++){const r=new THREE.Mesh(new THREE.CylinderGeometry(0,7.4-i*2,3.4,4),M(0x2a1a10));r.rotation.y=Math.PI/4;r.scale.set(1,1,1.1);r.position.set(X+x,7.4+i*3.6,Z+z);g.add(r);if(i<2)B(6-i*2,2.2,6-i*2,0x3a2a1a,x,9.4+i*3.6,z);}K(.5,3,0xffd25f,x,18.6,z,6);
+      for(const s of [-1,1])B(.3,1.6,.3,0xffd25f,x+s*3.6,8.6,z+6.2).rotation.z=s*.5;}
+    lbl('Gereja Kayu','Atap bertingkat',R[0],22,R[1]+8);
+    const deer=grp=>{bx(grp,.9,.9,1.8,0x8a6a4a,0,1.5,0);[[-.3,-.6],[.3,-.6],[-.3,.6],[.3,.6]].forEach(([a,b])=>bx(grp,.16,1.1,.16,0x6a4a2a,a,.55,b));bx(grp,.4,.8,.4,0x8a6a4a,0,2.2,.9);bx(grp,.4,.4,.7,0x8a6a4a,0,2.6,1.2);for(const s of [-1,1]){const an=bx(grp,.08,1,.08,0xe8dcc0,s*.25,3.3,1);an.rotation.z=s*.5;}};
+    for(let i=0;i<4;i++)walker(deer,[[R[0]-26+i*3,R[1]+22],[R[0]+26,R[1]+18-i*2],[R[0]+20,R[1]-22]],.9);
+    {const tex=canvasTex(256,64,(q,w,h)=>{const gr=q.createLinearGradient(0,0,0,h);gr.addColorStop(0,'rgba(80,255,170,0)');gr.addColorStop(.5,'rgba(80,255,170,.55)');gr.addColorStop(1,'rgba(120,120,255,0)');q.fillStyle=gr;q.fillRect(0,0,w,h);});
+      for(let i=0;i<5;i++){const a=new THREE.Mesh(new THREE.PlaneGeometry(240,50),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));a.position.set(X-200+i*100,130+(i%2)*14,Z-260+(i%3)*20);a.rotation.y=(i-2)*.25;g.add(a);}}}
+}
+/* outermost wrap: theme the town and register every collider added by all gkBuild layers, so they are removed on leave */
+gkBuild=(f=>function(kd){const c0=colliders.length;const g=f.apply(this,arguments);try{gk85Town(g,kd);}catch(e){console.error('gk85',e);}GK.cols=new Set(colliders.slice(c0));return g;})(gkBuild);
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
