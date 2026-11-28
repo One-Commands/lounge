@@ -3589,7 +3589,7 @@ function walkersTick(dt){for(const w of cityWalkers){if(!w.g.visible||w.p.userDa
   const dx=w.goal[0]-p.position.x,dz=w.goal[1]-p.position.z,d=Math.hypot(dx,dz);
   if(d<.3){w.goal=null;w.wait=2.5+Math.random()*4;w.shop=true;p.rotation.y+=Math.PI;continue;}
   const st=Math.min(d,w.sp*dt);p.position.x+=dx/d*st;p.position.z+=dz/d*st;p.rotation.y=Math.atan2(dx,dz);w.ph+=dt*10;p.position.y=Math.abs(Math.sin(w.ph))*.12;}}
-const GAME_VER='v94';
+const GAME_VER='v95';
 function verCheck(){if(!/github\.io$/.test(location.hostname))return;fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/GAME_VER='(v[\d.]+)'/);if(m&&m[1]!==GAME_VER&&!$('verBar')){const b=document.createElement('div');b.id='verBar';b.className='mpinv';b.innerHTML=`<b>✨ Versi baru tersedia!</b><small>Muat ulang supaya dapat perbaikan terbaru. Progres tetap aman.</small><div><button class="pbtn" id="verGo">Muat ulang</button></div>`;stage.appendChild(b);$('verGo').onclick=()=>{save();savePF();location.replace(location.pathname+'?v='+Date.now());};}}).catch(()=>{});}
 setTimeout(verCheck,8000);setInterval(verCheck,300000);
 /* ---------- company ownership: fixed share count, controlling NPC owners, takeovers ---------- */
@@ -11776,6 +11776,46 @@ function apt94(){if(APT94.done)return;APT94.done=1;scene.updateMatrixWorld(true)
     try{merge90(G);}catch(e){}APT94.n++;});}
 setTimeout(function a94(){if(!started){setTimeout(a94,1500);return;}try{apt94();}catch(e){console.error('apt94',e);}},900);
 try{NEW82.unshift(['🏢','Apartemen mewah','Blok apartemen ditinggikan 2 tingkat bertingkat mundur, balkon kaca, taman teras, kolam renang atap; Permata Residence dapat taman langit.','baru82']);}catch(e){}
+
+/* ================= v95: Grand Plaza Mall megah — luar: tambah 2 lantai kaca, kubah atrium, kanopi kaca, layar LED, plaza & air mancur; dalam: skylight atrium, eskalator miring, medali lantai, lampion gantung ================= */
+const MALL95={};
+function mall95(){if(MALL95.done)return;MALL95.done=1;const MC={};const M=c=>MC[c]||(MC[c]=mat(c)),MB=c=>MC['b'+c]||(MC['b'+c]=new THREE.MeshBasicMaterial({color:c}));
+  const glassT=canvasTex(128,128,(q,w,h)=>{const g=q.createLinearGradient(0,0,0,h);g.addColorStop(0,'#bfe6ff');g.addColorStop(1,'#5a8ac8');q.fillStyle=g;q.fillRect(0,0,w,h);q.strokeStyle='rgba(255,255,255,.7)';q.lineWidth=3;for(let i=0;i<=w;i+=32){q.beginPath();q.moveTo(i,0);q.lineTo(i,h);q.stroke();}for(let j=0;j<=h;j+=21){q.beginPath();q.moveTo(0,j);q.lineTo(w,j);q.stroke();}
+    q.fillStyle='rgba(255,240,200,.55)';for(let k=0;k<10;k++)q.fillRect(4+Math.floor(Math.random()*4)*32,3+Math.floor(Math.random()*6)*21,24,15);});glassT.wrapS=glassT.wrapT=THREE.RepeatWrapping;
+  const gm=(rx,ry)=>{const t=glassT.clone();t.needsUpdate=true;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);return new THREE.MeshBasicMaterial({map:t});};
+  /* ---- exterior ---- */
+  {const G=new THREE.Group();cityGrp.add(G);const X=168,Z=68,Y=18.6;
+    const B=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='number'?M(m):m);o.position.set(x,y,z);G.add(o);return o;};
+    B(14,10,30,gm(3,2),X+.6,Y+5,Z);B(14.6,.6,30.6,0xd8a648,X+.6,Y+10.3,Z);B(14.3,.5,30.3,MB(0xff5fa2),X+.6,Y+.4,Z);
+    B(10,6,20,gm(2,1),X+1.5,Y+13.6,Z);B(10.5,.5,20.5,MB(0x7fd4ff),X+1.5,Y+16.7,Z);
+    {const r=new THREE.Mesh(new THREE.CylinderGeometry(5.6,5.6,1.2,24),M(0xd8dce4));r.position.set(X+1.5,Y+17.5,Z);G.add(r);const d=new THREE.Mesh(new THREE.SphereGeometry(5.4,24,12,0,Math.PI*2,0,Math.PI/2),gm(4,1));d.position.set(X+1.5,Y+18,Z);G.add(d);
+     const s=new THREE.Mesh(new THREE.ConeGeometry(.5,3,8),M(0xd8a648));s.position.set(X+1.5,Y+24.8,Z);G.add(s);}
+    /* glass entrance pavilion over the door, columns kept clear of the walkway */
+    B(4.2,.5,16,0xd8dce4,X-9.8,7.2,Z);B(4,.2,15.6,MB(0xbfe6ff),X-9.8,6.9,Z);for(const s of [-1,1])B(.4,7,.4,0xd8dce4,X-11.6,3.5,Z+s*7.6);
+    for(const s of [-1,1])for(let i=0;i<4;i++)B(.25,17,.25,MB([0xff5fa2,0x7fd4ff,0xffd25f,0x3ddc84][i]),X-8.15,8.8,Z+s*(10+i*2));
+    {const scr=canvasTex(256,128,(q,w,h)=>{const g=q.createLinearGradient(0,0,w,0);g.addColorStop(0,'#ff5fa2');g.addColorStop(1,'#7a5aff');q.fillStyle=g;q.fillRect(0,0,w,h);q.fillStyle='#fff';q.textAlign='center';q.font='bold 30px sans-serif';q.fillText('MEGA SALE',w/2,56);q.font='20px sans-serif';q.fillText('diskon s/d 70% · 4 lantai',w/2,92);});
+     const p=new THREE.Mesh(new THREE.PlaneGeometry(9,4.5),new THREE.MeshBasicMaterial({map:scr}));p.position.set(X-8.3,Y+5,Z-8);p.rotation.y=-Math.PI/2;G.add(p);}
+    /* plaza with a fountain, planters and lamps */
+    {const pl=canvasTex(128,128,(q,w,h)=>{q.fillStyle='#d8d0c0';q.fillRect(0,0,w,h);q.strokeStyle='#b8ae9a';q.lineWidth=2;for(let i=0;i<w;i+=16){q.beginPath();q.moveTo(i,0);q.lineTo(i,h);q.stroke();q.beginPath();q.moveTo(0,i);q.lineTo(w,i);q.stroke();}});pl.wrapS=pl.wrapT=THREE.RepeatWrapping;pl.repeat.set(5,8);
+     const p=new THREE.Mesh(new THREE.PlaneGeometry(16,30),new THREE.MeshLambertMaterial({map:pl}));p.rotation.x=-Math.PI/2;p.position.set(150,.02,Z);G.add(p);
+     const fx=147.5,fz=Z;const b=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.8,.8,24),M(0xe8e0d0));b.position.set(fx,.4,fz);G.add(b);const w=new THREE.Mesh(new THREE.CylinderGeometry(2.3,2.3,.1,24),MB(0x5fc8f0));w.position.set(fx,.82,fz);G.add(w);
+     const c=new THREE.Mesh(new THREE.CylinderGeometry(.3,.5,2.4,10),M(0xd8a648));c.position.set(fx,1.6,fz);G.add(c);const j=new THREE.Mesh(new THREE.ConeGeometry(.5,1.8,8),new THREE.MeshBasicMaterial({color:0xbfefff,transparent:true,opacity:.7}));j.position.set(fx,3.6,fz);G.add(j);
+     colliders.push({x0:fx-2.8,x1:fx+2.8,z0:fz-2.8,z1:fz+2.8,top:.8});
+     for(const s of [-1,1]){B(2,.8,2,0x8a6a4a,152,.4,Z+s*11);const t=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,0),M(0x2f9e4a));t.position.set(152,1.8,Z+s*11);G.add(t);B(.15,5,.15,0x2a2a2a,144,2.5,Z+s*9);const l=new THREE.Mesh(new THREE.SphereGeometry(.4,8,6),MB(0xffe6a0));l.position.set(144,5.2,Z+s*9);G.add(l);}}
+    try{merge90(G);}catch(e){}}
+  /* ---- interior on each floor ---- */
+  (mallGrps||[]).forEach((g,k)=>{const zc=mallZ(k),G=new THREE.Group();g.add(G);
+    const sky=new THREE.Mesh(new THREE.PlaneGeometry(24,12),gm(6,3));sky.rotation.x=Math.PI/2;sky.position.set(0,8.94,zc);G.add(sky);
+    const fr=new THREE.Mesh(new THREE.BoxGeometry(24.6,.4,12.6),M(0xd8a648));fr.position.set(0,8.8,zc);G.add(fr);
+    const med=new THREE.Mesh(new THREE.CircleGeometry(4.6,32),M([0xffe0ee,0xe0f4ff,0xfff0d8,0xeee4ff][k]));med.rotation.x=-Math.PI/2;med.position.set(0,.016,zc);G.add(med);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(4.6,5,40),M(0xd8a648));ring.rotation.x=-Math.PI/2;ring.position.set(0,.018,zc);G.add(ring);
+    for(const s of [-1,1]){const e=new THREE.Group();e.position.set(s*13,0,zc);e.rotation.x=.75;const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,.5,12.6),M(0x6a6e78));e.add(body);
+      for(let i=0;i<16;i++){const st=new THREE.Mesh(new THREE.BoxGeometry(1.8,.08,.5),M(0x30343c));st.position.set(0,.3,-6+i*.8);e.add(st);}for(const a of [-1,1]){const gl=new THREE.Mesh(new THREE.BoxGeometry(.1,.9,12.6),MB(0xcfe6f6));gl.position.set(a*1.1,.7,0);e.add(gl);const hr=new THREE.Mesh(new THREE.BoxGeometry(.14,.14,12.6),M(0x202020));hr.position.set(a*1.1,1.2,0);e.add(hr);}
+      e.position.y=4.3;g.add(e);}
+    const lan=[];for(let i=0;i<10;i++){const a=i/10*Math.PI*2;const l=new THREE.Mesh(new THREE.SphereGeometry(.4,8,6),MB([0xff5fa2,0xffd25f,0x7fd4ff][i%3]));l.position.set(Math.cos(a)*9,6.6+(i%2)*.6,zc+Math.sin(a)*4.6);G.add(l);}
+    try{merge90(G);}catch(e){}});}
+setTimeout(function m95(){if(!started){setTimeout(m95,1500);return;}try{mall95();}catch(e){console.error('mall95',e);}},1000);
+try{NEW82.unshift(['🏬','Mall megah','Grand Plaza Mall tambah 2 lantai kaca, kubah atrium, kanopi, layar LED, plaza & air mancur; di dalam skylight dan eskalator.','baru82']);}catch(e){}
 
 function boot(){ecoClean();if(S.ecoFix){delete S.ecoFix;save();savePF();setTimeout(()=>{logLine('sys',null,'⚖️ Saldo hasil bug saham dipotong jadi 1 miliar koin. Item, properti, dan bisnis tetap aman.');showResult('⚖️ Saldo dinormalkan ke 1 miliar');},3000);}gfxApply();buildWorld();buildCharacters();if(location.hash.startsWith('#dev'))window.__ev=c=>eval(c);if(location.hash.startsWith('#dev'))window.__L={you,wheels,ORDER,stations,showBroke,S,render,DUEL,PF,get duel(){return duel},set duel(v){duel=v},inviteDuel,get modal(){return modal},MP,mpCreate,mpJoin,mpChallenge,mpChat,openMabar};camTarget.set(you.pos.x,2.4,you.pos.z);render();requestAnimationFrame(loop);}
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Fredoka'),document.fonts.load('800 14px Nunito')]):Promise.resolve();
